@@ -2,11 +2,11 @@
 name: woos-feature-design
 description: Create implementation-ready feature technical design after PRD and capability contract are available.
 version: 1.1.0
-author: Hermes ECC Profile
+author: Hermes Profile
 license: MIT
 ---
 
-# Woosley Feature Design
+# Woos Feature Design
 
 ## Purpose
 
@@ -14,8 +14,8 @@ Produce a technical design artifact that is precise enough for TDD and implement
 
 ## Required Invocation (hard gate)
 
-- MUST invoke ECC `architect` to produce/revise the design.
-- For high-complexity scope, also invoke ECC `planner` to validate decomposition and sequencing.
+- MUST invoke `architect` to produce/revise the design.
+- For high-complexity scope, also invoke `planner` to validate decomposition and sequencing.
 - If required invocation is missing, return `NOT_RUN` and stop.
 - If required component is unavailable, return `BLOCKED` and stop.
 - Do not substitute with undocumented ad-hoc design notes.

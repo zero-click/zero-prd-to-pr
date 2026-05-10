@@ -1,14 +1,14 @@
-# Hermes ECC Coding Workflow Design
+# Hermes Coding Workflow Design
 
 ## Overview
 
 This profile uses a **skill-first gated workflow** for software delivery.  
-Each workflow node must invoke exactly one named skill (local or ECC-imported), satisfy a minimal contract, and emit an explicit gate status.
+Each workflow node must invoke exactly one named skill (local or imported), satisfy a minimal contract, and emit an explicit gate status.
 
 Core objective:
 
-- maximize reuse of ECC skills/agents
-- keep local skills as thin wrappers only where ECC has no single ready-made skill
+- maximize reuse of imported skills
+- keep local skills as thin wrappers only where no single ready-made skill exists
 - enforce deterministic progression with hard stop conditions
 
 ## Workflow Topology
@@ -26,6 +26,11 @@ Research
   -> Code/Security Review
   -> PR Readiness
 ```
+
+Git mode policy:
+
+- Always run `git-workflow` before meaningful code changes.
+- Run `dmux-workflows` only for parallel lanes; when active, use worktree-per-worker.
 
 ## Gate Status Model
 
@@ -46,29 +51,33 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 
 | Node | Skill | Source | Contract (minimal) |
 |---|---|---|---|
-| Research | `search-first` | ECC | Search reusable solutions before net-new work |
+| Git Workflow | `git-workflow` | imported | Define branch/commit/PR/merge-rebase mode before coding |
+| Research | `search-first` | imported | Search reusable solutions before net-new work |
+| Parallel Orchestration (when needed) | `dmux-workflows` | imported | Orchestrate parallel lanes with worktree isolation |
 | PRD Draft | `woos-prd-authoring` | local | Produce PRD artifact with testable AC |
-| PRD Review | `woos-prd-review-gate` | local | Invoke ECC planner+architect and return gate status |
-| Capability Contract | `product-capability` | ECC | Convert PRD intent into implementation contract |
+| PRD Review | `woos-prd-review-gate` | local | Invoke planner+architect and return gate status |
+| Capability Contract | `product-capability` | imported | Convert PRD intent into implementation contract |
 | Feature Design | `woos-feature-design` | local | Produce technical design artifact |
-| Design Review | `woos-design-review-gate` | local | Invoke ECC architect and return gate status |
-| TDD | `tdd-workflow` | ECC | RED -> GREEN discipline for behavior changes |
-| Implement | `coding-standards` | ECC | Enforce implementation quality baseline |
-| Verify | `verification-loop` | ECC | Run verification phases and report outcomes |
-| Code/Security Review | `woos-code-review-gate` | local | Invoke ECC code/security reviewers and gate |
+| Design Review | `woos-design-review-gate` | local | Invoke architect and return gate status |
+| TDD | `tdd-workflow` | imported | RED -> GREEN discipline for behavior changes |
+| Implement | `coding-standards` | imported | Enforce implementation quality baseline |
+| Verify | `verification-loop` | imported | Run verification phases and report outcomes |
+| Code/Security Review | `woos-code-review-gate` | local | Invoke code/security reviewers and gate |
 | PR Readiness | `woos-pr-readiness` | local | Final PR readiness with verification visibility |
 
-## ECC Modules Used
+## Imported Modules Used
 
-### ECC Skills (directly invoked)
+### Imported Skills (directly invoked)
 
 - `search-first`
+- `git-workflow`
+- `dmux-workflows`
 - `product-capability`
 - `tdd-workflow`
 - `coding-standards`
 - `verification-loop`
 
-### ECC Agents (invoked via local gate skills)
+### Agent-Adapter Skills (invoked via local gate skills)
 
 - `planner` (PRD review support)
 - `architect` (PRD/design review and design ownership)
@@ -77,7 +86,7 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 
 ## Local Skill Wrappers (Design Rationale)
 
-Local wrappers exist only to provide hard-gate orchestration around ECC capabilities:
+Local wrappers exist only to provide hard-gate orchestration around imported capabilities:
 
 - `woos-prd-review-gate`
 - `woos-feature-design`
@@ -87,7 +96,7 @@ Local wrappers exist only to provide hard-gate orchestration around ECC capabili
 
 Wrapper principles:
 
-1. hard required invocation of named ECC skills/agents
+1. hard required invocation of named skills
 2. no fallback to generic/self review
 3. normalized gate status output
 4. explicit blocking behavior when dependencies are missing
@@ -95,7 +104,7 @@ Wrapper principles:
 ## Enforcement Rules
 
 1. A gate is invalid if required skill/agent was not invoked.
-2. Local wrappers must remain thin and ECC-centric.
+2. Local wrappers must remain thin and contract-centric.
 3. Any gate returning `REQUEST_CHANGES` must rerun the same gate skill after revisions.
 4. No implementation starts before PRD draft/review and capability contract gates pass.
 5. No PR handoff before verify + code/security review + PR readiness gates pass.

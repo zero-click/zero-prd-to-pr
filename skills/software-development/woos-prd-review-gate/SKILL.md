@@ -1,12 +1,12 @@
 ---
 name: woos-prd-review-gate
-description: Independent PRD review gate for Hermes workflow. Executes ECC planner + architect reviews and returns PASS or REQUEST_CHANGES.
+description: Independent PRD review gate for Hermes workflow. Executes planner + architect reviews and returns PASS or REQUEST_CHANGES.
 version: 1.1.0
-author: Hermes ECC Profile
+author: Hermes Profile
 license: MIT
 ---
 
-# Woosley PRD Review Gate
+# Woos PRD Review Gate
 
 ## Purpose
 
@@ -14,8 +14,8 @@ Run a strict PRD review gate after PRD drafting and before design.
 
 ## Required reviewers
 
-1. ECC `planner`
-2. ECC `architect`
+1. `planner`
+2. `architect`
 
 Both must review the same PRD artifact independently.
 

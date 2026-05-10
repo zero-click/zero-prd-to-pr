@@ -1,12 +1,12 @@
 ---
 name: woos-code-review-gate
-description: Independent code/security review gate for Hermes workflow. Uses ECC code-reviewer and security-reviewer where applicable.
+description: Independent code/security review gate for Hermes workflow. Uses code-reviewer and security-reviewer where applicable.
 version: 1.1.0
-author: Hermes ECC Profile
+author: Hermes Profile
 license: MIT
 ---
 
-# Woosley Code Review Gate
+# Woos Code Review Gate
 
 ## Purpose
 
@@ -14,8 +14,8 @@ Enforce independent review before PR readiness.
 
 ## Required reviewers
 
-- Always: ECC `code-reviewer`
-- Security-sensitive scope: ECC `security-reviewer` (additional)
+- Always: `code-reviewer`
+- Security-sensitive scope: `security-reviewer` (additional)
 
 ## Required Invocation (hard gate)
 

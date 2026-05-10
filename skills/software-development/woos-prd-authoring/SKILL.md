@@ -2,14 +2,14 @@
 name: woos-prd-authoring
 description: Write high-quality, implementation-ready PRDs in Hermes using an ECC-aligned workflow. Covers PRD drafting, acceptance criteria quality, and mandatory independent PRD review gates before design/coding.
 version: 1.0.0
-author: Hermes ECC Profile
+author: Hermes Profile
 license: MIT
 metadata:
   hermes:
     tags: [prd, product, requirements, specification, planning, ecc]
 ---
 
-# Woosley PRD Authoring
+# Woos PRD Authoring
 
 ## Why this skill exists
 
@@ -92,7 +92,7 @@ Good:
 
 ## Mandatory PRD review gate
 
-Before moving to design/coding, run independent PRD review using ECC agents:
+Before moving to design/coding, run independent PRD review using:
 
 - `planner` (structure/completeness/testability)
 - `architect` (feasibility/boundaries/non-functional risk)

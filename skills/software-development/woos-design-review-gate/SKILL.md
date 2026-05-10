@@ -1,12 +1,12 @@
 ---
 name: woos-design-review-gate
-description: Independent feature design review gate for Hermes workflow. Uses ECC architect review and returns PASS or REQUEST_CHANGES.
+description: Independent feature design review gate for Hermes workflow. Uses architect review and returns PASS or REQUEST_CHANGES.
 version: 1.1.0
-author: Hermes ECC Profile
+author: Hermes Profile
 license: MIT
 ---
 
-# Woosley Design Review Gate
+# Woos Design Review Gate
 
 ## Purpose
 
@@ -14,7 +14,7 @@ Run a strict design review gate before coding starts.
 
 ## Required reviewer
 
-- ECC `architect`
+- `architect`
 
 ## Required Invocation (hard gate)
 

@@ -2,11 +2,11 @@
 name: woos-pr-readiness
 description: Final pre-PR readiness gate for Hermes workflow. Confirms diff quality, verification visibility, and commit/PR discipline.
 version: 1.1.0
-author: Hermes ECC Profile
+author: Hermes Profile
 license: MIT
 ---
 
-# Woosley PR Readiness
+# Woos PR Readiness
 
 ## Purpose
 
@@ -14,7 +14,7 @@ Confirm work is ready for commit/PR handoff.
 
 ## Required Invocation (hard gate)
 
-- MUST invoke ECC `verification-loop` first.
+- MUST invoke `verification-loop` first.
 - If `verification-loop` is not invoked, return `NOT_RUN` and stop.
 - If unavailable, return `BLOCKED` and stop.
 - Do not replace with manual "looks good" checks only.
