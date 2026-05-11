@@ -19,7 +19,8 @@ Design emphasis:
 ## Workflow Topology
 
 ```text
-Research
+Requirement Contract
+  -> Research
   -> PRD Draft
   -> PRD Review
   -> Capability Contract
@@ -28,8 +29,11 @@ Research
   -> TDD
   -> Implement
   -> Verify
+  -> Executable Acceptance
+  -> Deviation Control
   -> Code/Security Review
   -> PR Readiness
+  -> Workflow Memory Update
 ```
 
 Git mode policy:
@@ -57,6 +61,7 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 | Node | Skill | Source | Contract (minimal) |
 |---|---|---|---|
 | Git Workflow | `git-workflow` | imported | Define branch/commit/PR/merge-rebase mode before coding |
+| Requirement Contract | `woos-requirement-contract` | local | Structured goals/constraints/AC/non-goals/risk inputs |
 | Research | `search-first` | imported | Search reusable solutions before net-new work |
 | Parallel Orchestration (when needed) | `dmux-workflows` | imported | Orchestrate parallel lanes with worktree isolation |
 | PRD Draft | `woos-prd-authoring` | local | Produce PRD artifact with testable AC |
@@ -67,8 +72,11 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 | TDD | `tdd-workflow` | imported | RED -> GREEN discipline for behavior changes |
 | Implement | `coding-standards` | imported | Enforce implementation quality baseline |
 | Verify | `verification-loop` | imported | Run verification phases and report outcomes |
+| Executable Acceptance | `woos-executable-acceptance-gate` | local | Validate machine-checkable done criteria |
+| Deviation Control | `woos-deviation-control-gate` | local | Block unresolved implementation-vs-spec drift |
 | Code/Security Review | `woos-code-review-gate` | local | Invoke code/security reviewers and gate |
 | PR Readiness | `woos-pr-readiness` | local | Final PR readiness with verification visibility |
+| Workflow Memory Update | `woos-workflow-memory` | local | Persist failure/rework patterns and next-run guidance |
 
 ## Imported Modules Used
 
@@ -93,9 +101,16 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 
 Local wrappers exist only to provide hard-gate orchestration around imported capabilities:
 
+- `woos-requirement-contract`
 - `woos-prd-review-gate`
 - `woos-feature-design`
 - `woos-design-review-gate`
+- `woos-executable-acceptance-gate`
+- `woos-failure-state-machine`
+- `woos-deviation-control-gate`
+- `woos-run-orchestrator`
+- `woos-human-handoff`
+- `woos-workflow-memory`
 - `woos-code-review-gate`
 - `woos-pr-readiness`
 

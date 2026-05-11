@@ -17,10 +17,17 @@
 
 1. 本地 workflow skills：
    - `woos-development-workflow`
+   - `woos-requirement-contract`
    - `woos-prd-authoring`
    - `woos-prd-review-gate`
    - `woos-feature-design`
    - `woos-design-review-gate`
+   - `woos-executable-acceptance-gate`
+   - `woos-failure-state-machine`
+   - `woos-deviation-control-gate`
+   - `woos-run-orchestrator`
+   - `woos-human-handoff`
+   - `woos-workflow-memory`
    - `woos-code-review-gate`
    - `woos-pr-readiness`
    - `woos-setup-rules`
@@ -140,3 +147,15 @@ Hermes 的规则路由建议放在项目上下文文件中：
 - `.cursorrules` 或 `.cursor/rules/*.mdc`
 
 为了更好的跨工具兼容性，`woos-setup-rules` 默认会生成/更新项目 `AGENTS.md` 的多语言规则路由。
+
+## 近无人值守执行基础
+
+当前 profile 已内置 7 个关键基础能力：
+
+1. `woos-requirement-contract`：结构化需求输入契约
+2. `woos-executable-acceptance-gate`：可执行完成定义与自动验收
+3. `woos-failure-state-machine`：失败后的重试/降级/升级状态机
+4. `woos-deviation-control-gate`：实现与规格偏离拦截
+5. `woos-workflow-memory`：失败与返工模式沉淀
+6. `woos-run-orchestrator`：运行编排（队列/并发/超时/重试）
+7. `woos-human-handoff`：人工接管与恢复协议
