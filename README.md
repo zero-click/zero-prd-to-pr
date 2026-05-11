@@ -13,14 +13,54 @@ Skill-first coding profile for Hermes, with:
 - **Unattended delivery is the long-term vision**: use role-specialized agents and hard gates so more work can run reliably with minimal human intervention.
 - **Design principles are the core differentiator**: this profile is not just a skill bundle. It enforces role separation, deterministic gate progression, and traceable review from intent/design to final implementation.
 
+## `woos-development-workflow` flowchart
+
+```mermaid
+flowchart TD
+  A[Run Orchestrator<br/>woos-run-orchestrator] --> B[Git Workflow<br/>git-workflow]
+  B --> C[Requirement Contract<br/>woos-requirement-contract]
+  C --> D[Research<br/>search-first]
+  D --> E[PRD Draft<br/>woos-prd-authoring]
+  E --> F[PRD Review Gate<br/>woos-prd-review-gate]
+  F --> G[Capability Contract<br/>product-capability]
+  G --> H[Feature Design<br/>woos-feature-design]
+  H --> I[Design Review Gate<br/>woos-design-review-gate]
+  I --> J[TDD<br/>tdd-workflow]
+  J --> K[Implement<br/>coding-standards]
+  K --> L[Verify<br/>verification-loop]
+  L --> M[Executable Acceptance<br/>woos-executable-acceptance-gate]
+  M --> N[Deviation Control<br/>woos-deviation-control-gate]
+  N --> O[Code/Security Review Gate<br/>woos-code-review-gate]
+  O --> P[PR Readiness<br/>woos-pr-readiness]
+  P --> Q[Workflow Memory Update<br/>woos-workflow-memory]
+
+  R[Failure State Machine<br/>woos-failure-state-machine] -.controls all stages.- A
+  R -.retry/degrade/escalate.- O
+  S[Human Handoff<br/>woos-human-handoff] -.escalation/resume.- R
+  T[Parallel lanes when needed<br/>dmux-workflows] -.optional.- K
+
+  U[planner] -.used by wrapper.- F
+  V[architect] -.used by wrapper.- F
+  V -.used by wrapper.- I
+  W[code-reviewer] -.used by wrapper.- O
+  X[security-reviewer] -.used by wrapper.- O
+```
+
 ## What this profile installs
 
 1. Local workflow skills:
     - `woos-development-workflow`
+    - `woos-requirement-contract`
     - `woos-prd-authoring`
     - `woos-prd-review-gate`
     - `woos-feature-design`
     - `woos-design-review-gate`
+    - `woos-executable-acceptance-gate`
+    - `woos-failure-state-machine`
+    - `woos-deviation-control-gate`
+    - `woos-run-orchestrator`
+    - `woos-human-handoff`
+    - `woos-workflow-memory`
     - `woos-code-review-gate`
     - `woos-pr-readiness`
     - `woos-setup-rules`
@@ -139,3 +179,15 @@ Hermes rule routing should be defined at project level via context files:
 - `.cursorrules` or `.cursor/rules/*.mdc`
 
 For better cross-tool compatibility, `woos-setup-rules` generates/updates `AGENTS.md` by default with language-aware rule routing.
+
+## Near-unattended execution foundation
+
+This profile now includes a seven-part foundation for near-unattended delivery:
+
+1. `woos-requirement-contract` — structured requirement intake contract
+2. `woos-executable-acceptance-gate` — machine-checkable done criteria
+3. `woos-failure-state-machine` — deterministic retry/degrade/escalation flow
+4. `woos-deviation-control-gate` — implementation-vs-spec drift blocking
+5. `woos-workflow-memory` — persistent failure/rework pattern capture
+6. `woos-run-orchestrator` — run queue, concurrency, timeout/retry policy
+7. `woos-human-handoff` — explicit takeover and recovery protocol
