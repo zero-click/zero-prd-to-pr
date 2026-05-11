@@ -1,7 +1,7 @@
 ---
 name: woos-development-workflow
-description: Skill-first development workflow for Hermes coding profile. Every gate binds to exactly one named skill with a minimal contract.
-version: 1.2.1
+description: Skill-first gated workflow for near-unattended Hermes delivery. Every gate binds to exactly one named skill with a minimal contract.
+version: 1.3.0
 author: Hermes Profile
 license: MIT
 metadata:
@@ -32,7 +32,7 @@ Minimal contract:
 Core path:
 
 ```text
-Research -> PRD Draft -> PRD Review -> Capability Contract -> Feature Design -> Design Review -> TDD -> Implement -> Verify -> Code/Security Review -> PR Readiness
+Requirement Contract -> Research -> PRD Draft -> PRD Review -> Capability Contract -> Feature Design -> Design Review -> TDD -> Implement -> Verify -> Executable Acceptance -> Deviation Control -> Code/Security Review -> PR Readiness -> Workflow Memory Update
 ```
 
 ## Skill Whitelist
@@ -42,6 +42,7 @@ Only these skills are allowed in this workflow:
 | Step | Skill | Source |
 |---|---|---|
 | Git Workflow | `git-workflow` | imported |
+| Requirement Contract | `woos-requirement-contract` | local |
 | Research | `search-first` | imported |
 | Parallel Orchestration (when needed) | `dmux-workflows` | imported |
 | PRD Draft | `woos-prd-authoring` | local |
@@ -52,8 +53,11 @@ Only these skills are allowed in this workflow:
 | TDD | `tdd-workflow` | imported |
 | Implement | `coding-standards` | imported |
 | Verify | `verification-loop` | imported |
+| Executable Acceptance | `woos-executable-acceptance-gate` | local |
+| Deviation Control | `woos-deviation-control-gate` | local |
 | Code/Security Review | `woos-code-review-gate` | local |
 | PR Readiness | `woos-pr-readiness` | local |
+| Workflow Memory Update | `woos-workflow-memory` | local |
 
 If a required skill is unavailable, status is `BLOCKED` and the workflow stops.
 
@@ -62,6 +66,12 @@ Local wrapper intent:
 - `woos-prd-review-gate` wraps `planner` + `architect`
 - `woos-feature-design` wraps `architect` (and `planner` for complex scope)
 - `woos-design-review-gate` wraps `architect`
+- `woos-executable-acceptance-gate` wraps measurable acceptance checks
+- `woos-deviation-control-gate` wraps spec drift blocking policy
+- `woos-failure-state-machine` defines retry/degrade/escalate transitions
+- `woos-run-orchestrator` defines queue/concurrency/timeout/retry controls
+- `woos-human-handoff` defines escalation and recovery protocol
+- `woos-workflow-memory` captures failure and rework patterns
 - `woos-code-review-gate` wraps `code-reviewer` (+ `security-reviewer` when needed)
 - `woos-pr-readiness` wraps `verification-loop`
 
@@ -80,7 +90,15 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 
 ## Gate Definitions (skill + minimal contract)
 
-### Gate 0 — Research
+### Gate 0 — Requirement Contract
+**Skill:** `woos-requirement-contract` (local)  
+**Minimal contract:**
+
+1. Structured requirement contract exists with goals, constraints, acceptance criteria, non-goals, and risk assumptions.
+2. Unknowns are explicit and marked as blocking/non-blocking.
+3. Gate returns `REQUEST_CHANGES` if acceptance criteria are not machine-checkable.
+
+### Gate 0.5 — Research
 **Skill:** `search-first`  
 **Minimal contract:**
 
@@ -143,6 +161,22 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 1. Relevant lint/test/type/build checks executed.
 2. Verification status reported explicitly.
 
+### Gate 5.5 — Executable Acceptance
+**Skill:** `woos-executable-acceptance-gate` (local)  
+**Minimal contract:**
+
+1. Done criteria are mapped to executable checks (tests, schema checks, thresholds, policies).
+2. Missing automation is explicitly tracked as a blocker.
+3. Gate returns `REQUEST_CHANGES` when required checks are missing or failing.
+
+### Gate 5.8 — Deviation Control
+**Skill:** `woos-deviation-control-gate` (local)  
+**Minimal contract:**
+
+1. Implementation is compared against PRD/design/capability artifacts.
+2. Unresolved deviations block progression.
+3. Intentional deviations require updated artifacts and explicit rationale.
+
 ### Gate 6 — Code/Security Review
 **Skill:** `woos-code-review-gate` (local)  
 **Minimal contract:**
@@ -161,6 +195,14 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 3. Artifact sync status is `PASS` when deviations exist.
 4. Conventional commit + PR test plan readiness confirmed.
 
+### Gate 8 — Workflow Memory Update
+**Skill:** `woos-workflow-memory` (local)  
+**Minimal contract:**
+
+1. Capture failures, rework causes, and mitigation patterns from this run.
+2. Persist reusable guidance for next run.
+3. Record whether human handoff occurred and why.
+
 ## Stop Conditions
 
 Stop and surface blocker when:
@@ -169,3 +211,11 @@ Stop and surface blocker when:
 - Required skill unavailable (`BLOCKED`)
 - Gate returns `REQUEST_CHANGES`
 - Ambiguity blocks acceptance criteria definition
+
+## Runtime Control for Near-Unattended Execution
+
+Use these control skills across all gates:
+
+- `woos-run-orchestrator`: queue policy, concurrency limits, timeout and retry envelope
+- `woos-failure-state-machine`: deterministic transition after failure (`retry` -> `degrade` -> `human_handoff`)
+- `woos-human-handoff`: escalation trigger, handoff payload, resume conditions
