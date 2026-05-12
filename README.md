@@ -19,16 +19,22 @@ Skill-first coding profile for Hermes, with:
 flowchart TD
   A[Run Orchestrator<br/>woos-run-orchestrator] --> B[Git Workflow<br/>git-workflow]
   B --> C[Requirement Contract<br/>woos-requirement-contract]
-  C --> D[Research<br/>search-first]
+  C --> D[Research<br/>search-first or deep-research]
   D --> E[PRD Draft<br/>woos-prd-authoring]
   E --> F[PRD Review Gate<br/>woos-prd-review-gate]
   F --> G[Capability Contract<br/>product-capability]
   G --> H[Feature Design<br/>woos-feature-design]
-  H --> I[Design Review Gate<br/>woos-design-review-gate]
+  H --> H1{Has API?}
+  H1 -->|Yes| H2[API Design Review<br/>api-design]
+  H1 -->|No| I
+  H2 --> I[Design Review Gate<br/>woos-design-review-gate]
   I --> J[TDD<br/>tdd-workflow]
   J --> K[Implement<br/>coding-standards]
   K --> L[Verify<br/>verification-loop]
-  L --> M[Executable Acceptance<br/>woos-executable-acceptance-gate]
+  L --> L1{Has UI?}
+  L1 -->|Yes| L2[Browser QA<br/>browser-qa]
+  L1 -->|No| M
+  L2 --> M[Executable Acceptance<br/>woos-executable-acceptance-gate]
   M --> N[Deviation Control<br/>woos-deviation-control-gate]
   N --> O[Code/Security Review Gate<br/>woos-code-review-gate]
   O --> P[PR Readiness<br/>woos-pr-readiness]
@@ -66,12 +72,14 @@ flowchart TD
     - `woos-setup-rules`
 2. Imported skills:
    - `git-workflow`
-   - `search-first`
+   - `search-first` / `deep-research` (optional upgrade)
    - `dmux-workflows`
    - `product-capability`
    - `tdd-workflow`
    - `coding-standards`
    - `verification-loop`
+   - `api-design` (for REST/GraphQL validation)
+   - `browser-qa` (for frontend testing)
 3. Agent-adapter skills:
    - `planner`
    - `architect`

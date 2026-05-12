@@ -20,15 +20,17 @@ Design emphasis:
 
 ```text
 Requirement Contract
-  -> Research
+  -> Research (search-first or deep-research)
   -> PRD Draft
   -> PRD Review
   -> Capability Contract
   -> Feature Design
+  -> [API Design Review] (conditional: if REST/GraphQL)
   -> Design Review
   -> TDD
   -> Implement
   -> Verify
+  -> [Browser QA] (conditional: if frontend changes)
   -> Executable Acceptance
   -> Deviation Control
   -> Code/Security Review
@@ -62,16 +64,18 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 |---|---|---|---|
 | Git Workflow | `git-workflow` | imported | Define branch/commit/PR/merge-rebase mode before coding |
 | Requirement Contract | `woos-requirement-contract` | local | Structured goals/constraints/AC/non-goals/risk inputs |
-| Research | `search-first` | imported | Search reusable solutions before net-new work |
+| Research | `search-first` or `deep-research` | imported | Search reusable solutions; optionally validate market/user pain via multi-source research |
 | Parallel Orchestration (when needed) | `dmux-workflows` | imported | Orchestrate parallel lanes with worktree isolation |
 | PRD Draft | `woos-prd-authoring` | local | Produce PRD artifact with testable AC |
 | PRD Review | `woos-prd-review-gate` | local | Invoke planner+architect and return gate status |
 | Capability Contract | `product-capability` | imported | Convert PRD intent into implementation contract |
 | Feature Design | `woos-feature-design` | local | Produce technical design artifact |
+| API Design Review (conditional) | `api-design` | imported | Validate REST/GraphQL endpoint design, contracts, auth, pagination |
 | Design Review | `woos-design-review-gate` | local | Invoke architect and return gate status |
 | TDD | `tdd-workflow` | imported | RED -> GREEN discipline for behavior changes |
 | Implement | `coding-standards` | imported | Enforce implementation quality baseline |
 | Verify | `verification-loop` | imported | Run verification phases and report outcomes |
+| Browser QA (conditional) | `browser-qa` | imported | Automated UI testing, visual regression, accessibility audit |
 | Executable Acceptance | `woos-executable-acceptance-gate` | local | Validate machine-checkable done criteria |
 | Deviation Control | `woos-deviation-control-gate` | local | Block unresolved implementation-vs-spec drift |
 | Code/Security Review | `woos-code-review-gate` | local | Invoke code/security reviewers and gate |
@@ -82,13 +86,15 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 
 ### Imported Skills (directly invoked)
 
-- `search-first`
+- `search-first` (or `deep-research` when market validation needed)
 - `git-workflow`
 - `dmux-workflows`
 - `product-capability`
 - `tdd-workflow`
 - `coding-standards`
 - `verification-loop`
+- `api-design` (when API endpoints in scope)
+- `browser-qa` (when frontend in scope)
 
 ### Agent-Adapter Skills (invoked via local gate skills)
 

@@ -43,16 +43,18 @@ Only these skills are allowed in this workflow:
 |---|---|---|
 | Git Workflow | `git-workflow` | imported |
 | Requirement Contract | `woos-requirement-contract` | local |
-| Research | `search-first` | imported |
+| Research | `search-first` or `deep-research` | imported |
 | Parallel Orchestration (when needed) | `dmux-workflows` | imported |
 | PRD Draft | `woos-prd-authoring` | local |
 | PRD Review | `woos-prd-review-gate` | local |
 | Capability Contract | `product-capability` | imported |
 | Feature Design | `woos-feature-design` | local |
+| API Design Review (if REST/GraphQL) | `api-design` | imported |
 | Design Review | `woos-design-review-gate` | local |
 | TDD | `tdd-workflow` | imported |
 | Implement | `coding-standards` | imported |
 | Verify | `verification-loop` | imported |
+| Browser QA (if frontend) | `browser-qa` | imported |
 | Executable Acceptance | `woos-executable-acceptance-gate` | local |
 | Deviation Control | `woos-deviation-control-gate` | local |
 | Code/Security Review | `woos-code-review-gate` | local |
@@ -99,11 +101,23 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 3. Gate returns `REQUEST_CHANGES` if acceptance criteria are not machine-checkable.
 
 ### Gate 0.5 — Research
-**Skill:** `search-first`  
-**Minimal contract:**
+**Skill:** `search-first` (default) or `deep-research` (when market validation needed)  
+**Minimal contract (search-first):**
 
 1. Reuse options are searched before net-new design.
 2. Chosen direction is recorded with a short rationale.
+
+**Minimal contract (deep-research - optional upgrade):**
+
+1. Multi-source research conducted: web search, documentation, technical evaluations.
+2. Findings synthesized with citations and source attribution.
+3. Reuse direction validated or new approach justified against research findings.
+
+**When to use deep-research:**
+- Idea is still fuzzy; need to validate market/user pain points
+- Competitive analysis or technology evaluation required
+- Building TAM/SAM/SOM estimates
+- Due diligence on vendor, framework, or architectural choice
 
 ### Gate 1 — PRD Draft
 **Skill:** `woos-prd-authoring` (local)  
@@ -132,6 +146,22 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 
 1. Design artifact exists at `docs/design/<feature>.md` (or repo convention).
 2. Covers architecture, data, interfaces, risk, rollout/rollback.
+3. If API endpoints are defined: API design reviewed against `api-design` patterns.
+
+### Gate 2.1 — API Design Review (conditional)
+**Skill:** `api-design` (imported, optional)  
+**When to invoke:**
+- Feature includes new REST/GraphQL API endpoints
+- Existing API is being modified
+- Public or partner-facing API involved
+
+**Minimal contract:**
+1. Endpoints follow resource naming conventions (plural, kebab-case, no verbs)
+2. HTTP methods and status codes are semantically correct
+3. Pagination/filtering strategy defined (cursor vs offset)
+4. Authentication and authorization strategy documented
+5. Error response format is standard
+6. Rate limiting policy defined (if applicable)
 
 ### Gate 2R — Design Review
 **Skill:** `woos-design-review-gate` (local)  
@@ -160,6 +190,22 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 
 1. Relevant lint/test/type/build checks executed.
 2. Verification status reported explicitly.
+
+### Gate 5.3 — Browser QA (conditional)
+**Skill:** `browser-qa` (imported, optional)  
+**When to invoke:**
+- Feature includes frontend/UI changes
+- UI interactions need verification
+- Cross-browser or responsive testing required
+- Pre-launch visual regression check
+
+**Minimal contract:**
+1. Smoke test: page loads, no critical console errors, network requests succeed
+2. Interaction test: key user flows work (forms, navigation, state changes)
+3. Visual regression: screenshots at 3 breakpoints (375px, 768px, 1440px)
+4. Accessibility: WCAG AA violations checked, keyboard navigation verified
+5. Core Web Vitals: LCP/CLS/INP within acceptable ranges
+6. Report: screenshot evidence, issue log, verdict (ship/needs-fixes)
 
 ### Gate 5.5 — Executable Acceptance
 **Skill:** `woos-executable-acceptance-gate` (local)  
