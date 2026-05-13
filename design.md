@@ -19,7 +19,10 @@ Design emphasis:
 ## Workflow Topology
 
 ```text
-Requirement Contract
+Product / initiative planning (optional entry)
+  -> woos-product-planning-workflow
+  -> choose next implementation slice
+  -> Requirement Contract
   -> Research (search-first or deep-research)
   -> PRD Draft
   -> PRD Review
@@ -98,6 +101,7 @@ ADR reference template: `docs/adr/ADR-template.md`
 
 | Node | Skill | Source | Contract (minimal) |
 |---|---|---|---|
+| Product Planning Entry (optional) | `woos-product-planning-workflow` | local | Decompose initiative into feature map, delivery phases, and one recommended next slice before engineering workflow starts |
 | Git Workflow | `git-workflow` | imported | Define branch/commit/PR/merge-rebase mode before coding |
 | Requirement Contract | `woos-requirement-contract` | local | Structured goals/constraints/AC/non-goals/risk inputs |
 | Research | `search-first` or `deep-research` | imported | Search reusable solutions; optionally validate market/user pain via multi-source research |

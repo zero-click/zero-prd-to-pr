@@ -14,6 +14,14 @@
 - **设计原则是核心亮点**：它不是单纯的技能打包，而是把角色分离、可确定的 gate 流转、从意图/设计到实现的可追溯评审固化为默认工作方式。
 - **基线优先治理**：默认采用主流、可维护、可演进的工程基线；偏离必须提供 ADR 与明确审批。
 
+## 产品级入口规则
+
+当输入还停留在 roadmap / initiative / 产品设计层，而不是单个实现切片时，不要直接进入实现工作流。优先使用：
+
+`woos-product-planning-workflow -> 选择 next slice -> woos-development-workflow`
+
+这条受 BMAD 启发的入口链路会先做 feature 拆解、delivery phase 规划，以及一个明确的下一实现切片，再进入工程门禁。
+
 ## 工作流分层（Lite / Standard / Strict）
 
 为了避免小任务被全流程拖慢，工作流支持三档执行：
@@ -25,6 +33,7 @@
 ## 安装内容
 
 1. 本地 workflow skills：
+   - `woos-product-planning-workflow`
    - `woos-development-workflow`
    - `woos-requirement-contract`
    - `woos-prd-authoring`

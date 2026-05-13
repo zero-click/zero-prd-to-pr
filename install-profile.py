@@ -16,6 +16,7 @@ import yaml
 
 
 LOCAL_PROFILE_SKILLS = [
+    "woos-product-planning-workflow",
     "woos-development-workflow",
     "woos-prd-authoring",
     "woos-prd-review-gate",

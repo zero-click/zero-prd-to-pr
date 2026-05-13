@@ -57,6 +57,14 @@ flowchart TD
   Z[woos-agent-decision] -.on reviewer conflict.- O
 ```
 
+## Product-level entry rule
+
+When the ask is still at roadmap / initiative / product-design level, do not jump directly into implementation. Prefer:
+
+`woos-product-planning-workflow -> choose next slice -> woos-development-workflow`
+
+This BMAD-inspired entry lane adds feature decomposition, delivery phases, and a concrete next slice before engineering gates begin.
+
 ## Workflow profiles
 
 To avoid over-processing small tasks, the workflow supports three execution profiles:
@@ -68,6 +76,7 @@ To avoid over-processing small tasks, the workflow supports three execution prof
 ## What this profile installs
 
 1. Local workflow skills:
+    - `woos-product-planning-workflow`
     - `woos-development-workflow`
     - `woos-requirement-contract`
     - `woos-prd-authoring`
