@@ -51,6 +51,7 @@
    - `woos-code-review-gate`
    - `woos-pr-readiness`
    - `woos-setup-rules`
+   - `woos-systematic-debugging`
 2. 导入 skills：
    - `git-workflow`
    - `search-first` / `deep-research`（按需升级）

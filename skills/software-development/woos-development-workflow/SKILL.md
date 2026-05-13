@@ -124,6 +124,7 @@ Local wrapper intent:
 - `woos-executable-acceptance-gate` wraps measurable acceptance checks
 - `woos-deviation-control-gate` wraps spec drift blocking policy
 - `woos-failure-state-machine` defines retry/degrade/escalate transitions
+- `woos-systematic-debugging` activates during Gate 3/4/5 on repeated failures (cross-cutting protocol)
 - `woos-run-orchestrator` defines queue/concurrency/timeout/retry controls
 - `woos-human-handoff` defines escalation and recovery protocol
 - `woos-workflow-memory` captures failure and rework patterns
@@ -238,6 +239,7 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 
 1. RED observed before implementation for behavior changes.
 2. GREEN observed after implementation.
+3. If RED-GREEN cycle stalls (2+ consecutive failed fix attempts), activate `woos-systematic-debugging` before further attempts.
 
 ### Gate 4 — Implement
 **Skill:** `coding-standards`  
@@ -245,6 +247,7 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 
 1. Changes are minimal, scoped, and convention-aligned.
 2. No silent failures or unsafe shortcuts.
+3. If implementation causes cascading failures, activate `woos-systematic-debugging`.
 
 ### Gate 5 — Verify
 **Skill:** `verification-loop`  
@@ -252,6 +255,7 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 
 1. Relevant lint/test/type/build checks executed.
 2. Verification status reported explicitly.
+3. If verification fails and fix is non-obvious (2+ attempts), activate `woos-systematic-debugging` before further retry.
 
 ### Gate 5.3 — Browser QA (conditional)
 **Skill:** `browser-qa` (imported, optional)  

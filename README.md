@@ -43,6 +43,7 @@ flowchart TD
 
   R[Failure State Machine<br/>woos-failure-state-machine] -.controls all stages.- A
   R -.retry/degrade/escalate.- O
+  R2[Systematic Debugging<br/>woos-systematic-debugging] -.activates on repeated failures.- R
   S[Human Handoff<br/>woos-human-handoff] -.escalation/resume.- R
   T[Parallel lanes when needed<br/>dmux-workflows] -.optional.- K
 
@@ -94,6 +95,7 @@ To avoid over-processing small tasks, the workflow supports three execution prof
     - `woos-code-review-gate`
     - `woos-pr-readiness`
     - `woos-setup-rules`
+   - `woos-systematic-debugging`
 2. Imported skills:
    - `git-workflow`
    - `search-first` / `deep-research` (optional upgrade)

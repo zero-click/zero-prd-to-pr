@@ -163,6 +163,7 @@ Local wrappers exist only to provide hard-gate orchestration around imported cap
 - `woos-agent-decision`
 - `woos-code-review-gate`
 - `woos-pr-readiness`
+- `woos-systematic-debugging`
 
 Wrapper principles:
 
