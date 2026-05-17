@@ -19,7 +19,10 @@ Design emphasis:
 ## Workflow Topology
 
 ```text
-Requirement Contract
+Product / initiative planning (optional entry)
+  -> woos-product-planning-workflow
+  -> choose next implementation slice
+  -> Requirement Contract
   -> Research (search-first or deep-research)
   -> PRD Draft
   -> PRD Review
@@ -98,12 +101,13 @@ ADR reference template: `docs/adr/ADR-template.md`
 
 | Node | Skill | Source | Contract (minimal) |
 |---|---|---|---|
+| Product Planning Entry (optional) | `woos-product-planning-workflow` | local | Decompose initiative into feature map, delivery phases, and one recommended next slice before engineering workflow starts |
 | Git Workflow | `git-workflow` | imported | Define branch/commit/PR/merge-rebase mode before coding |
 | Requirement Contract | `woos-requirement-contract` | local | Structured goals/constraints/AC/non-goals/risk inputs |
 | Research | `search-first` or `deep-research` | imported | Search reusable solutions; optionally validate market/user pain via multi-source research |
 | Parallel Orchestration (when needed) | `dmux-workflows` | imported | Orchestrate parallel lanes with worktree isolation |
 | PRD Draft | `woos-prd-authoring` | local | Produce PRD artifact with testable AC |
-| PRD Review | `woos-prd-review-gate` | local | Invoke planner+architect and return gate status |
+| PRD Review | `woos-prd-review-gate` | local | Invoke product-planner+architect and return gate status |
 | Capability Contract | `product-capability` | imported | Convert PRD intent into implementation contract |
 | Feature Design | `woos-feature-design` | local | Produce technical design artifact |
 | API Design Review (conditional) | `api-design` | imported | Validate REST/GraphQL endpoint design, contracts, auth, pagination |
@@ -136,7 +140,7 @@ ADR reference template: `docs/adr/ADR-template.md`
 
 ### Agent-Adapter Skills (invoked via local gate skills)
 
-- `planner` (PRD review support)
+- `product-planner` (PRD quality review and planning support)
 - `architect` (PRD/design review and design ownership)
 - `code-reviewer` (mandatory code review)
 - `security-reviewer` (required for security-sensitive scope)
@@ -159,6 +163,7 @@ Local wrappers exist only to provide hard-gate orchestration around imported cap
 - `woos-agent-decision`
 - `woos-code-review-gate`
 - `woos-pr-readiness`
+- `woos-systematic-debugging`
 
 Wrapper principles:
 

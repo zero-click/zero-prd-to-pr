@@ -43,10 +43,11 @@ flowchart TD
 
   R[Failure State Machine<br/>woos-failure-state-machine] -.controls all stages.- A
   R -.retry/degrade/escalate.- O
+  R2[Systematic Debugging<br/>woos-systematic-debugging] -.activates on repeated failures.- R
   S[Human Handoff<br/>woos-human-handoff] -.escalation/resume.- R
   T[Parallel lanes when needed<br/>dmux-workflows] -.optional.- K
 
-  U[planner] -.used by wrapper.- F
+  U[product-planner] -.used by wrapper.- F
   V[architect] -.used by wrapper.- F
   V -.used by wrapper.- I
   Y[woos-review-context] -.used by wrappers.- F
@@ -56,6 +57,14 @@ flowchart TD
   X[security-reviewer] -.used by wrapper.- O
   Z[woos-agent-decision] -.on reviewer conflict.- O
 ```
+
+## Product-level entry rule
+
+When the ask is still at roadmap / initiative / product-design level, do not jump directly into implementation. Prefer:
+
+`woos-product-planning-workflow -> choose next slice -> woos-development-workflow`
+
+This BMAD-inspired entry lane adds feature decomposition, delivery phases, and a concrete next slice before engineering gates begin.
 
 ## Workflow profiles
 
@@ -68,6 +77,7 @@ To avoid over-processing small tasks, the workflow supports three execution prof
 ## What this profile installs
 
 1. Local workflow skills:
+    - `woos-product-planning-workflow`
     - `woos-development-workflow`
     - `woos-requirement-contract`
     - `woos-prd-authoring`
@@ -85,6 +95,7 @@ To avoid over-processing small tasks, the workflow supports three execution prof
     - `woos-code-review-gate`
     - `woos-pr-readiness`
     - `woos-setup-rules`
+   - `woos-systematic-debugging`
 2. Imported skills:
    - `git-workflow`
    - `search-first` / `deep-research` (optional upgrade)
@@ -96,7 +107,7 @@ To avoid over-processing small tasks, the workflow supports three execution prof
    - `api-design` (for REST/GraphQL validation)
    - `browser-qa` (for frontend testing)
 3. Agent-adapter skills:
-   - `planner`
+   - `product-planner`
    - `architect`
    - `code-reviewer`
    - `security-reviewer`
