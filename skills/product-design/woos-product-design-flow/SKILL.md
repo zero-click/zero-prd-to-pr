@@ -51,6 +51,16 @@ All file paths (`docs/`) are relative to a **project root directory** which MUST
 
 ## Steps — Standard Mode
 
+The orchestrator runs **per feature** in a loop:
+
+```
+Step 1: Select Version → extract feature list
+  → For each feature:
+      Step 2–9 (Requirements → Readiness)
+  → After ALL features pass Step 9:
+      Step 10: Version Integration Gate
+```
+
 ### Step 1: Select Version Scope
 
 | | |
@@ -295,8 +305,37 @@ Checklist:
 - [ ] Non-goals clear enough to prevent scope creep
 - [ ] DCR protocol specified
 
-**PASS** → handoff ready for engineering
+**PASS** → handoff ready for engineering (if single feature) or proceed to Step 10 (if multi-feature version)
 **FAIL** → return to Step 8 with gaps
+
+---
+
+### Step 10: Version Integration Gate
+
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | `references/bmad/personas/pm.toml` |
+| **Knowledge** | `references/bmad/frameworks/implementation-readiness.md` |
+| **Input** | All `docs/handoff/<feature>-vN.md` for this version |
+| **Output** | `docs/reviews/<project>-v<N>-integration-report.md` |
+
+**Trigger:** Runs once after ALL features in this version pass Step 9.
+**Skip when:** Version has only 1 feature.
+
+**Checklist:**
+
+| # | Criterion | Fix Hint |
+|---|-----------|----------|
+| I1 | No AC conflicts | Identify conflicting AC between features; resolve or make one non-goal |
+| I2 | Shared components consistent | If features reference same component, verify specs don't contradict |
+| I3 | User flows connectable | Cross-feature flows (e.g., auth → dashboard) have matching entry/exit |
+| I4 | No duplicate effort | If two features define similar functionality, merge or explicitly split |
+| I5 | Dependency order clear | If feature B depends on feature A, note build order in report |
+
+**Results:**
+- **PASS** → all handoffs ready for engineering
+- **CONFLICTS** → return to conflicting feature's Step 4 (PRD) to resolve, then re-run Steps 5–9 for that feature
 
 ---
 
@@ -323,19 +362,29 @@ stages:
   product-design-flow:
     status: in_progress
     version: "V1"
-    feature: "<feature-name>"
-    current_step: 5
-    steps:
-      1-select-scope: { status: done }
-      2-requirements: { status: done, output: "docs/prd/<feature>-requirements.md" }
-      3-priority-ranking: { status: done, output: "docs/prd/<feature>-requirements.md#priority-ranking" }
-      4-prd: { status: done, output: "docs/prd/<feature>.md" }
-      5-prd-review: { status: in_progress, round: 1, result: REQUEST_CHANGES }
-      6-ui-brief: { status: pending }
-      6r-ui-review: { status: pending }
-      7-analyze: { status: pending }
-      8-handoff: { status: pending }
-      9-readiness: { status: pending }
+    features:
+      auth:
+        current_step: 9
+        steps:
+          2-requirements: { status: done, output: "docs/prd/auth-requirements.md" }
+          3-priority-ranking: { status: done, output: "docs/prd/auth-requirements.md#priority-ranking" }
+          4-prd: { status: done, output: "docs/prd/auth.md" }
+          5-prd-review: { status: done, round: 1, result: PASS }
+          6-ui-brief: { status: skipped }
+          6r-ui-review: { status: skipped }
+          7-analyze: { status: done, output: "docs/handoff/auth-v1-analyze-report.md" }
+          8-handoff: { status: done, output: "docs/handoff/auth-v1.md" }
+          9-readiness: { status: done, result: PASS }
+      dashboard:
+        current_step: 4
+        steps:
+          2-requirements: { status: done, output: "docs/prd/dashboard-requirements.md" }
+          3-priority-ranking: { status: done, output: "docs/prd/dashboard-requirements.md#priority-ranking" }
+          4-prd: { status: in_progress, output: "docs/prd/dashboard.md" }
+          # ... remaining pending
+    integration:
+      status: pending  # runs after all features pass step 9
+      output: null
 ```
 
 ### Recovery Protocol
