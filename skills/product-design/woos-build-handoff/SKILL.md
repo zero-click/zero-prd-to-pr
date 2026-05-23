@@ -36,8 +36,8 @@ Skip when:
 
 | Artifact | Required | Source |
 |----------|----------|--------|
-| PRD | Yes | `woos-product-design-flow` → `docs/prd/<feature>.md` |
-| UI Brief | Optional | `woos-ui-design-brief` → `docs/design/<feature>-ui-brief.md` |
+| PRD | Yes | `woos-product-design-flow` → `docs/prd/<version>/<feature>.md` |
+| UI Brief | Optional | `woos-ui-design-brief` → `docs/design/<version>/<feature>-ui-brief.md` |
 | Research notes | Optional | `docs/research/<topic>.md` |
 | Idea capture | Optional | `ideas/<slug>/00-idea-capture.md` |
 
@@ -45,7 +45,7 @@ In Lite mode, PRD is abbreviated (user stories + AC only).
 
 ## Output
 
-File: `docs/handoff/<feature>.md`
+File: `docs/handoff/<version>/<feature>.md`
 
 ## Template Selection by Mode
 
@@ -233,7 +233,7 @@ based-on: (path or empty)  # Previous handoff version (for iterations)
 ```
 
 - First handoff: `spec-version: 1.0`, `based-on:` (empty)
-- Iteration: `spec-version: 1.1`, `based-on: docs/handoff/feature-v1.md`
+- Iteration: `spec-version: 1.1`, `based-on: docs/handoff/v1/feature.md`
 - Major redesign: `spec-version: 2.0`
 
 ## DCR Protocol (in Handoff)
@@ -303,9 +303,9 @@ Before finalizing the handoff, verify:
 
 ## File Location
 
-`docs/handoff/<feature-slug>.md`
+`docs/handoff/<version>/<feature-slug>.md`
 
-Slug: lowercase, hyphens, matches PRD/design slug.
+Slug: lowercase, hyphens, matches PRD/design slug. Version matches the roadmap version (e.g., `v1`, `v2`).
 
 ## Handoff to Coding Agent
 

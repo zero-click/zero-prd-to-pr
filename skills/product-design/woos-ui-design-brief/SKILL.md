@@ -53,7 +53,7 @@ If critical inputs are missing and user has not forced progression, ask one conc
 
 ## Output
 
-File: `docs/design/<feature>-ui-brief.md`
+File: `docs/design/<version>/<feature>-ui-brief.md`
 
 ## Brief Structure
 
@@ -169,9 +169,9 @@ If user selects a visual direction:
 In `woos-product-design-flow`:
 - Runs after PRD is approved (user knows WHAT to build)
 - Runs before Build Handoff packaging (handoff includes UI direction)
-- Optional in Lite mode
-- Recommended for Standard mode with UI
-- Required for Strict mode with UI
+- **Lite mode:** skipped entirely
+- **Standard mode:** skipped (Standard is single-feature, keeps scope tight)
+- **Strict mode:** triggered when feature has user-facing UI (orchestrator asks user)
 
 ## Pitfalls
 

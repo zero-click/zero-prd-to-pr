@@ -78,7 +78,7 @@ For: normal features, cross-file changes, needs design clarity.
 
 ```text
 [Product Side]
-Capture → Product Discovery → Product Design Flow (PRD → UI Brief → Handoff)
+Capture → Product Discovery → Product Design Flow (PRD → PRD Review → Handoff)
     ↓
 [Engineering Side]
 Technical Design → Implement → Verify → Code Review → PR
@@ -86,18 +86,18 @@ Technical Design → Implement → Verify → Code Review → PR
 DCR → back to Product Side
 ```
 
-- PRD Review: self-review with checklist
-- UI Brief: optional (only for UI-heavy features)
+- PRD Review: independent sub-agent
+- UI Brief: not included (Standard keeps scope tight)
 - Code Review: dispatch independent reviewer
 - DCR: available for product issues found during implementation
 
 ### Strict — Full Hard-Gate Flow
 
-For: security-sensitive, compliance, high-risk changes.
+For: multi-feature versions, high-uncertainty, UX-heavy, or security/compliance-sensitive.
 
 ```text
 [Product Side]
-Capture → Product Discovery → Product Design Flow (PRD → [PRD Review] → UI Brief → Handoff)
+Capture → Product Discovery → Product Design Flow (Priority → PRD → [PRD Review] → UI Brief → [UI Review] → Analyze → Handoff → [Integration])
     ↓
 [Engineering Side]
 Technical Design → [Design Review] → TDD → Implement → Verify
@@ -108,17 +108,20 @@ DCR → back to Product Side
 
 - All gates active, including security reviewer
 - PRD Review: independent dispatch
+- UI Brief: opt-in when feature has user-facing UI
+- Analyze Gate + Version Integration Gate (multi-feature)
 - Design Review (engineering side): independent dispatch
 - DCR: mandatory for any product assumption violation
 
 ## Tier Selection Guide
 
 ```text
-Is it security/compliance sensitive?              → Strict
-Is it a major initiative (multi-feature)?         → Standard (start with woos-product-discovery)
-Is it a normal feature?                           → Standard
-Is scope clear, single-purpose, low risk?         → Lite
-Is it a typo/docs fix?                            → No workflow needed
+Is it a multi-feature version release?                → Strict
+Is it security/compliance sensitive?                  → Strict
+Is it high-uncertainty or UX-heavy?                   → Strict
+Is it a normal single feature?                        → Standard
+Is scope clear, single-purpose, low risk?             → Lite
+Is it a typo/docs fix?                                → No workflow needed
 ```
 
 If unsure, start with Standard. User can override with `GREENLIGHT NEXT STAGE` to skip questions (NOT gates).
@@ -158,7 +161,7 @@ If unsure, start with Standard. User can override with `GREENLIGHT NEXT STAGE` t
 - Analyze gate (product consistency)
 - Package into handoff
 
-**Output:** `docs/handoff/<feature>-vN.md`
+**Output:** `docs/handoff/<version>/<feature>.md`
 
 **Lite: abbreviated** — only Mission + Tasks + AC + Verification.
 
@@ -257,11 +260,11 @@ Suggested change to product requirements or UI.
 <project-root>/
 ├── docs/
 │   ├── product/<project>-roadmap.md        ← Phase 2 output
-│   ├── prd/<feature>.md                     ← Phase 3 output
+│   ├── prd/<version>/<feature>.md           ← Phase 3 output
 │   ├── design/
-│   │   ├── <feature>-ui-brief.md           ← Phase 3 output (optional)
-│   │   └── <feature>.md                    ← Phase 4 output (engineering)
-│   ├── handoff/<feature>-vN.md             ← Phase 3 output (main)
+│   │   ├── <version>/<feature>-ui-brief.md ← Phase 3 output (Strict, optional)
+│   │   └── <version>/<feature>.md          ← Phase 4 output (engineering)
+│   ├── handoff/<version>/<feature>.md       ← Phase 3 output (main)
 │   ├── feedback/<feature>-dcr.md           ← Phase 7 (DCR)
 │   └── adr/ADR-001-*.md                    ← Phase 4 output (engineering)
 ├── .hep/

@@ -156,23 +156,22 @@ Well within sub-agent limits. No context explosion.
 
 ---
 
-## Gap 1: Step I/O Declarations
+## Step I/O Declarations
 
-Every step must declare explicit `input` and `output` so the next agent knows exactly what to read.
+Every step declares explicit `input` and `output` so the next agent knows exactly what to read.
 
 ### Stage 1
 
 | Step | Input | Output |
 |------|-------|--------|
-| 1 Idea Capture | _(user conversation)_ | `ideas/<slug>/00-idea-capture.md` |
+| 1 Idea Capture | _(user conversation)_ | `ideas/<slug>/00-idea-capture.md` + `.hep/runs/<run_id>/run-manifest.yaml` |
 | 2 Problem Validation | `ideas/<slug>/00-idea-capture.md` | `ideas/<slug>/00-idea-capture.md` → appends `## Problem Validation` |
 | 3 Research | `ideas/<slug>/00-idea-capture.md` (全文) | `docs/research/<topic>.md` |
-| 4 Run Init | _(none)_ | `.hep/runs/<run_id>/run-manifest.yaml` |
-| 5 Roadmap | `ideas/<slug>/00-idea-capture.md` + `docs/research/*.md` | `docs/product/<project>-roadmap.md` |
-| 5R Roadmap Review | `docs/product/<project>-roadmap.md` + `ideas/<slug>/00-idea-capture.md` | `docs/reviews/<project>-roadmap-review-rN.md` |
-| 6 Architecture | `docs/product/<project>-roadmap.md` | `docs/product/<project>-architecture.md` |
-| 6R Architecture Review | `docs/product/<project>-architecture.md` + `docs/product/<project>-roadmap.md` | `docs/reviews/<project>-architecture-review-rN.md` |
-| 7 Decision Log | `docs/product/<project>-roadmap.md` | `docs/product/<project>-roadmap.md` → appends to `## Decision Log` |
+| 4 Roadmap | `ideas/<slug>/00-idea-capture.md` + `docs/research/*.md` | `docs/product/<project>-roadmap.md` |
+| 4R Roadmap Review | `docs/product/<project>-roadmap.md` + `ideas/<slug>/00-idea-capture.md` | `docs/reviews/<project>-roadmap-review-rN.md` |
+| 5 Architecture | `docs/product/<project>-roadmap.md` | `docs/product/<project>-architecture.md` |
+| 5R Architecture Review | `docs/product/<project>-architecture.md` + `docs/product/<project>-roadmap.md` | `docs/reviews/<project>-architecture-review-rN.md` |
+| 6 Decision Log | `docs/product/<project>-roadmap.md` | `docs/product/<project>-roadmap.md` → appends to `## Decision Log` |
 
 ### Stage 2 (Steps 2–9 run per feature, Step 10 runs once for the version)
 
@@ -187,12 +186,12 @@ Every step must declare explicit `input` and `output` so the next agent knows ex
 | 6R UI Review | UI brief + PRD | `docs/reviews/<version>/<feature>-ui-review-rN.md` |
 | 7 Analyze Gate | PRD + UI brief (if exists) | `docs/handoff/<version>/<feature>-analyze-report.md` |
 | 8 Handoff | PRD + UI brief + analyze report | `docs/handoff/<version>/<feature>.md` |
-| 9 Readiness | `docs/handoff/<version>/<feature>.md` | _(pass/fail — updates run-manifest)_ |
+| 9 Readiness | `docs/handoff/<version>/<feature>.md` | `docs/reviews/<version>/<feature>-readiness.md` |
 | **10 Integration** | All `docs/handoff/<version>/*.md` | `docs/reviews/<version>/integration-report.md` |
 
 ---
 
-## Gap 2: Review Fix Flow
+## Review Fix Flow
 
 When a review gate returns `REQUEST_CHANGES`:
 
@@ -228,9 +227,9 @@ When a review gate returns `REQUEST_CHANGES`:
 
 ---
 
-## Gap 3: Review Checklist Fix Hints
+## Review Checklist Fix Hints
 
-Each review criterion must include a `Fix Hint` — a one-line instruction telling the fix agent HOW to resolve the issue, not just WHAT is wrong.
+Each review criterion includes a `Fix Hint` — a one-line instruction telling the fix agent HOW to resolve the issue, not just WHAT is wrong.
 
 ### Stage 1 — Roadmap Review (5R)
 
@@ -280,11 +279,12 @@ Each review criterion must include a `Fix Hint` — a one-line instruction telli
 
 ---
 
-## Gap 4: State Persistence & Crash Recovery
+## State Persistence & Crash Recovery
 
 ### State File
 
-Every run tracks progress in `.hep/runs/<run_id>/run-manifest.yaml`:
+Every run tracks progress in `.hep/runs/<run_id>/run-manifest.yaml`.
+The manifest is created at **Step 1** (Idea Capture) so that even early crashes can recover.
 
 ```yaml
 run_id: "abc-123"
@@ -294,23 +294,22 @@ updated_at: "2025-05-23T12:30:00Z"
 
 stages:
   product-discovery:
-    status: in_progress  # pending | in_progress | completed | blocked
+    status: in_progress  # pending | in_progress | done | blocked
     current_step: 6
     steps:
       1-idea-capture: { status: done, output: "ideas/my-project/00-idea-capture.md" }
       2-problem-validation: { status: done, output: "ideas/my-project/00-idea-capture.md#problem-validation" }
       3-research: { status: done, output: "docs/research/my-project-market.md" }
-      4-run-init: { status: done }
-      5-roadmap: { status: done, output: "docs/product/my-project-roadmap.md" }
-      5r-roadmap-review: { status: done, round: 2, result: PASS }
-      6-architecture: { status: in_progress, output: "docs/product/my-project-architecture.md" }
-      6r-architecture-review: { status: pending }
-      7-decision-log: { status: pending }
+      4-roadmap: { status: done, output: "docs/product/my-project-roadmap.md" }
+      4r-roadmap-review: { status: done, round: 2, result: PASS }
+      5-architecture: { status: in_progress, output: "docs/product/my-project-architecture.md" }
+      5r-architecture-review: { status: pending }
+      6-decision-log: { status: pending }
 
   product-design-flow:
     status: pending
-    current_step: null
-    steps: {}
+    version: null
+    features: {}
 ```
 
 ### Recovery Protocol
