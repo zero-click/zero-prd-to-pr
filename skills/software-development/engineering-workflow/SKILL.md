@@ -1,7 +1,7 @@
 ---
 name: engineering-workflow
 description: "Stage 3 of idea-to-delivery: receive a build handoff (with shards), decompose into stories, execute story-by-story with TDD, verify architecture conformance, and submit PR. Replaces woos-development-workflow."
-version: 2.0.0
+version: 2.1.0
 author: Hermes Profile
 license: MIT
 metadata:
@@ -136,7 +136,7 @@ If RED-GREEN cycle stalls (2+ consecutive failed attempts):
 - Follow Build Tasks within the story
 - Respect delta annotations: `[ADDED]` new, `[MODIFIED]` change, `[REMOVED]` delete
 - Constitution deviations → require ADR (flag immediately)
-- If design issue discovered → write DCR (Step 9), do NOT improvise
+- If design issue discovered → write DCR (see DCR section), do NOT improvise
 
 #### 5.3 Verify
 
@@ -188,7 +188,49 @@ Compare implementation against handoff:
 - **PASS** → Step 8
 - **REQUEST_CHANGES** → return to Step 5 (specific story)
 
-### Step 8: 🆕 Architecture Conformance Gate
+### Step 8: 🆕 Requirement Traceability Gate
+
+**Skill:** built-in (no separate skill needed)
+
+Compare implementation against **PRD** (not just handoff). This is the only step that traces from original requirements all the way to code and tests.
+
+**Procedure:**
+
+1. Read PRD from `docs/prd/<feature>.md`
+2. Read design from `docs/design/<feature>.md`
+3. For **each PRD User Story and AC**, trace the full chain:
+
+| PRD AC | Design Spec | Code | Test | Status |
+|--------|-------------|------|------|--------|
+| AC-4.5.1 | §API assign endpoint | routes/tasks.py:assign_task() | test_story003:test_assign_task | ✅ |
+| AC-6.2 | §Data model completed_at | N/A (uses updated_at) | N/A | ⚠️ Deviated |
+
+4. Classify each AC:
+   - **✅ Aligned** — PRD, design, code, test all match
+   - **⚠️ Deviated** — implemented differently (record rationale)
+   - **❌ Missing** — AC not implemented or not tested
+   - **🆕 Added** — implemented but not in PRD (extra scope)
+
+5. Write output to `docs/handoff/<feature>-traceability.md`:
+   - Per-AC traceability table
+   - Data model deviations (field name changes, type changes, missing fields)
+   - API contract deviations (endpoint path, request/response shape, error codes)
+   - State machine deviations (added/removed states, changed transitions)
+   - Summary: total ACs, aligned count, deviated count, missing count
+
+**Gate rules:**
+- **PASS** — all ACs are ✅ or ⚠️ with documented rationale, zero ❌
+- **REQUEST_CHANGES** — any ❌ (missing AC), or ⚠️ without rationale
+- Return to Step 5 with specific AC gaps
+
+**Why this step exists:**
+- Step 6 (Executable Acceptance) checks handoff ACs are testable
+- Step 7 (Deviation Control) checks implementation vs handoff (design layer)
+- **Step 8 traces from PRD (requirements layer) through design to code and tests**
+- Catches "meets design but not requirements" and "PRD says X, code does Y" issues
+- Without this step, design deviations from PRD are invisible
+
+### Step 9: 🆕 Architecture Conformance Gate
 
 **Skill:** `woos-design-review-gate`
 
@@ -199,12 +241,12 @@ Verify that implementation conforms to the architecture design:
 - Security considerations addressed
 - No ad-hoc architectural decisions (or logged as Decision Log entry)
 
-**PASS** → Step 9
+**PASS** → Step 10
 **REQUEST_CHANGES** → return to Step 5 with specific violations
 
 This catches "works but doesn't match the design" issues that code review alone misses.
 
-### Step 9: Code Review
+### Step 10: Code Review
 
 **Skill:** `woos-code-review-gate`
 
@@ -214,11 +256,11 @@ Independent review:
 - Uses `woos-review-context` to load cumulative findings
 - Uses `woos-agent-decision` for reviewer conflicts
 - Enforces spec alignment
-- **PASS** → Step 10
+- **PASS** → Step 11
 - **REQUEST_CHANGES** → return to Step 5 with feedback (specific stories)
 - 3 rounds without convergence → `woos-human-handoff`
 
-### Step 10: 🆕 Verification Before Completion
+### Step 11: 🆕 Verification Before Completion
 
 Mandatory pre-PR gate. ALL of the following must pass:
 
@@ -230,10 +272,10 @@ Mandatory pre-PR gate. ALL of the following must pass:
 - [ ] No TODO/FIXME/HACK comments without linked issues
 - [ ] Constitution compliance verified
 
-**PASS** → Step 11
+**PASS** → Step 12
 **FAIL** → return to Step 5 with specific issues
 
-### Step 11: PR Readiness
+### Step 12: PR Readiness
 
 **Skill:** `woos-pr-readiness`
 
@@ -246,7 +288,7 @@ Mandatory pre-PR gate. ALL of the following must pass:
   - 🆕 Blocked stories (if any, with DCR references)
 - Create PR via `gh pr create`
 
-### Step 12: Workflow Memory Update
+### Step 13: Workflow Memory Update
 
 **Skill:** `woos-workflow-memory`
 
@@ -376,7 +418,7 @@ checkpoints:
 3. **Do NOT proceed to the next step** until the current step's work is confirmed complete
 4. Run-manifest serves as the authoritative record of which steps are done
 
-**Purpose:** Prevent premature termination. The workflow has 12 steps — completing Stories (Step 5) is NOT the end. Steps 6-12 are gates that MUST run before PR.
+**Purpose:** Prevent premature termination. The workflow has 13 steps — completing Stories (Step 5) is NOT the end. Steps 6-13 are gates that MUST run before PR.
 
 **Run-manifest `steps` format:**
 
@@ -389,11 +431,12 @@ steps:
   step-5-execution: completed
   step-6-acceptance: pending
   step-7-deviation: pending
-  step-8-architecture: pending
-  step-9-codereview: pending
-  step-10-verification: pending
-  step-11-pr: pending
-  step-12-memory: pending
+  step-8-traceability: pending
+  step-9-architecture: pending
+  step-10-codereview: pending
+  step-11-verification: pending
+  step-12-pr: pending
+  step-13-memory: pending
 ```
 
 This rule applies regardless of execution mode (kanban, direct, manual). Human-in-the-loop or agent — no step skipping.
@@ -407,10 +450,11 @@ This rule applies regardless of execution mode (kanban, direct, manual). Human-i
 | `test-driven-development` | Step 5.1 |
 | `woos-executable-acceptance-gate` | Step 6 |
 | `woos-deviation-control-gate` | Step 7 |
-| `woos-design-review-gate` | 🆕 Step 8 (Architecture Conformance) |
-| `woos-code-review-gate` | Step 9 |
-| `woos-pr-readiness` | Step 11 |
-| `woos-workflow-memory` | Step 12 |
+| built-in (traceability procedure) | 🆕 Step 8 (Requirement Traceability) |
+| `woos-design-review-gate` | Step 9 (Architecture Conformance) |
+| `woos-code-review-gate` | Step 10 |
+| `woos-pr-readiness` | Step 12 |
+| `woos-workflow-memory` | Step 13 |
 | `woos-review-context` | Cross-gate |
 | `woos-agent-decision` | Reviewer conflicts |
 | `woos-human-handoff` | Escalation |
