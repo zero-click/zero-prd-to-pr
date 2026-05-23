@@ -190,7 +190,9 @@ When the feature has user-facing interface:
 - Establish visual direction
 - Optionally generate image concepts
 
-**Skip when:** pure API/backend/CLI, Lite mode, user declines.
+**Trigger:** Before entering Step 6, orchestrator asks user: "Does this feature have user-facing UI?" 
+- **Yes** → proceed with Step 6
+- **No** → skip Step 6 + 6R, go directly to Step 7
 
 ---
 
