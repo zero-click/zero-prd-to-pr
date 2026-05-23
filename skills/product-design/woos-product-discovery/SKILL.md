@@ -1,51 +1,63 @@
 ---
 name: woos-product-discovery
-description: "Stage 1 of woos-idea-to-delivery: transform a raw idea into a structured product roadmap with vision, user personas, versioned scope, constraints, and decision log. Includes idea capture, market research, constitution initialization, and roadmap authoring."
-version: 2.0.0
+description: "Stage 1 orchestrator: transform a raw idea into a validated product roadmap + system architecture. Dispatches sub-agents per step with domain knowledge."
+version: 3.0.0
 author: Hermes Profile
 license: MIT
 metadata:
   hermes:
-    tags: [product, discovery, roadmap, planning, research]
+    tags: [product, discovery, roadmap, planning, research, orchestrator]
     stage: 1
     flow: woos-idea-to-delivery-v2
 ---
 
-# Product Discovery
+# Product Discovery (Orchestrator)
 
 ## Purpose
 
-Turn a fuzzy idea into an actionable product roadmap. This is **Stage 1** of the woos-idea-to-delivery flow. Run once per project; subsequent versions iterate in Stage 2 (woos-product-design-flow).
+Turn a fuzzy idea into an actionable product roadmap + system architecture. This is **Stage 1** of the woos-idea-to-delivery flow. Run once per project.
+
+## Role
+
+This file defines an **orchestrator** — a thin state machine that:
+1. Tracks which step we're on (via `run-manifest.yaml`)
+2. Dispatches sub-agents with the right persona + knowledge
+3. Collects outputs, decides next step
+4. Handles review fix loops
+
+The orchestrator does NOT do the actual creative work — sub-agents do.
 
 ## Project Root Requirement
 
-**CRITICAL:** All file paths in this skill (`.hep/`, `docs/`, `ideas/`) are relative to a **project root directory**. The project root MUST be a real git repository (e.g. `~/code/my-project/`).
-
-**DO NOT** write files to the kanban scratch workspace. The scratch workspace is temporary and will be garbage-collected after task completion.
-
-If running via kanban:
-1. If the task has a `workspace_path` pointing to a git repo, use that.
-2. If the task is in scratch mode, **clone or create the target repo first**, then write all files there.
-3. Ask the user for the project directory if not specified.
+All file paths (`.hep/`, `docs/`, `ideas/`) are relative to a **project root directory** which MUST be a git repository.
 
 ## When to Use
 
 - User says "I want to build X" or shares a raw idea
 - Starting a new project or major initiative
-- Need to validate market/technical feasibility before committing
+- Need to validate market/technical feasibility
 
 ## When to Skip
 
-Skip this stage when ALL of these are true:
-- A product roadmap already exists at `docs/product/<project>-roadmap.md`
-- Roadmap has clear versioned scope with success metrics
-- Constitution file exists at `.hep/constitution.md`
+Skip when ALL true:
+- `docs/product/<project>-roadmap.md` exists with versioned scope + metrics
+- `docs/product/<project>-architecture.md` exists
 
-If skipping, go directly to `feature-design-flow` (Stage 2).
+If skipping → go directly to `woos-product-design-flow` (Stage 2).
+
+---
 
 ## Steps
 
 ### Step 1: Idea Capture
+
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | `references/bmad/personas/analyst.toml` |
+| **Knowledge** | `references/bmad/templates/brief-template.md` |
+| **Input** | _(user conversation)_ |
+| **Output** | `ideas/<slug>/00-idea-capture.md` |
 
 **Skill:** `woos-idea-capture`
 
@@ -55,17 +67,25 @@ Socratic interview the user (or parse a written idea) to extract:
 - What "done" looks like at a high level
 - Constraints and non-goals
 
-**Output:** `ideas/<slug>/00-idea-capture.md` + `ideas/<slug>/README.md`
+---
 
 ### Step 2: Problem Validation
 
-Before investing in full research, validate that the problem is worth solving.
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | `references/bmad/personas/analyst.toml` |
+| **Knowledge** | `references/bmad/frameworks/customer-pain-points.md` |
+| **Input** | `ideas/<slug>/00-idea-capture.md` |
+| **Output** | `ideas/<slug>/00-idea-capture.md` → appends `## Problem Validation` |
+
+Before investing in research, validate the problem is worth solving.
 
 **Must answer:**
-- Is this a real problem? (Evidence: user complaints, data, observed behavior — not just "it would be nice")
-- How frequently does it occur? (Daily / weekly / rare edge case)
+- Is this a real problem? (Evidence: user complaints, data, observed behavior)
+- How frequently does it occur?
 - How painful is it? (Workaround exists and is acceptable? Or blocking?)
-- How many people have this problem? (1 user? niche? broad market?)
+- How many people have this problem?
 - Are they already paying (time/money) to solve it today?
 
 **Decision framework:**
@@ -78,27 +98,23 @@ Before investing in full research, validate that the problem is worth solving.
 | "It would be cool" with no evidence | Weak — probe deeper |
 | Only requester has this problem | Weak — validate breadth |
 
-**Output:** Update `ideas/<slug>/00-idea-capture.md` with a `## Problem Validation` section:
-```markdown
-## Problem Validation
-- Evidence: [what proves this is real]
-- Frequency: [how often]
-- Severity: [blocking / painful / annoying / cosmetic]
-- Breadth: [one user / niche / broad]
-- Current workaround: [what they do today]
-- Verdict: [PROCEED / PIVOT / PARK]
-```
+**Verdict:** `PROCEED` / `PIVOT` / `PARK`
 
-**Results:**
-- **PROCEED** → problem validated, continue to research
-- **PIVOT** → reframe the problem (return to Step 1 with new angle)
-- **PARK** → not worth solving now, record in ideas index for future
+- **PROCEED** → continue to Step 3
+- **PIVOT** → reframe problem, return to Step 1 with new angle
+- **PARK** → not worth solving now, record in ideas index
+
+---
 
 ### Step 3: Research & Validation
 
-**Skill:** `deep-research` (when scope needs thorough validation)
-
-or just ask targeted questions (when scope is narrow).
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | `references/bmad/personas/analyst.toml` |
+| **Knowledge** | `references/bmad/frameworks/market-research.md` + `references/bmad/frameworks/competitive-analysis.md` |
+| **Input** | `ideas/<slug>/00-idea-capture.md` (full, including Problem Validation) |
+| **Output** | `docs/research/<topic>.md` |
 
 Investigate:
 - Market landscape and competitors
@@ -106,291 +122,229 @@ Investigate:
 - Existing solutions or reusable components
 - Risks and unknowns
 
-**Output:** `docs/research/<topic>.md`
+**Gate:** Research must cite sources and include a recommendation. If critical unknowns remain, flag as blockers.
 
-**Gate:** Research must cite sources and include a recommendation. If critical unknowns remain, flag them as blockers in the roadmap.
+---
 
 ### Step 4: Run Initialization
 
-**Skill:** `woos-run-orchestrator`
+| | |
+|---|---|
+| **Sub-agent** | ❌ (orchestrator does this directly) |
+| **Input** | _(none)_ |
+| **Output** | `.hep/runs/<run_id>/run-manifest.yaml` |
 
-Initialize run state:
+Initialize state tracking:
 - Create `.hep/runs/<run_id>/run-manifest.yaml`
-- Record run_id for cross-stage traceability
-- Set `checkpoints: [stage1-done]` in run-manifest
+- Record `run_id`, set all step statuses to `pending`
+- Set `current_step: 5`
+
+---
 
 ### Step 5: Product Vision & Roadmap
 
-**Skill:** `woos-product-planning-workflow`
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | `references/bmad/personas/pm.toml` |
+| **Knowledge** | `references/bmad/frameworks/create-prd.md` |
+| **Input** | `ideas/<slug>/00-idea-capture.md` + `docs/research/<topic>.md` |
+| **Output** | `docs/product/<project>-roadmap.md` |
 
-Synthesize everything into a single roadmap document:
+Synthesize into a roadmap document containing:
+- Vision (who, what problem, value proposition)
+- User Personas
+- Core Experience
+- Versioned Roadmap (V1/V2/V3 with scope, features, non-goals, metrics)
+- Constraints
+- Decision Log
 
-```markdown
-# <Project Name> — Product Roadmap
-
-## Vision
-(Who it's for, what problem, core value proposition)
-
-## User Personas
-(Target user profiles)
-
-## Core Experience
-(What the primary interaction feels like)
-
-## Roadmap
-
-### V1 — <MVP Name>
-- Scope: (what's included)
-- Core Features: (numbered list)
-- Non-goals: (what's explicitly out of scope)
-- Success Metrics: (how to measure success)
-- Technical Constraints: (known from research)
-
-### V2 — <Expansion Name>
-- Scope: ...
-- Depends on V1: ...
-
-### V3 — <Vision Name>
-- ...
-
-## Constraints
-- Timeline: (if any)
-- Resources: (if any)
-- Known technical constraints: (if any)
-
-## Decision Log
-| # | Decision | Rationale | Alternatives Considered |
-|---|----------|-----------|------------------------|
-| D1 | (e.g. use SQLite) | (e.g. local-first, zero deploy) | (e.g. PostgreSQL — too heavy) |
-```
-
-**Output:** `docs/product/<project-slug>-roadmap.md`
+---
 
 ### Step 5R: Roadmap Review Gate
 
-**Reviewer:** Independent sub-agent dispatched in fresh context (product-strategist persona).
+| | |
+|---|---|
+| **Sub-agent** | ✅ (independent reviewer) |
+| **Persona** | `references/bmad/personas/prd-validator.toml` |
+| **Knowledge** | `references/bmad/frameworks/validate-prd.md` + `references/bmad/templates/prd-validation-checklist.md` |
+| **Input** | `docs/product/<project>-roadmap.md` + `ideas/<slug>/00-idea-capture.md` |
+| **Output** | `docs/reviews/<project>-roadmap-review-rN.md` |
 
 **Checklist:**
 
-| # | Criterion | What to check |
-|---|-----------|---------------|
-| R1 | Vision differentiated | Not generic — clearly states what makes this product unique |
-| R2 | Versioning logical | V1 is truly minimal; each version builds on prior without circular deps |
-| R3 | Metrics measurable | Success metrics are specific numbers or observable behaviors |
-| R4 | Non-goals effective | Actually prevent scope creep (not vague disclaimers) |
-| R5 | Decision Log sound | Rationale isn't circular; alternatives are real options considered |
-| R6 | Personas grounded | Based on real user behavior, not hypothetical ideal users |
+| # | Criterion | Fix Hint |
+|---|-----------|----------|
+| R1 | Vision differentiated | Add a "Unlike X, we…" statement that names the unique angle |
+| R2 | Versioning logical | Move items with no V1 dependency into V2+; ensure V1 is shippable alone |
+| R3 | Metrics measurable | Replace vague words ("fast", "many") with specific numbers or observable events |
+| R4 | Non-goals effective | Rewrite as concrete "we will NOT do X even if Y" statements |
+| R5 | Decision Log sound | Add real alternative that was considered; explain why it lost |
+| R6 | Personas grounded | Cite observed behavior or data; remove hypothetical "ideal user" language |
 
-**Dispatch:** `delegate_task` → fresh context, product-strategist role, read only roadmap + idea-capture.
-
-**Review Findings Output:** `docs/reviews/<project>-roadmap-review-rN.md`
-
+**Review findings format:**
 ```markdown
 # Roadmap Review — Round N
 
-| # | Criterion | Status | Finding | Fixed? |
-|---|-----------|--------|---------|--------|
-| R1 | Vision differentiated | ✅ PASS | — | — |
-| R2 | Versioning logical | ❌ FAIL | "V1 includes auth + payments — too large for MVP" | ☐ |
-| R3 | Metrics measurable | ❌ FAIL | "DAU target missing a number" | ☐ |
-| R4 | Non-goals effective | ✅ PASS | — | — |
-| R5 | Decision Log sound | ✅ PASS | — | — |
-| R6 | Personas grounded | ❌ FAIL | "Persona assumes all users are technical" | ☐ |
+| # | Criterion | Status | Finding | Fix Hint | Fixed? |
+|---|-----------|--------|---------|----------|--------|
+| R1 | Vision differentiated | ✅ | — | — | — |
+| R2 | Versioning logical | ❌ | "V1 includes auth + payments" | Move to V2+ | ☐ |
 
 ## Summary
-PASS: 3/6 | FAIL: 3/6 → REQUEST_CHANGES
+PASS: X/6 | FAIL: Y/6 → [PASS | REQUEST_CHANGES]
 ```
 
-**Flow:**
-1. Reviewer outputs findings with ❌/✅ per criterion
-2. Author agent fixes each ❌ item, marks `Fixed? ☑` in findings file
-3. Re-review: reviewer checks only `Fixed? ☑` rows — verifies fix is adequate
-4. New issues found during re-review → append as new rows
+**Fix flow:**
+1. If `REQUEST_CHANGES` → dispatch fix agent (pm persona) with findings + roadmap
+2. Fix agent edits roadmap in-place, marks `Fixed? ☑` in findings
+3. Re-dispatch reviewer (round N+1), checks only `Fixed? ☑` rows
+4. Max 2 rounds → ask user if no convergence
 
-**Results:**
-- **PASS** → all criteria ✅ → proceed to Step 6
-- **REQUEST_CHANGES** → return to Step 5, fix per findings checklist
+**Result:** `PASS` → proceed to Step 6
 
-Max 2 rounds. If no convergence → ask user for direction.
+---
 
 ### Step 6: System Architecture Overview
 
-After the roadmap is defined, produce a high-level system architecture that spans all planned versions. This prevents per-feature designs from conflicting later.
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | `references/bmad/personas/architect.toml` |
+| **Knowledge** | `references/bmad/frameworks/create-architecture.md` |
+| **Input** | `docs/product/<project>-roadmap.md` |
+| **Output** | `docs/product/<project>-architecture.md` |
 
-**Must answer:**
-- What are the major system components/services?
-- How do they communicate? (API, events, shared DB, etc.)
-- What is the data architecture? (storage types, data flow)
-- What cross-feature infrastructure is needed? (auth, queues, event bus, etc.)
-- Which features have architectural coupling and must be co-designed?
-- What are the system-level technical risks?
+Produce high-level system architecture spanning all planned versions:
+- Major system components/services
+- Communication patterns (API, events, shared DB)
+- Data architecture (storage types, data flow)
+- Cross-feature infrastructure (auth, queues, event bus)
+- Architectural coupling between features
+- System-level technical risks
+- Architecture decisions with rationale
 
-**Does NOT answer:**
-- Detailed per-feature design (that's Stage 2)
-- Specific code structure or file layout
-- Implementation timeline (that's the roadmap)
+**Does NOT answer:** detailed per-feature design, code structure, implementation timeline.
 
-**Output:** `docs/product/<project-slug>-architecture.md`
-
-```markdown
-# <Project Name> — System Architecture
-
-## Overview
-High-level system diagram description.
-
-## Components
-| Component | Responsibility | Interfaces |
-|-----------|---------------|------------|
-| ... | ... | ... |
-
-## Data Architecture
-- Storage types and boundaries
-- Data flow between components
-
-## Shared Infrastructure
-- Auth/identity
-- Messaging/events
-- Observability
-
-## Cross-Feature Dependencies
-Which features share components or data, and what coordination is needed.
-
-## Technical Risks
-System-level risks that affect multiple features.
-
-## Architecture Decisions
-| # | Decision | Rationale | Alternatives |
-|---|----------|-----------|-------------|
-| A1 | ... | ... | ... |
-```
+---
 
 ### Step 6R: Architecture Review Gate
 
-**Reviewer:** Independent sub-agent dispatched in fresh context (system-architect persona).
+| | |
+|---|---|
+| **Sub-agent** | ✅ (independent reviewer) |
+| **Persona** | `references/bmad/personas/architect.toml` |
+| **Knowledge** | `references/bmad/frameworks/architecture-validation.md` |
+| **Input** | `docs/product/<project>-architecture.md` + `docs/product/<project>-roadmap.md` |
+| **Output** | `docs/reviews/<project>-architecture-review-rN.md` |
 
 **Checklist:**
 
-| # | Criterion | What to check |
-|---|-----------|---------------|
-| A1 | Component boundaries | Each component has clear single responsibility, no overlap |
-| A2 | Communication consistency | Patterns are uniform (not mixing REST + gRPC + events without reason) |
-| A3 | Data decoupling | No unnecessary shared state between features |
-| A4 | Infrastructure proportional | Shared infra justified for V1 scope (not over-engineered) |
-| A5 | Dependencies manageable | Cross-feature deps are identified and don't block independent delivery |
-| A6 | Risks realistic | Not alarmist or dismissive; actionable mitigations exist |
-| A7 | Version-aligned | V1 can ship without V2's components being built |
+| # | Criterion | Fix Hint |
+|---|-----------|----------|
+| A1 | Component boundaries | Split component into two if it has >1 responsibility; name each clearly |
+| A2 | Communication consistency | Pick one primary pattern; justify exceptions explicitly |
+| A3 | Data decoupling | Introduce API boundary between components sharing raw data |
+| A4 | Infrastructure proportional | Remove infra not needed until V2; document when it becomes necessary |
+| A5 | Dependencies manageable | Add "can be built independently" note; if not, mark as sequential |
+| A6 | Risks realistic | Add concrete mitigation action (not just "monitor") |
+| A7 | Version-aligned | Move components only needed by V2+ out of V1 architecture |
 
-**Dispatch:** `delegate_task` → fresh context, system-architect role, read roadmap + architecture.
+**Fix flow:** Same as Step 5R. Fix agent uses architect persona. Max 2 rounds.
 
-**Review Findings Output:** `docs/reviews/<project>-architecture-review-rN.md`
+**Result:** `PASS` → proceed to Step 7
 
-```markdown
-# Architecture Review — Round N
+---
 
-| # | Criterion | Status | Finding | Fixed? |
-|---|-----------|--------|---------|--------|
-| A1 | Component boundaries | ✅ PASS | — | — |
-| A2 | Communication consistency | ❌ FAIL | "Auth uses REST but notifications use WebSocket push without justification" | ☐ |
-| A3 | Data decoupling | ✅ PASS | — | — |
-| A4 | Infrastructure proportional | ❌ FAIL | "Event bus overkill for V1 — only 2 producers" | ☐ |
-| A5 | Dependencies manageable | ✅ PASS | — | — |
-| A6 | Risks realistic | ✅ PASS | — | — |
-| A7 | Version-aligned | ✅ PASS | — | — |
+### Step 7: Decision Log
 
-## Summary
-PASS: 5/7 | FAIL: 2/7 → REQUEST_CHANGES
-```
+| | |
+|---|---|
+| **Sub-agent** | ❌ (orchestrator does this directly) |
+| **Input** | `docs/product/<project>-roadmap.md` |
+| **Output** | `docs/product/<project>-roadmap.md` → appends to `## Decision Log` |
 
-**Flow:**
-1. Reviewer outputs findings with ❌/✅ per criterion
-2. Author agent fixes each ❌ item, marks `Fixed? ☑` in findings file
-3. Re-review: reviewer checks only `Fixed? ☑` rows — verifies fix is adequate
-4. New issues found during re-review → append as new rows
-
-**Results:**
-- **PASS** → all criteria ✅ → proceed to Step 7
-- **REQUEST_CHANGES** → return to Step 6, fix per findings checklist
-
-Max 2 rounds. If no convergence → ask user for direction.
-
-### Step 7: Decision Log Initialization
-
-Record key decisions made during discovery in the roadmap's Decision Log:
+Record key decisions made during discovery:
 - Scope inclusions/exclusions and why
 - Architecture direction and why
 - Market positioning decisions
 
-Each entry must include:
-- **Decision**: What was decided
-- **Rationale**: Why (one sentence)
-- **Alternatives Considered**: What else was on the table
+Each entry: **Decision** + **Rationale** + **Alternatives Considered**
 
-This log is **append-only** across stages — Stage 2 and Stage 3 will add to it, never delete.
+This log is **append-only** across stages.
 
-## Mode Selection
+---
 
-This stage has no Lite/Standard split. Either you do product discovery or you skip it.
+## State Persistence
 
-If the idea is small enough to not warrant a full discovery, skip directly to `feature-design-flow` Lite mode.
+### Run Manifest Schema
+
+```yaml
+run_id: "<uuid>"
+project: "<project-slug>"
+created_at: "<ISO8601>"
+updated_at: "<ISO8601>"
+
+stages:
+  product-discovery:
+    status: in_progress  # pending | in_progress | completed | blocked
+    current_step: 6
+    steps:
+      1-idea-capture: { status: done, output: "ideas/<slug>/00-idea-capture.md" }
+      2-problem-validation: { status: done, output: "ideas/<slug>/00-idea-capture.md#problem-validation" }
+      3-research: { status: done, output: "docs/research/<topic>.md" }
+      4-run-init: { status: done }
+      5-roadmap: { status: done, output: "docs/product/<project>-roadmap.md" }
+      5r-roadmap-review: { status: done, round: 2, result: PASS }
+      6-architecture: { status: in_progress, output: "docs/product/<project>-architecture.md" }
+      6r-architecture-review: { status: pending }
+      7-decision-log: { status: pending }
+```
+
+### Recovery Protocol
+
+On start (or restart after crash):
+1. Read `.hep/runs/<run_id>/run-manifest.yaml`
+2. Find first step where `status != done`
+3. Check if output file exists:
+   - **EXISTS + well-formed** → mark done, advance
+   - **EXISTS + incomplete** → resume (re-dispatch sub-agent with existing content)
+   - **NOT EXISTS** → start step from scratch
+4. Continue from that point
+
+### Update Rules
+- Write manifest BEFORE dispatching sub-agent (`status: in_progress`)
+- Write manifest AFTER sub-agent returns (`status: done` + output path)
+- Review steps record: `round: N`, `result: PASS|REQUEST_CHANGES`
+
+---
 
 ## Checkpoint: Stage 1 Completion
 
-After roadmap + architecture are written, **pause and present to user**:
+After all steps done, **pause and present to user**:
+1. Vision (1 sentence)
+2. V1 scope (bullet list)
+3. Architecture overview (key components)
+4. Key risks / open questions
 
-1. Output a concise summary:
-   - Vision (1 sentence)
-   - V1 scope (bullet list)
-   - Architecture overview (key components)
-   - Key risks / open questions
-   - Decision Log highlights
-2. **Wait for user confirmation** before proceeding to Stage 2
-3. If user wants changes → return to relevant step
-4. If user confirms → mark run-manifest `stage1-status: completed`
-
-**Checkpoint behavior is controlled by:** `run-manifest.yaml` → `checkpoints: [stage1-done]`
+Wait for user confirmation → mark `stages.product-discovery.status: completed`
 
 To skip checkpoint (fully autonomous): set `checkpoints: []` in run-manifest.
 
-## Handoff to Next Stage
+## Handoff
 
-On completion, tell the user:
-- Roadmap is ready at `docs/product/<project>-roadmap.md`
-- Architecture overview is at `docs/product/<project>-architecture.md`
-- Next step: pick a version (e.g., V1) and invoke `woos-product-design-flow`
-
-## File Layout
-
-```text
-<project-root>/
-├── .hep/
-│   └── runs/<run_id>/run-manifest.yaml
-├── docs/
-│   ├── product/
-│   │   ├── <project>-roadmap.md        ← roadmap output (with Decision Log)
-│   │   └── <project>-architecture.md   ← system architecture output
-│   └── research/<topic>.md
-└── ideas/
-    └── <slug>/
-        ├── 00-idea-capture.md
-        └── README.md
-```
+On completion:
+- Roadmap: `docs/product/<project>-roadmap.md`
+- Architecture: `docs/product/<project>-architecture.md`
+- Next: invoke `woos-product-design-flow` (Stage 2)
 
 ## Failure Handling
 
 | Situation | Action |
 |-----------|--------|
 | User can't articulate the idea | Ask simpler questions; offer examples |
-| Research reveals infeasibility | Report findings honestly; suggest alternatives |
+| Research reveals infeasibility | Report honestly; suggest alternatives |
 | Run orchestrator unavailable | Proceed without run_id; note in roadmap |
 | User rejects roadmap at checkpoint | Return to relevant step |
 | Architecture too uncertain | Flag as risk; proceed with assumptions documented |
-
-## Cross-Stage Skills Used
-
-| Skill | Purpose |
-|-------|---------|
-| `woos-idea-capture` | Step 1 |
-| `deep-research` | Step 2 |
-| `woos-run-orchestrator` | Step 3 |
-| `woos-product-planning-workflow` | Step 4 |
-| `woos-run-orchestrator` | Step 4 |
+| Review loops 3x without convergence | Ask user for direction |

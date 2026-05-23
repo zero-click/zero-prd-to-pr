@@ -1,37 +1,35 @@
 ---
 name: woos-product-design-flow
-description: "Stage 2 of woos-idea-to-delivery: take a version from the product roadmap and produce PRD + UI direction + build handoff for the coding agent. Focuses on WHAT to build and WHY — technical HOW is deferred to the engineering stage. Runs once per roadmap version."
-version: 3.0.0
+description: "Stage 2 orchestrator: take a version from the product roadmap and produce PRD + UI direction + build handoff. Dispatches sub-agents per step with domain knowledge."
+version: 4.0.0
 author: Hermes Profile
 license: MIT
 metadata:
   hermes:
-    tags: [product, design, prd, handoff, review-gate, ui, analyze]
+    tags: [product, design, prd, handoff, review-gate, ui, orchestrator]
     stage: 2
     flow: woos-idea-to-delivery-v2
 ---
 
-# Product Design Flow
+# Product Design Flow (Orchestrator)
 
 ## Purpose
 
-Transform one version from the product roadmap into a build-ready product handoff. This is **Stage 2** of the woos-idea-to-delivery flow.
+Transform one version from the product roadmap into a build-ready product handoff. This is **Stage 2** of the woos-idea-to-delivery flow. Run once per version.
 
-Focus: define WHAT to build and WHY. Technical architecture (HOW) is the engineering stage's responsibility.
+Focus: define WHAT to build and WHY. Technical architecture (HOW) is engineering's job.
 
-**Agent:** research
+## Role
+
+This file defines an **orchestrator** — a thin state machine that:
+1. Tracks which step we're on (via `run-manifest.yaml`)
+2. Dispatches sub-agents with the right persona + knowledge
+3. Collects outputs, decides next step
+4. Handles review fix loops
 
 ## Project Root Requirement
 
-**CRITICAL:** All file paths (`docs/`) are relative to a **project root directory**. The project root MUST be a real git repository (e.g. `~/code/my-project/`).
-
-**DO NOT** write files to the kanban scratch workspace. The scratch workspace is temporary and will be garbage-collected after task completion.
-
-If running via kanban:
-1. If the task has a `workspace_path` pointing to a git repo, use that.
-2. If the task is in scratch mode, **clone or create the target repo first**, then write all files there.
-3. The project root must contain `docs/` — create it if it doesn't exist.
-4. Ask the user for the project directory if not specified.
+All file paths (`docs/`) are relative to a **project root directory** which MUST be a git repository.
 
 ## When to Use
 
@@ -40,162 +38,149 @@ If running via kanban:
 
 ## Prerequisites
 
-- `docs/product/<project>-roadmap.md` exists (from `woos-product-discovery` or user-provided)
+- `docs/product/<project>-roadmap.md` exists (from Stage 1)
 
 ## Modes
 
-| Mode | When | Gate Reviews | Handoff Contents |
-|------|------|-------------|-----------------|
-| **Standard** | Default. Multi-feature version, UX decisions matter | PRD Review + Analyze Gate | Full (requirements, user flows, UI brief, AC) |
-| **Lite** | Small scope, obvious UX, low risk | None (self-check only) | 4 fields: Mission, Tasks, AC, Verification |
+| Mode | When | Gate Reviews | Handoff |
+|------|------|-------------|---------|
+| **Standard** | Default. Multi-feature, UX matters | PRD Review + UI Review + Analyze | Full |
+| **Lite** | Small scope, obvious UX, low risk | None (self-check) | 4 fields only |
 
-## Persona Switching
-
-Standard mode uses two personas:
-
-```
-[PM Mode] Steps 1–5
-  Mindset: user value, acceptance criteria, priorities, non-goals
-  ↓ PRD Review PASS
-[Design Mode] Step 6 (optional)
-  Mindset: user experience, interface clarity, interaction flows
-  ↓
-[QA Mode] Steps 7–9
-  Mindset: consistency, coverage, completeness
-```
-
-**When switching persona:**
-- Clear the previous persona's biases
-- Adopt the new persona's evaluation criteria
+---
 
 ## Steps — Standard Mode
 
 ### Step 1: Select Version Scope
 
-**[PM Mode]**
+| | |
+|---|---|
+| **Sub-agent** | ❌ (orchestrator does this directly) |
+| **Input** | `docs/product/<project>-roadmap.md` |
+| **Output** | _(confirmed version name — stored in run-manifest)_ |
 
-Read `docs/product/<project>-roadmap.md`, extract the target version. Confirm with user:
+Read roadmap, extract target version. Confirm with user:
 - Feature list and boundaries
-- Non-goals (what we're NOT building)
-- Success metrics (how we'll know it worked)
+- Non-goals
+- Success metrics
+
+---
 
 ### Step 2: Requirement Contract
 
-**[PM Mode]**
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | `references/bmad/personas/pm.toml` |
+| **Knowledge** | `references/bmad/frameworks/prd.md` |
+| **Input** | `docs/product/<project>-roadmap.md` § target version |
+| **Output** | `docs/prd/<feature>-requirements.md` |
 
-Produce structured requirement contract:
+Produce structured requirements:
 - Goals and constraints
 - Acceptance criteria (machine-checkable where possible)
 - Non-goals
 - Risk assumptions and unknowns
 
-**Output:** `docs/prd/<feature>-requirements.md`
+---
 
 ### Step 3: Priority Ranking
 
-**[PM Mode]**
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | `references/bmad/personas/pm.toml` |
+| **Knowledge** | _(persona sufficient — ranking is judgment, not methodology)_ |
+| **Input** | `docs/prd/<feature>-requirements.md` |
+| **Output** | `docs/prd/<feature>-requirements.md` → appends `## Priority Ranking` |
 
-Before writing the full PRD, rank requirements by priority. Not everything in the requirement contract is equal — this step forces explicit trade-off decisions.
+Rank requirements by priority using one framework:
 
-**Framework (pick one appropriate to context):**
-
-| Framework | When to use | How it works |
-|-----------|-------------|--------------|
-| **MoSCoW** | Small scope, clear stakeholders | Must / Should / Could / Won't |
-| **RICE** | Data-available, multiple competing features | Reach × Impact × Confidence ÷ Effort |
-| **Kano** | UX-heavy, user delight matters | Must-have / Performance / Delighter |
-| **User Story Mapping** | Complex flows, multi-step journeys | Backbone (must) → Walking Skeleton → Nice-to-have |
+| Framework | When | How |
+|-----------|------|-----|
+| MoSCoW | Small scope, clear stakeholders | Must / Should / Could / Won't |
+| RICE | Data-available, competing features | Reach × Impact × Confidence ÷ Effort |
+| Kano | UX-heavy, user delight matters | Must-have / Performance / Delighter |
+| Story Mapping | Complex flows | Backbone → Walking Skeleton → Nice-to-have |
 
 **Must produce:**
-1. Ranked list of requirements with priority tier (P0 = must-ship, P1 = should-ship, P2 = nice-to-have)
-2. Explicit trade-off rationale for any requirement placed at P1/P2 instead of P0
-3. Cut-line: which requirements are IN for this version vs DEFERRED to next
+1. Ranked list with priority tier (P0 must-ship, P1 should-ship, P2 nice-to-have)
+2. Trade-off rationale for P1/P2 items
+3. Cut-line: what's IN vs DEFERRED
 
-**Output:** Append `## Priority Ranking` section to `docs/prd/<feature>-requirements.md`
-
-```markdown
-## Priority Ranking
-
-Framework used: [MoSCoW / RICE / Kano / Story Mapping]
-
-| # | Requirement | Priority | Rationale |
-|---|-------------|----------|-----------|
-| 1 | ... | P0 (must-ship) | Core to value proposition |
-| 2 | ... | P0 (must-ship) | Unblocks other requirements |
-| 3 | ... | P1 (should-ship) | High value but not blocking |
-| 4 | ... | P2 (nice-to-have) | Delight, not necessity |
-
-### Cut-line for this version
-- IN: requirements 1-5
-- DEFERRED to V(N+1): requirements 6-8
-- Rationale: [why the cut is here]
-```
+---
 
 ### Step 4: PRD Authoring
 
-**[PM Mode]**
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | `references/bmad/personas/pm.toml` |
+| **Knowledge** | `references/bmad/frameworks/prd.md` + `references/bmad/templates/prd-template.md` |
+| **Input** | `docs/prd/<feature>-requirements.md` (including Priority Ranking) |
+| **Output** | `docs/prd/<feature>.md` |
 
-Write full PRD (informed by priority ranking — P0 requirements get full detail, P2 gets brief mention):
+Write full PRD (P0 requirements get full detail, P2 gets brief mention):
 - User stories with acceptance criteria
 - Functional and non-functional requirements
 - Edge cases and error handling
-- User flows (text-based flow descriptions)
+- User flows (text-based)
 
-**Output:** `docs/prd/<feature>.md`
+---
 
 ### Step 5: PRD Review Gate
 
-**[PM Mode → Checkpoint]**
-
-**Reviewer:** Independent sub-agent dispatched in fresh context (product-planner persona).
+| | |
+|---|---|
+| **Sub-agent** | ✅ (independent reviewer) |
+| **Persona** | `references/bmad/personas/prd-validator.toml` |
+| **Knowledge** | `references/bmad/frameworks/validate-prd.md` + `references/bmad/templates/prd-validation-checklist.md` |
+| **Input** | `docs/prd/<feature>.md` + `docs/prd/<feature>-requirements.md` |
+| **Output** | `docs/reviews/<feature>-prd-review-rN.md` |
 
 **Checklist:**
 
-| # | Criterion | What to check |
-|---|-----------|---------------|
-| P1 | Value-traced | Every requirement traces back to user value (no "nice to have" as must-have) |
-| P2 | AC testable | Acceptance criteria verifiable without knowing implementation |
-| P3 | Non-goals effective | Clearly prevent scope creep (specific enough to say "no" to requests) |
-| P4 | Edge cases covered | Not hand-waved — specific scenarios with expected behavior |
-| P5 | Real user behavior | User stories reflect actual usage, not developer convenience |
-| P6 | No contradictions | Requirements don't conflict with each other or non-goals |
+| # | Criterion | Fix Hint |
+|---|-----------|----------|
+| P1 | Value-traced | Add "User value: …" line linking each requirement to a user outcome |
+| P2 | AC testable | Rewrite as "Given X, When Y, Then Z" or add measurable threshold |
+| P3 | Non-goals effective | Make specific enough to reject a concrete feature request |
+| P4 | Edge cases covered | Add "What if…" for: empty state, error, timeout, concurrent access |
+| P5 | Real user behavior | Replace developer-centric language with user-observable actions |
+| P6 | No contradictions | Identify conflicts; pick one, move the other to non-goals |
 
-**Dispatch:** `delegate_task` → fresh context, product-planner role, read PRD + requirements + roadmap.
-
-**Review Findings Output:** `docs/reviews/<feature>-prd-review-rN.md`
-
+**Review findings format:**
 ```markdown
 # PRD Review — Round N
 
-| # | Criterion | Status | Finding | Fixed? |
-|---|-----------|--------|---------|--------|
-| P1 | Value-traced | ✅ PASS | — | — |
-| P2 | AC testable | ❌ FAIL | "AC #3 says 'fast enough' — needs specific latency target" | ☐ |
-| P3 | Non-goals effective | ✅ PASS | — | — |
-| P4 | Edge cases covered | ❌ FAIL | "No mention of offline/network-error behavior" | ☐ |
-| P5 | Real user behavior | ✅ PASS | — | — |
-| P6 | No contradictions | ✅ PASS | — | — |
+| # | Criterion | Status | Finding | Fix Hint | Fixed? |
+|---|-----------|--------|---------|----------|--------|
+| P1 | Value-traced | ✅ | — | — | — |
+| P2 | AC testable | ❌ | "AC #3 says 'fast enough'" | Add latency target | ☐ |
 
 ## Summary
-PASS: 4/6 | FAIL: 2/6 → REQUEST_CHANGES
+PASS: X/6 | FAIL: Y/6 → [PASS | REQUEST_CHANGES]
 ```
 
-**Flow:**
-1. Reviewer outputs findings with ❌/✅ per criterion
-2. Author agent fixes each ❌ item, marks `Fixed? ☑` in findings file
-3. Re-review: reviewer checks only `Fixed? ☑` rows — verifies fix is adequate
-4. New issues found during re-review → append as new rows
+**Fix flow:**
+1. If `REQUEST_CHANGES` → dispatch fix agent (pm persona) with findings + PRD
+2. Fix agent edits PRD in-place, marks `Fixed? ☑` in findings
+3. Re-dispatch reviewer (round N+1)
+4. Max 2 rounds → ask user
 
-**Results:**
-- **PASS** → all criteria ✅ → proceed to Step 6
-- **REQUEST_CHANGES** → return to Step 4, fix per findings checklist
-- 3 rounds without convergence → ask user for direction
+**Result:** `PASS` → proceed to Step 6
 
-**Checkpoint:** If configured, pause here and present PRD summary to user for confirmation.
+---
 
 ### Step 6: UI Design Brief (Optional)
 
-**[Design Mode]**
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | `references/bmad/personas/ux-designer.toml` |
+| **Knowledge** | `references/bmad/frameworks/ux-design.md` |
+| **Input** | `docs/prd/<feature>.md` |
+| **Output** | `docs/design/<feature>-ui-brief.md` |
 
 **Skill:** `woos-ui-design-brief`
 
@@ -203,135 +188,168 @@ When the feature has user-facing interface:
 - Define screens, layouts, key components
 - Define user states (empty, loading, error, success, first-run)
 - Establish visual direction
-- Optionally generate image concepts for taste alignment
+- Optionally generate image concepts
 
-**Output:** `docs/design/<feature>-ui-brief.md`
+**Skip when:** pure API/backend/CLI, Lite mode, user declines.
 
-**Skip when:**
-- Pure API/backend/CLI work
-- Lite mode
-- User explicitly declines
+---
 
-### Step 6R: UI Brief Review Gate (when Step 6 runs)
+### Step 6R: UI Brief Review Gate
 
-**Reviewer:** Independent sub-agent dispatched in fresh context (ux-reviewer persona).
+| | |
+|---|---|
+| **Sub-agent** | ✅ (independent reviewer) |
+| **Persona** | `references/bmad/personas/ux-designer.toml` |
+| **Knowledge** | `references/bmad/frameworks/ux-validate.md` |
+| **Input** | `docs/design/<feature>-ui-brief.md` + `docs/prd/<feature>.md` |
+| **Output** | `docs/reviews/<feature>-ui-review-rN.md` |
 
 **Checklist:**
 
-| # | Criterion | What to check |
-|---|-----------|---------------|
-| U1 | Screen coverage | Every screen maps to ≥1 user story from PRD |
-| U2 | States complete | All important states defined (empty, loading, error, success, first-run) |
-| U3 | Flows connected | User flows have clear entry/exit matching PRD flows, no dead ends |
-| U4 | Visual consistency | Design principles don't contradict each other |
-| U5 | Accessibility realistic | A11y targets achievable for the platform and timeline |
-| U6 | Components sufficient | Component inventory covers all screens (no orphans) |
-| U7 | Principles actionable | Design principles guide real decisions (not generic platitudes) |
+| # | Criterion | Fix Hint |
+|---|-----------|----------|
+| U1 | Screen coverage | List unmapped user stories; add a screen or flow for each |
+| U2 | States complete | Add missing states (empty/loading/error/success) to each screen |
+| U3 | Flows connected | Trace each flow end-to-end; add missing transitions or exit points |
+| U4 | Visual consistency | Remove contradicting principles; pick one direction |
+| U5 | Accessibility realistic | Downgrade to achievable level (AAA→AA); document upgrade timeline |
+| U6 | Components sufficient | List screens with no component mapping; add or mark as reuse |
+| U7 | Principles actionable | Replace generic ("clean", "modern") with decision-guiding rules |
 
-**Dispatch:** `delegate_task` → fresh context, ux-reviewer role, read UI brief + PRD.
+**Fix flow:** Same protocol. Fix agent uses ux-designer persona. Max 2 rounds.
 
-**Review Findings Output:** `docs/reviews/<feature>-ui-review-rN.md`
+**Result:** `PASS` → proceed to Step 7
 
-```markdown
-# UI Brief Review — Round N
-
-| # | Criterion | Status | Finding | Fixed? |
-|---|-----------|--------|---------|--------|
-| U1 | Screen coverage | ✅ PASS | — | — |
-| U2 | States complete | ❌ FAIL | "Settings screen missing error state" | ☐ |
-| U3 | Flows connected | ✅ PASS | — | — |
-| U4 | Visual consistency | ✅ PASS | — | — |
-| U5 | Accessibility realistic | ❌ FAIL | "AAA target unrealistic for V1 timeline — suggest AA" | ☐ |
-| U6 | Components sufficient | ✅ PASS | — | — |
-| U7 | Principles actionable | ✅ PASS | — | — |
-
-## Summary
-PASS: 5/7 | FAIL: 2/7 → REQUEST_CHANGES
-```
-
-**Flow:**
-1. Reviewer outputs findings with ❌/✅ per criterion
-2. Author agent fixes each ❌ item, marks `Fixed? ☑` in findings file
-3. Re-review: reviewer checks only `Fixed? ☑` rows — verifies fix is adequate
-4. New issues found during re-review → append as new rows
-
-**Results:**
-- **PASS** → all criteria ✅ → proceed to Step 7
-- **REQUEST_CHANGES** → return to Step 6, fix per findings checklist
-
-Max 2 rounds. If no convergence → ask user for direction.
+---
 
 ### Step 7: Analyze Gate
 
-**[QA Mode]**
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | _(qa — no BMAD persona needed)_ |
+| **Knowledge** | `references/bmad/frameworks/implementation-readiness.md` |
+| **Input** | `docs/prd/<feature>.md` + `docs/design/<feature>-ui-brief.md` (if exists) |
+| **Output** | `docs/handoff/<feature>-vN-analyze-report.md` |
 
-Cross-artifact product consistency check. Run BEFORE packaging the handoff.
+Cross-artifact consistency check:
 
-| Check | What | Pass Condition |
-|-------|------|----------------|
-| A1: Requirement Coverage | Every user story has acceptance criteria | 100% coverage |
-| A2: AC Testability | Every AC is verifiable without knowing implementation | 100% testable |
-| A3: Flow Completeness | All user flows from PRD have defined start/end states | No dead-end flows |
-| A4: Non-goal Alignment | No requirement contradicts stated non-goals | Zero conflicts |
-| A5: UI Coverage | If UI brief exists, every screen maps to ≥1 user story | No orphan screens |
-
-**Output:** `docs/handoff/<feature>-vN-analyze-report.md`
+| Check | Pass Condition |
+|-------|----------------|
+| A1: Requirement Coverage | Every user story has AC |
+| A2: AC Testability | Every AC verifiable without knowing implementation |
+| A3: Flow Completeness | All flows have start/end states |
+| A4: Non-goal Alignment | No requirement contradicts non-goals |
+| A5: UI Coverage | Every screen maps to ≥1 user story (if UI brief exists) |
 
 **Results:**
-- **PASS** → all checks green → proceed to Step 8
-- **GAPS_FOUND** → return to relevant step (Step 4 for requirement gaps, Step 6 for UI gaps)
+- **PASS** → proceed to Step 8
+- **GAPS_FOUND** → return to Step 4 (requirement gaps) or Step 6 (UI gaps)
+
+---
 
 ### Step 8: Build Handoff Packaging
 
-**[QA Mode]**
+| | |
+|---|---|
+| **Sub-agent** | ✅ |
+| **Persona** | `references/bmad/personas/pm.toml` |
+| **Knowledge** | `references/bmad/frameworks/epics-and-stories.md` |
+| **Input** | `docs/prd/<feature>.md` + `docs/design/<feature>-ui-brief.md` + analyze report |
+| **Output** | `docs/handoff/<feature>-vN.md` |
 
 **Skill:** `woos-build-handoff`
 
-Package all product artifacts into a single handoff file that a fresh coding agent can work from independently.
-
-**Output:** `docs/handoff/<feature>-vN.md`
-
-Handoff contains:
-1. Spec versioning (YAML frontmatter: `spec-version`, `based-on`)
-2. Mission Statement (one paragraph: what and why)
-3. Context (from roadmap — target users, market position)
+Package all product artifacts into a single handoff file:
+1. Spec versioning (YAML frontmatter)
+2. Mission Statement
+3. Context (from roadmap)
 4. Requirements (user stories + AC + non-goals)
-5. User Flows (step-by-step flow descriptions)
-6. UI Direction (summary from UI brief, if exists)
-7. Build Tasks (product-level task breakdown)
-8. Verification Plan (how to confirm each AC is met)
-9. Open Questions (anything the engineering stage should resolve)
-10. DCR Protocol (how coding agent reports product issues back)
+5. User Flows
+6. UI Direction (from UI brief, if exists)
+7. Build Tasks (product-level breakdown)
+8. Verification Plan
+9. Open Questions
+10. DCR Protocol
 
-**Note:** Technical architecture, data model, API design are NOT in this handoff. Those are the engineering stage's job. The handoff defines WHAT to build; engineering decides HOW.
+**Note:** Technical architecture, data model, API design are NOT in handoff. Engineering decides HOW.
+
+---
 
 ### Step 9: Handoff Readiness Check
 
-**[QA Mode]**
+| | |
+|---|---|
+| **Sub-agent** | ❌ (orchestrator does this directly) |
+| **Input** | `docs/handoff/<feature>-vN.md` |
+| **Output** | _(pass/fail — updates run-manifest)_ |
 
 Checklist:
 - [ ] All AC are testable
 - [ ] Build Tasks map to user stories
-- [ ] No unresolved product decisions remain
+- [ ] No unresolved product decisions
 - [ ] User flows have no dead ends
 - [ ] UI brief covers all interactive features (if applicable)
-- [ ] Non-goals are clear enough to prevent scope creep
-- [ ] DCR protocol is specified
+- [ ] Non-goals clear enough to prevent scope creep
+- [ ] DCR protocol specified
 
-**PASS** → handoff ready for engineering stage
+**PASS** → handoff ready for engineering
 **FAIL** → return to Step 8 with gaps
+
+---
 
 ## Steps — Lite Mode
 
 | Step | What |
 |------|------|
-| L1 | One-sentence Mission: what we're building and why |
-| L2 | Build Tasks: numbered list of product objectives |
-| L3 | Acceptance Criteria: how to verify each task |
-| L4 | Verification: how to confirm completion |
-| L5 | Package into Lite handoff (4 fields) using `woos-build-handoff` |
+| L1 | One-sentence Mission |
+| L2 | Build Tasks (numbered list) |
+| L3 | Acceptance Criteria |
+| L4 | Verification |
+| L5 | Package into Lite handoff using `woos-build-handoff` |
 
 No review gates, no UI brief, no analyze gate. Self-check only.
+
+---
+
+## State Persistence
+
+### Run Manifest Schema (Stage 2 section)
+
+```yaml
+stages:
+  product-design-flow:
+    status: in_progress
+    version: "V1"
+    feature: "<feature-name>"
+    current_step: 5
+    steps:
+      1-select-scope: { status: done }
+      2-requirements: { status: done, output: "docs/prd/<feature>-requirements.md" }
+      3-priority-ranking: { status: done, output: "docs/prd/<feature>-requirements.md#priority-ranking" }
+      4-prd: { status: done, output: "docs/prd/<feature>.md" }
+      5-prd-review: { status: in_progress, round: 1, result: REQUEST_CHANGES }
+      6-ui-brief: { status: pending }
+      6r-ui-review: { status: pending }
+      7-analyze: { status: pending }
+      8-handoff: { status: pending }
+      9-readiness: { status: pending }
+```
+
+### Recovery Protocol
+
+Same as Stage 1:
+1. Read `run-manifest.yaml`
+2. Find first step where `status != done`
+3. Check output file → exists/well-formed (mark done) | exists/incomplete (resume) | missing (restart step)
+4. Continue
+
+### Update Rules
+- Write manifest BEFORE dispatching sub-agent (`status: in_progress`)
+- Write manifest AFTER sub-agent returns (`status: done` + output)
+- Reviews record: `round: N`, `result: PASS|REQUEST_CHANGES`
+
+---
 
 ## DCR Reception
 
@@ -339,53 +357,30 @@ When coding agent sends a Design Change Request (`docs/feedback/<feature>-dcr.md
 
 1. Read DCR — what product assumption is being challenged?
 2. Assess impact:
-   - **Small change**: Update handoff directly, notify coding agent to continue
-   - **Large change**: Return to Step 4 (PRD) or Step 6 (UI brief) to revise
+   - **Small change**: Update handoff directly, notify coding agent
+   - **Large change**: Return to Step 4 (PRD) or Step 6 (UI brief)
 3. Update handoff version number
 
-## Checkpoint Control
+---
 
-Standard mode supports optional checkpoints:
+## Checkpoint Control
 
 ```yaml
 checkpoints:
   - prd-passed      # Pause after PRD Review PASS
-  - handoff-ready   # Pause after Handoff Readiness PASS
+  - handoff-ready   # Pause after Readiness PASS
 ```
 
-If `checkpoints: []` or field absent → fully autonomous (no pauses).
+If `checkpoints: []` → fully autonomous.
 
-At each checkpoint:
-1. Present summary to user
-2. Wait for confirmation
-3. If user requests changes → return to relevant step
-4. If user confirms → proceed
+At each checkpoint: present summary → wait for user confirmation → proceed or return.
 
-## Handoff to Next Stage
+## Handoff to Engineering
 
 On completion:
-- Handoff file at `docs/handoff/<feature>-vN.md`
-- Analyze report at `docs/handoff/<feature>-vN-analyze-report.md`
+- Handoff: `docs/handoff/<feature>-vN.md`
+- Analyze report: `docs/handoff/<feature>-vN-analyze-report.md`
 - Tell user: "Product handoff ready. Engineering stage can begin."
-- If using kanban: create task assigned to `coding` with handoff file path
-
-## File Layout
-
-```text
-<project-root>/
-├── docs/
-│   ├── product/<project>-roadmap.md          ← input (from Stage 1)
-│   ├── prd/
-│   │   ├── <feature>-requirements.md         ← Step 2 output
-│   │   ├── <feature>-requirements.md          ← Step 2 output
-│   │   └── <feature>.md                      ← Step 4 output
-│   ├── design/
-│   │   └── <feature>-ui-brief.md             ← Step 6 output (optional)
-│   ├── handoff/
-│   │   ├── <feature>-vN.md                   ← main output
-│   │   └── <feature>-vN-analyze-report.md    ← Step 7 output
-│   └── feedback/<feature>-dcr.md             ← DCR input (from engineering)
-```
 
 ## Failure Handling
 
@@ -393,12 +388,13 @@ On completion:
 |-----------|--------|
 | Roadmap missing | Redirect to `woos-product-discovery` first |
 | Review loops 3x | Ask user for direction |
-| Scope too large for one handoff | Split into multiple handoffs; one per sub-feature |
-| UI brief requested but no interface | Skip Step 6, note in handoff |
+| Scope too large | Split into multiple handoffs per sub-feature |
+| UI brief but no interface | Skip Step 6, note in handoff |
+| Crash mid-step | Recovery protocol from run-manifest |
 
 ## Skills Used
 
-| Skill | Purpose |
-|-------|---------|
-| `woos-ui-design-brief` | Step 6 (optional) |
-| `woos-build-handoff` | Step 8 |
+| Skill | Step |
+|-------|------|
+| `woos-ui-design-brief` | 6 |
+| `woos-build-handoff` | 8 |
