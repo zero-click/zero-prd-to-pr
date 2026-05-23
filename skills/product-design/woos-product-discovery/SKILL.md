@@ -8,7 +8,7 @@ metadata:
   hermes:
     tags: [product, discovery, roadmap, planning, research, orchestrator]
     stage: 1
-    flow: woos-idea-to-delivery-v2
+    flow: woos-idea-to-delivery
 ---
 
 # Product Discovery (Orchestrator)
@@ -58,6 +58,7 @@ If skipping → go directly to `woos-product-design-flow` (Stage 2).
 | **Knowledge** | `references/bmad/templates/brief-template.md` |
 | **Input** | _(user conversation)_ |
 | **Output** | `ideas/<slug>/00-idea-capture.md` |
+| **Side effect** | Creates `.hep/runs/<run_id>/run-manifest.yaml` (state tracking begins here) |
 
 **Skill:** `woos-idea-capture`
 
@@ -66,6 +67,8 @@ Socratic interview the user (or parse a written idea) to extract:
 - For whom
 - What "done" looks like at a high level
 - Constraints and non-goals
+
+After capture, the orchestrator initializes the run manifest.
 
 ---
 
@@ -126,22 +129,7 @@ Investigate:
 
 ---
 
-### Step 4: Run Initialization
-
-| | |
-|---|---|
-| **Sub-agent** | ❌ (orchestrator does this directly) |
-| **Input** | _(none)_ |
-| **Output** | `.hep/runs/<run_id>/run-manifest.yaml` |
-
-Initialize state tracking:
-- Create `.hep/runs/<run_id>/run-manifest.yaml`
-- Record `run_id`, set all step statuses to `pending`
-- Set `current_step: 5`
-
----
-
-### Step 5: Product Vision & Roadmap
+### Step 4: Product Vision & Roadmap
 
 | | |
 |---|---|
@@ -161,7 +149,7 @@ Synthesize into a roadmap document containing:
 
 ---
 
-### Step 5R: Roadmap Review Gate
+### Step 4R: Roadmap Review Gate
 
 | | |
 |---|---|
@@ -201,11 +189,11 @@ PASS: X/6 | FAIL: Y/6 → [PASS | REQUEST_CHANGES]
 3. Re-dispatch reviewer (round N+1), checks only `Fixed? ☑` rows
 4. Max 2 rounds → ask user if no convergence
 
-**Result:** `PASS` → proceed to Step 6
+**Result:** `PASS` → proceed to Step 5
 
 ---
 
-### Step 6: System Architecture Overview
+### Step 5: System Architecture Overview
 
 | | |
 |---|---|
@@ -228,7 +216,7 @@ Produce high-level system architecture spanning all planned versions:
 
 ---
 
-### Step 6R: Architecture Review Gate
+### Step 5R: Architecture Review Gate
 
 | | |
 |---|---|
@@ -250,13 +238,13 @@ Produce high-level system architecture spanning all planned versions:
 | A6 | Risks realistic | Add concrete mitigation action (not just "monitor") |
 | A7 | Version-aligned | Move components only needed by V2+ out of V1 architecture |
 
-**Fix flow:** Same as Step 5R. Fix agent uses architect persona. Max 2 rounds.
+**Fix flow:** Same as Step 4R. Fix agent uses architect persona. Max 2 rounds.
 
-**Result:** `PASS` → proceed to Step 7
+**Result:** `PASS` → proceed to Step 6
 
 ---
 
-### Step 7: Decision Log
+### Step 6: Decision Log
 
 | | |
 |---|---|
@@ -287,18 +275,17 @@ updated_at: "<ISO8601>"
 
 stages:
   product-discovery:
-    status: in_progress  # pending | in_progress | completed | blocked
+    status: in_progress  # pending | in_progress | done | blocked
     current_step: 6
     steps:
       1-idea-capture: { status: done, output: "ideas/<slug>/00-idea-capture.md" }
       2-problem-validation: { status: done, output: "ideas/<slug>/00-idea-capture.md#problem-validation" }
       3-research: { status: done, output: "docs/research/<topic>.md" }
-      4-run-init: { status: done }
-      5-roadmap: { status: done, output: "docs/product/<project>-roadmap.md" }
-      5r-roadmap-review: { status: done, round: 2, result: PASS }
-      6-architecture: { status: in_progress, output: "docs/product/<project>-architecture.md" }
-      6r-architecture-review: { status: pending }
-      7-decision-log: { status: pending }
+      4-roadmap: { status: done, output: "docs/product/<project>-roadmap.md" }
+      4r-roadmap-review: { status: done, round: 2, result: PASS }
+      5-architecture: { status: in_progress, output: "docs/product/<project>-architecture.md" }
+      5r-architecture-review: { status: pending }
+      6-decision-log: { status: pending }
 ```
 
 ### Recovery Protocol

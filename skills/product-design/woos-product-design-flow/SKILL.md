@@ -8,7 +8,7 @@ metadata:
   hermes:
     tags: [product, design, prd, handoff, review-gate, ui, orchestrator]
     stage: 2
-    flow: woos-idea-to-delivery-v2
+    flow: woos-idea-to-delivery
 ---
 
 # Product Design Flow (Orchestrator)
@@ -39,8 +39,6 @@ All file paths (`docs/`) are relative to a **project root directory** which MUST
 ## Prerequisites
 
 - `docs/product/<project>-roadmap.md` exists (from Stage 1)
-
-## Modes
 
 ## Modes
 
@@ -302,7 +300,7 @@ Package all product artifacts into a single handoff file:
 |---|---|
 | **Sub-agent** | ❌ (orchestrator does this directly) |
 | **Input** | `docs/handoff/<version>/<feature>.md` |
-| **Output** | _(pass/fail — updates run-manifest)_ |
+| **Output** | `docs/reviews/<version>/<feature>-readiness.md` |
 
 Checklist:
 - [ ] All AC are testable
@@ -312,6 +310,19 @@ Checklist:
 - [ ] UI brief covers all interactive features (if applicable)
 - [ ] Non-goals clear enough to prevent scope creep
 - [ ] DCR protocol specified
+
+**Output file format:**
+```markdown
+# Readiness Check — <feature>
+
+| # | Criterion | Status | Notes |
+|---|-----------|--------|-------|
+| 1 | AC testable | ✅ | — |
+| 2 | Tasks → stories | ✅ | — |
+| ...
+
+## Verdict: PASS / FAIL
+```
 
 **PASS** → handoff ready for engineering (if single feature) or proceed to Step 10 (if multi-feature version)
 **FAIL** → return to Step 8 with gaps
@@ -326,7 +337,7 @@ Checklist:
 | **Persona** | `references/bmad/personas/pm.toml` |
 | **Knowledge** | `references/bmad/frameworks/implementation-readiness.md` |
 | **Input** | All `docs/handoff/<version>/<feature>.md` for this version |
-| **Output** | `docs/reviews/<project>-v<N>-integration-report.md` |
+| **Output** | `docs/reviews/<version>/integration-report.md` |
 
 **Trigger:** Runs once after ALL features in this version pass Step 9.
 **Skip when:** Version has only 1 feature.
@@ -390,26 +401,26 @@ No review gates, no UI brief, no analyze gate. Self-check only.
 stages:
   product-design-flow:
     status: in_progress
-    version: "V1"
+    version: "v1"
     features:
       auth:
         current_step: 9
         steps:
-          2-requirements: { status: done, output: "docs/prd/<project>/v1/auth-requirements.md" }
-          3-priority-ranking: { status: done, output: "docs/prd/auth-requirements.md#priority-ranking" }
-          4-prd: { status: done, output: "docs/prd/<project>/v1/auth.md" }
+          2-requirements: { status: done, output: "docs/prd/v1/auth-requirements.md" }
+          3-priority-ranking: { status: done, output: "docs/prd/v1/auth-requirements.md#priority-ranking" }
+          4-prd: { status: done, output: "docs/prd/v1/auth.md" }
           5-prd-review: { status: done, round: 1, result: PASS }
           6-ui-brief: { status: skipped }
           6r-ui-review: { status: skipped }
-          7-analyze: { status: done, output: "docs/handoff/<project>/v1/auth-analyze-report.md" }
-          8-handoff: { status: done, output: "docs/handoff/<project>/v1/auth.md" }
-          9-readiness: { status: done, result: PASS }
+          7-analyze: { status: done, output: "docs/handoff/v1/auth-analyze-report.md" }
+          8-handoff: { status: done, output: "docs/handoff/v1/auth.md" }
+          9-readiness: { status: done, result: PASS, output: "docs/reviews/v1/auth-readiness.md" }
       dashboard:
         current_step: 4
         steps:
-          2-requirements: { status: done, output: "docs/prd/<project>/v1/dashboard-requirements.md" }
-          3-priority-ranking: { status: done, output: "docs/prd/dashboard-requirements.md#priority-ranking" }
-          4-prd: { status: in_progress, output: "docs/prd/<project>/v1/dashboard.md" }
+          2-requirements: { status: done, output: "docs/prd/v1/dashboard-requirements.md" }
+          3-priority-ranking: { status: done, output: "docs/prd/v1/dashboard-requirements.md#priority-ranking" }
+          4-prd: { status: in_progress, output: "docs/prd/v1/dashboard.md" }
           # ... remaining pending
     integration:
       status: pending  # runs after all features pass step 9

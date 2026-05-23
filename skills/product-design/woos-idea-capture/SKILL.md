@@ -9,7 +9,7 @@ metadata:
     tags: [idea, capture, interview, product, ideation]
     related_skills:
       - woos-product-discovery
-      - woos-prd-authoring
+      - woos-product-design-flow
 ---
 
 # Idea Capture
@@ -30,7 +30,7 @@ Use when:
 
 Skip when:
 
-- Idea already has a PRD → go to `woos-prd-authoring` or later phases
+- Idea already has a PRD → go to `woos-product-design-flow`
 - Pure bugfix with clear reproduction → no capture needed
 
 ## Capture Modes
@@ -38,6 +38,7 @@ Skip when:
 ### Lite Mode — Quick Note
 
 For: small-scope ideas, feature requests with clear intent, internal improvements.
+Corresponds to the Lite execution tier in `woos-idea-to-delivery`.
 
 **Process:**
 
@@ -67,9 +68,9 @@ What should we build?
 How do we know it worked?
 ```
 
-### Full Mode — Guided Interview
+### Standard / Strict Mode — Guided Interview
 
-For: new product features, cross-cutting changes, ideas with unclear scope.
+For: normal features (Standard) or multi-feature / high-risk initiatives (Strict).
 
 **Process:**
 
@@ -114,7 +115,7 @@ Ask sequentially. Skip if user already provided the information unprompted.
 
 This section has been removed from idea-capture. Technical decisions belong in later stages (feature-design or engineering workflow). Idea capture focuses purely on product intent.
 
-## Output Format (Full Mode)
+## Output Format (Standard / Strict Mode)
 
 ```markdown
 # <Idea Title>
@@ -164,7 +165,7 @@ Ideal experience: [describe]
 ## File Locations
 
 - Lite: `ideas/<slug>.md`
-- Full: `ideas/<slug>/00-idea-capture.md` + `ideas/<slug>/README.md`
+- Standard / Strict: `ideas/<slug>/00-idea-capture.md`
 
 Slug: lowercase, hyphens, max 50 chars, from idea title.
 
@@ -172,15 +173,15 @@ Slug: lowercase, hyphens, max 50 chars, from idea title.
 
 After capture:
 
-1. Lite mode + scope clear → proceed to PRD
-2. Full + research needed → Research Pass
-3. Full + scope clear → PRD
+1. Lite mode + scope clear → `woos-product-design-flow` Lite (brief PRD → handoff)
+2. Standard / Strict + research needed → `woos-product-discovery` (Stage 1)
+3. Standard / Strict + scope clear → `woos-product-design-flow` Standard/Strict (Stage 2)
 
 ## Pitfalls
 
 - Don't re-ask questions the user already answered unprompted
 - Don't prescribe architecture — capture requirements, not solutions
 - Don't skip open questions — they feed the research pass
-- Don't write the PRD here — that's `woos-prd-authoring`
+- Don't write the PRD here — that's handled in `woos-product-design-flow`
 - Don't make technical decisions — those belong in later stages
 - Don't discuss tech stack, frameworks, or databases — stay on product intent
