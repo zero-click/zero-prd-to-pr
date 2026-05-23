@@ -39,7 +39,17 @@ The orchestrator only tracks: current step, output file paths, pass/fail status.
 
 ---
 
-## Stage 2: `woos-product-design-flow` (per version)
+## Stage 2: `woos-product-design-flow`
+
+### Three Modes
+
+| Mode | When | Steps | Reviews |
+|------|------|-------|---------|
+| **Lite** | Small scope, obvious, 1-2 days | Mission → Tasks → AC → Handoff | None |
+| **Standard** | Single feature, moderate complexity | Requirements → PRD → PRD Review → Handoff | 1 (PRD) |
+| **Strict** | Multi-feature version, high uncertainty | Full: Priority → PRD → Review → UI → Review → Analyze → Handoff → Integration | All |
+
+### Strict Mode (full pipeline, per version)
 
 ```
 Step 1: Select Version → extract feature list
@@ -66,14 +76,41 @@ Step 1: Select Version → extract feature list
 **Step 6 trigger:** Orchestrator asks user "Does this feature have UI?" — Yes → run, No → skip 6+6R.
 **Step 10 trigger:** Runs after ALL features pass Step 9. Skipped if only 1 feature in version.
 
-**Stage 2 final deliverables (per feature):**
-- `docs/prd/<version>/<feature>-requirements.md` — 需求合约 + 优先级排序
-- `docs/prd/<version>/<feature>.md` — 完整 PRD
-- `docs/design/<version>/<feature>-ui-brief.md` — UI 方向（如有）
-- ⭐ **`docs/handoff/<version>/<feature>.md`** — 最终交付物，coding agent 的唯一输入
+### Standard Mode (single feature)
 
-**Stage 2 final deliverables (per version):**
+```
+Requirements → PRD → PRD Review → Handoff → Readiness
+```
+
+| Step | Name | Sub-agent? | Output |
+|------|------|:----------:|--------|
+| S1 | Requirement Contract | ✅ (pm) | `docs/prd/<version>/<feature>-requirements.md` |
+| S2 | PRD Authoring | ✅ (pm) | `docs/prd/<version>/<feature>.md` |
+| S3 | PRD Review | ✅ (prd-validator) | `docs/reviews/<version>/<feature>-prd-review-rN.md` |
+| S4 | Build Handoff | ✅ (pm) | `docs/handoff/<version>/<feature>.md` |
+| S5 | Readiness Check | ❌ orchestrator | _(pass/fail)_ |
+
+No: Priority Ranking, UI Brief, Analyze Gate, Integration Gate.
+
+### Lite Mode (trivial)
+
+| Step | What | Output |
+|------|------|--------|
+| L1 | Mission (1 sentence) | — |
+| L2 | Build Tasks | — |
+| L3 | Acceptance Criteria | — |
+| L4 | Verification | — |
+| L5 | Package handoff | `docs/handoff/<version>/<feature>.md` (4 fields) |
+
+No review gates. Self-check only.
+
+### Final Deliverable (all modes)
+
+⭐ **`docs/handoff/<version>/<feature>.md`** — coding agent 的唯一输入
+
+Additional outputs (Strict only):
 - `docs/reviews/<version>/integration-report.md` — 跨 feature 一致性报告
+- `docs/design/<version>/<feature>-ui-brief.md` — UI 方向
 
 ---
 

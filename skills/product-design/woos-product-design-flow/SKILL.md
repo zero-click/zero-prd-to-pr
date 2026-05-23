@@ -42,21 +42,29 @@ All file paths (`docs/`) are relative to a **project root directory** which MUST
 
 ## Modes
 
-| Mode | When | Gate Reviews | Handoff |
-|------|------|-------------|---------|
-| **Standard** | Default. Multi-feature, UX matters | PRD Review + UI Review + Analyze | Full |
-| **Lite** | Small scope, obvious UX, low risk | None (self-check) | 4 fields only |
+## Modes
+
+| Mode | When | Steps | Reviews |
+|------|------|-------|---------|
+| **Lite** | Small scope, obvious, 1-2 days work | Mission → Tasks → AC → Handoff | None |
+| **Standard** | Single feature, moderate complexity | Requirements → PRD → PRD Review → Handoff | 1 (PRD Review) |
+| **Strict** | Multi-feature version, high uncertainty, UX-heavy | Full pipeline: Priority → PRD → Review → UI → Review → Analyze → Handoff → Integration | All gates |
+
+**How to choose:**
+- Is it a one-liner change or tiny feature? → **Lite**
+- Is it a single feature with clear scope? → **Standard**
+- Is it a full version release with multiple features? → **Strict**
 
 ---
 
-## Steps — Standard Mode
+## Steps — Strict Mode
 
 The orchestrator runs **per feature** in a loop:
 
 ```
 Step 1: Select Version → extract feature list
   → For each feature:
-      Step 2–9 (Requirements → Readiness)
+      Steps 2–9 (Requirements → Readiness)
   → After ALL features pass Step 9:
       Step 10: Version Integration Gate
 ```
@@ -336,6 +344,27 @@ Checklist:
 **Results:**
 - **PASS** → all handoffs ready for engineering
 - **CONFLICTS** → return to conflicting feature's Step 4 (PRD) to resolve, then re-run Steps 5–9 for that feature
+
+---
+
+## Steps — Standard Mode
+
+Single feature, one review gate, no UI brief or integration gate.
+
+```
+Requirements → PRD → PRD Review → Handoff → Readiness
+```
+
+| Step | What | Sub-agent? | Output |
+|------|------|:----------:|--------|
+| S1 | Requirement Contract | ✅ (pm) | `docs/prd/<version>/<feature>-requirements.md` |
+| S2 | PRD Authoring | ✅ (pm) | `docs/prd/<version>/<feature>.md` |
+| S3 | PRD Review | ✅ (prd-validator) | `docs/reviews/<version>/<feature>-prd-review-rN.md` |
+| S4 | Build Handoff | ✅ (pm) | `docs/handoff/<version>/<feature>.md` |
+| S5 | Readiness Check | ❌ orchestrator | _(pass/fail)_ |
+
+**No:** Priority Ranking, UI Brief, UI Review, Analyze Gate, Integration Gate.
+**Fix flow:** Same as Strict — max 2 review rounds on S3.
 
 ---
 
