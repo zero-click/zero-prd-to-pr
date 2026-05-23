@@ -54,13 +54,13 @@ If running via kanban:
 Standard mode uses two personas:
 
 ```
-[PM Mode] Steps 1–4
+[PM Mode] Steps 1–5
   Mindset: user value, acceptance criteria, priorities, non-goals
   ↓ PRD Review PASS
-[Design Mode] Step 5 (optional)
+[Design Mode] Step 6 (optional)
   Mindset: user experience, interface clarity, interaction flows
   ↓
-[QA Mode] Steps 6–8
+[QA Mode] Steps 7–9
   Mindset: consistency, coverage, completeness
 ```
 
@@ -91,11 +91,51 @@ Produce structured requirement contract:
 
 **Output:** `docs/prd/<feature>-requirements.md`
 
-### Step 3: PRD Authoring
+### Step 3: Priority Ranking
 
 **[PM Mode]**
 
-Write full PRD:
+Before writing the full PRD, rank requirements by priority. Not everything in the requirement contract is equal — this step forces explicit trade-off decisions.
+
+**Framework (pick one appropriate to context):**
+
+| Framework | When to use | How it works |
+|-----------|-------------|--------------|
+| **MoSCoW** | Small scope, clear stakeholders | Must / Should / Could / Won't |
+| **RICE** | Data-available, multiple competing features | Reach × Impact × Confidence ÷ Effort |
+| **Kano** | UX-heavy, user delight matters | Must-have / Performance / Delighter |
+| **User Story Mapping** | Complex flows, multi-step journeys | Backbone (must) → Walking Skeleton → Nice-to-have |
+
+**Must produce:**
+1. Ranked list of requirements with priority tier (P0 = must-ship, P1 = should-ship, P2 = nice-to-have)
+2. Explicit trade-off rationale for any requirement placed at P1/P2 instead of P0
+3. Cut-line: which requirements are IN for this version vs DEFERRED to next
+
+**Output:** Append `## Priority Ranking` section to `docs/prd/<feature>-requirements.md`
+
+```markdown
+## Priority Ranking
+
+Framework used: [MoSCoW / RICE / Kano / Story Mapping]
+
+| # | Requirement | Priority | Rationale |
+|---|-------------|----------|-----------|
+| 1 | ... | P0 (must-ship) | Core to value proposition |
+| 2 | ... | P0 (must-ship) | Unblocks other requirements |
+| 3 | ... | P1 (should-ship) | High value but not blocking |
+| 4 | ... | P2 (nice-to-have) | Delight, not necessity |
+
+### Cut-line for this version
+- IN: requirements 1-5
+- DEFERRED to V(N+1): requirements 6-8
+- Rationale: [why the cut is here]
+```
+
+### Step 4: PRD Authoring
+
+**[PM Mode]**
+
+Write full PRD (informed by priority ranking — P0 requirements get full detail, P2 gets brief mention):
 - User stories with acceptance criteria
 - Functional and non-functional requirements
 - Edge cases and error handling
@@ -103,7 +143,7 @@ Write full PRD:
 
 **Output:** `docs/prd/<feature>.md`
 
-### Step 4: PRD Review Gate
+### Step 5: PRD Review Gate
 
 **[PM Mode → Checkpoint]**
 
@@ -147,13 +187,13 @@ PASS: 4/6 | FAIL: 2/6 → REQUEST_CHANGES
 4. New issues found during re-review → append as new rows
 
 **Results:**
-- **PASS** → all criteria ✅ → proceed to Step 5
-- **REQUEST_CHANGES** → return to Step 3, fix per findings checklist
+- **PASS** → all criteria ✅ → proceed to Step 6
+- **REQUEST_CHANGES** → return to Step 4, fix per findings checklist
 - 3 rounds without convergence → ask user for direction
 
 **Checkpoint:** If configured, pause here and present PRD summary to user for confirmation.
 
-### Step 5: UI Design Brief (Optional)
+### Step 6: UI Design Brief (Optional)
 
 **[Design Mode]**
 
@@ -172,7 +212,7 @@ When the feature has user-facing interface:
 - Lite mode
 - User explicitly declines
 
-### Step 5R: UI Brief Review Gate (when Step 5 runs)
+### Step 6R: UI Brief Review Gate (when Step 6 runs)
 
 **Reviewer:** Independent sub-agent dispatched in fresh context (ux-reviewer persona).
 
@@ -216,12 +256,12 @@ PASS: 5/7 | FAIL: 2/7 → REQUEST_CHANGES
 4. New issues found during re-review → append as new rows
 
 **Results:**
-- **PASS** → all criteria ✅ → proceed to Step 6
-- **REQUEST_CHANGES** → return to Step 5, fix per findings checklist
+- **PASS** → all criteria ✅ → proceed to Step 7
+- **REQUEST_CHANGES** → return to Step 6, fix per findings checklist
 
 Max 2 rounds. If no convergence → ask user for direction.
 
-### Step 6: Analyze Gate
+### Step 7: Analyze Gate
 
 **[QA Mode]**
 
@@ -238,10 +278,10 @@ Cross-artifact product consistency check. Run BEFORE packaging the handoff.
 **Output:** `docs/handoff/<feature>-vN-analyze-report.md`
 
 **Results:**
-- **PASS** → all checks green → proceed to Step 7
-- **GAPS_FOUND** → return to relevant step (Step 3 for requirement gaps, Step 5 for UI gaps)
+- **PASS** → all checks green → proceed to Step 8
+- **GAPS_FOUND** → return to relevant step (Step 4 for requirement gaps, Step 6 for UI gaps)
 
-### Step 7: Build Handoff Packaging
+### Step 8: Build Handoff Packaging
 
 **[QA Mode]**
 
@@ -265,7 +305,7 @@ Handoff contains:
 
 **Note:** Technical architecture, data model, API design are NOT in this handoff. Those are the engineering stage's job. The handoff defines WHAT to build; engineering decides HOW.
 
-### Step 8: Handoff Readiness Check
+### Step 9: Handoff Readiness Check
 
 **[QA Mode]**
 
@@ -279,7 +319,7 @@ Checklist:
 - [ ] DCR protocol is specified
 
 **PASS** → handoff ready for engineering stage
-**FAIL** → return to Step 7 with gaps
+**FAIL** → return to Step 8 with gaps
 
 ## Steps — Lite Mode
 
@@ -300,7 +340,7 @@ When coding agent sends a Design Change Request (`docs/feedback/<feature>-dcr.md
 1. Read DCR — what product assumption is being challenged?
 2. Assess impact:
    - **Small change**: Update handoff directly, notify coding agent to continue
-   - **Large change**: Return to Step 3 (PRD) or Step 5 (UI brief) to revise
+   - **Large change**: Return to Step 4 (PRD) or Step 6 (UI brief) to revise
 3. Update handoff version number
 
 ## Checkpoint Control
@@ -337,12 +377,13 @@ On completion:
 │   ├── product/<project>-roadmap.md          ← input (from Stage 1)
 │   ├── prd/
 │   │   ├── <feature>-requirements.md         ← Step 2 output
-│   │   └── <feature>.md                      ← Step 3 output
+│   │   ├── <feature>-requirements.md          ← Step 2 output
+│   │   └── <feature>.md                      ← Step 4 output
 │   ├── design/
-│   │   └── <feature>-ui-brief.md             ← Step 5 output (optional)
+│   │   └── <feature>-ui-brief.md             ← Step 6 output (optional)
 │   ├── handoff/
 │   │   ├── <feature>-vN.md                   ← main output
-│   │   └── <feature>-vN-analyze-report.md    ← Step 6 output
+│   │   └── <feature>-vN-analyze-report.md    ← Step 7 output
 │   └── feedback/<feature>-dcr.md             ← DCR input (from engineering)
 ```
 
@@ -353,11 +394,11 @@ On completion:
 | Roadmap missing | Redirect to `woos-product-discovery` first |
 | Review loops 3x | Ask user for direction |
 | Scope too large for one handoff | Split into multiple handoffs; one per sub-feature |
-| UI brief requested but no interface | Skip Step 5, note in handoff |
+| UI brief requested but no interface | Skip Step 6, note in handoff |
 
 ## Skills Used
 
 | Skill | Purpose |
 |-------|---------|
-| `woos-ui-design-brief` | Step 5 (optional) |
-| `woos-build-handoff` | Step 7 |
+| `woos-ui-design-brief` | Step 6 (optional) |
+| `woos-build-handoff` | Step 8 |

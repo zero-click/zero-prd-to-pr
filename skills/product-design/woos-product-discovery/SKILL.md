@@ -57,7 +57,44 @@ Socratic interview the user (or parse a written idea) to extract:
 
 **Output:** `ideas/<slug>/00-idea-capture.md` + `ideas/<slug>/README.md`
 
-### Step 2: Research & Validation
+### Step 2: Problem Validation
+
+Before investing in full research, validate that the problem is worth solving.
+
+**Must answer:**
+- Is this a real problem? (Evidence: user complaints, data, observed behavior — not just "it would be nice")
+- How frequently does it occur? (Daily / weekly / rare edge case)
+- How painful is it? (Workaround exists and is acceptable? Or blocking?)
+- How many people have this problem? (1 user? niche? broad market?)
+- Are they already paying (time/money) to solve it today?
+
+**Decision framework:**
+
+| Signal | Score |
+|--------|-------|
+| Users actively complaining / requesting | Strong |
+| Workaround exists but is painful | Strong |
+| Data shows drop-off / failure at this point | Strong |
+| "It would be cool" with no evidence | Weak — probe deeper |
+| Only requester has this problem | Weak — validate breadth |
+
+**Output:** Update `ideas/<slug>/00-idea-capture.md` with a `## Problem Validation` section:
+```markdown
+## Problem Validation
+- Evidence: [what proves this is real]
+- Frequency: [how often]
+- Severity: [blocking / painful / annoying / cosmetic]
+- Breadth: [one user / niche / broad]
+- Current workaround: [what they do today]
+- Verdict: [PROCEED / PIVOT / PARK]
+```
+
+**Results:**
+- **PROCEED** → problem validated, continue to research
+- **PIVOT** → reframe the problem (return to Step 1 with new angle)
+- **PARK** → not worth solving now, record in ideas index for future
+
+### Step 3: Research & Validation
 
 **Skill:** `deep-research` (when scope needs thorough validation)
 
@@ -73,7 +110,7 @@ Investigate:
 
 **Gate:** Research must cite sources and include a recommendation. If critical unknowns remain, flag them as blockers in the roadmap.
 
-### Step 3: Run Initialization
+### Step 4: Run Initialization
 
 **Skill:** `woos-run-orchestrator`
 
@@ -82,7 +119,7 @@ Initialize run state:
 - Record run_id for cross-stage traceability
 - Set `checkpoints: [stage1-done]` in run-manifest
 
-### Step 4: Product Vision & Roadmap
+### Step 5: Product Vision & Roadmap
 
 **Skill:** `woos-product-planning-workflow`
 
@@ -129,7 +166,7 @@ Synthesize everything into a single roadmap document:
 
 **Output:** `docs/product/<project-slug>-roadmap.md`
 
-### Step 4R: Roadmap Review Gate
+### Step 5R: Roadmap Review Gate
 
 **Reviewer:** Independent sub-agent dispatched in fresh context (product-strategist persona).
 
@@ -171,12 +208,12 @@ PASS: 3/6 | FAIL: 3/6 → REQUEST_CHANGES
 4. New issues found during re-review → append as new rows
 
 **Results:**
-- **PASS** → all criteria ✅ → proceed to Step 5
-- **REQUEST_CHANGES** → return to Step 4, fix per findings checklist
+- **PASS** → all criteria ✅ → proceed to Step 6
+- **REQUEST_CHANGES** → return to Step 5, fix per findings checklist
 
 Max 2 rounds. If no convergence → ask user for direction.
 
-### Step 5: System Architecture Overview
+### Step 6: System Architecture Overview
 
 After the roadmap is defined, produce a high-level system architecture that spans all planned versions. This prevents per-feature designs from conflicting later.
 
@@ -227,7 +264,7 @@ System-level risks that affect multiple features.
 | A1 | ... | ... | ... |
 ```
 
-### Step 5R: Architecture Review Gate
+### Step 6R: Architecture Review Gate
 
 **Reviewer:** Independent sub-agent dispatched in fresh context (system-architect persona).
 
@@ -271,12 +308,12 @@ PASS: 5/7 | FAIL: 2/7 → REQUEST_CHANGES
 4. New issues found during re-review → append as new rows
 
 **Results:**
-- **PASS** → all criteria ✅ → proceed to Step 6
-- **REQUEST_CHANGES** → return to Step 5, fix per findings checklist
+- **PASS** → all criteria ✅ → proceed to Step 7
+- **REQUEST_CHANGES** → return to Step 6, fix per findings checklist
 
 Max 2 rounds. If no convergence → ask user for direction.
 
-### Step 6: Decision Log Initialization
+### Step 7: Decision Log Initialization
 
 Record key decisions made during discovery in the roadmap's Decision Log:
 - Scope inclusions/exclusions and why
