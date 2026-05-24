@@ -178,7 +178,7 @@ Decision 2: Inferred from roadmap content
 
 **Lite: abbreviated** — only Mission + Tasks + AC + Verification.
 
-**⚠️ Enforcement:** `woos-product-design-flow` has strict Enforcement Rules (E1–E6). Every step MUST produce its declared output file and pass structural validation before proceeding. No step merging, no skipping on failure, no partial reviews. See the skill for details.
+**⚠️ Enforcement:** `woos-product-design-flow` has strict Enforcement Rules (P0–P6). Every step MUST produce its declared output file and pass structural validation before proceeding. No step merging, no skipping on failure, no partial reviews. See the skill for details.
 
 ---
 
