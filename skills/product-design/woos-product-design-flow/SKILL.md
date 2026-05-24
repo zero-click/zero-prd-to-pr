@@ -268,7 +268,14 @@ If ANY section is missing → **immediate REQUEST_CHANGES** without proceeding t
 | P4 | Edge cases covered | Add "What if…" for: empty state, error, timeout, concurrent access |
 | P5 | Real user behavior | Replace developer-centric language with user-observable actions |
 | P6 | No internal contradictions | Identify conflicts within this PRD; resolve or move to non-goals |
-| P7 | Architecture alignment | Cross-check constants, state definitions, and API routes against `docs/product/<project>-architecture.md`. Flag any divergence. |
+| P7 | Architecture reference check | Cross-check constants, state definitions, and API routes against `docs/product/<project>-architecture.md`. If PRD diverges from architecture, **annotate the divergence** (do NOT treat as failure). Divergences are surfaced to the human reviewer for final decision. |
+
+**⚠️ P7 special rule — Architecture is a REFERENCE, not a constraint:**
+
+Architecture.md (from Discovery) represents the architect's best recommendation at that point. During Product Design, new information may surface that makes divergence appropriate. P7 violations do NOT count toward PASS/FAIL. Instead:
+- ✅ = PRD aligns with architecture (no action needed)
+- 📐 = PRD diverges from architecture — annotate WHY, surface to human review
+- Divergences are collected in a `## Architecture Divergences` section at the end of the review
 
 **Review findings format:**
 ```markdown
@@ -278,9 +285,17 @@ If ANY section is missing → **immediate REQUEST_CHANGES** without proceeding t
 |---|-----------|--------|---------|----------|--------|
 | P1 | Value-traced | ✅ | — | — | — |
 | P2 | AC testable | ❌ | "AC #3 says 'fast enough'" | Add latency target | ☐ |
+| ... | ... | ... | ... | ... | ... |
+| P7 | Architecture ref | 📐 | "PRD uses polling; architecture says WebSocket" | — | N/A |
+
+## Architecture Divergences (for human review)
+| PRD says | Architecture says | Rationale for divergence |
+|----------|------------------|------------------------|
+| Polling every 5s | WebSocket push | Simpler for V1; upgrade path clear |
 
 ## Summary
 PASS: X/6 | FAIL: Y/6 → [PASS | REQUEST_CHANGES]
+(P7 divergences noted but do NOT block — human decides)
 ```
 
 **Fix flow:**

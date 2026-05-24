@@ -272,7 +272,7 @@ PASS: X/6 | FAIL: Y/6 → [PASS | REQUEST_CHANGES]
 | **Sub-agent** | ✅ |
 | **Persona** | `references/bmad/personas/architect.toml` |
 | **Knowledge** | `references/bmad/frameworks/create-architecture.md` |
-| **Input** | `docs/product/<project>-roadmap.md` |
+| **Input** | `docs/product/<project>-roadmap.md` + user technical preferences (from idea-capture, if any) |
 | **Output** | `docs/product/<project>-architecture.md` |
 
 Produce high-level system architecture spanning all planned versions:
@@ -280,9 +280,18 @@ Produce high-level system architecture spanning all planned versions:
 - Communication patterns (API, events, shared DB)
 - Data architecture (storage types, data flow)
 - Cross-feature infrastructure (auth, queues, event bus)
+- Technology choices (languages, frameworks, databases) with rationale
 - Architectural coupling between features
 - System-level technical risks
 - Architecture decisions with rationale
+
+**Input: Technical Preferences.** If the idea-capture document contains a `## Technical Preferences (Deferred)` section, the architect sub-agent should:
+1. Read the user's stated preferences
+2. Evaluate them against project requirements
+3. Adopt them if reasonable, or recommend alternatives with clear rationale
+4. Record the outcome in the architecture's Decision Log
+
+**Status of this document:** Architecture.md is the architect's **best recommendation**. It serves as a reference for downstream phases (Product Design, Engineering). It is NOT a hard constraint — Product Design may annotate divergences, and Engineering may override decisions with justification. Final authority rests with the human reviewer.
 
 **Does NOT answer:** detailed per-feature design, code structure, implementation timeline.
 
