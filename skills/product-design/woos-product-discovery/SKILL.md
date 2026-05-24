@@ -13,21 +13,93 @@ metadata:
 
 # Product Discovery (Orchestrator)
 
+> **🚨 STOP. Read this section FIRST. It overrides any instinct to "just do the work yourself."**
+>
+> You are an ORCHESTRATOR. You do NOT produce research, roadmaps, or architecture yourself.
+> You dispatch sub-agents and validate their outputs. That is your ONLY job.
+>
+> Before EVERY step: output a Pre-flight block (see below). No pre-flight = invalid execution.
+
+## ⛔ Enforcement Rules (NON-NEGOTIABLE)
+
+### P0: Pre-flight Checkpoint (MANDATORY)
+
+Before executing ANY step, you MUST output this block in the conversation:
+
+```
+┌─────────────────────────────────────────────────────┐
+│ 🛫 PRE-FLIGHT: Step <N> — <Name>                    │
+├─────────────────────────────────────────────────────┤
+│ Persona:    <file path> → reading...                │
+│ Knowledge:  <file path(s)> → reading...             │
+│ Template:   <file path or "none">                   │
+│ Input:      <file path(s)>                          │
+│ Output:     <file path>                             │
+├─────────────────────────────────────────────────────┤
+│ ✅ Persona loaded: <line count> lines               │
+│ ✅ Knowledge loaded: <line count> lines             │
+│ ✅ Template loaded: <line count> lines / N/A        │
+├─────────────────────────────────────────────────────┤
+│ Dispatching sub-agent with injected context...      │
+└─────────────────────────────────────────────────────┘
+```
+
+**Rules:**
+- If you cannot produce this block → you have NOT read the files → STOP and read them
+- The line counts prove you actually read the files (not faking it)
+- After this block, the NEXT action must be dispatching a sub-agent (not doing the work yourself)
+- If you catch yourself writing research/analysis/roadmap content instead of dispatching → STOP, you are violating P0
+
+### P1: Orchestrator Does NOT Create Content
+
+You MUST NOT write research findings, roadmap sections, architecture designs, or review verdicts yourself. Every piece of creative/analytical content comes from a dispatched sub-agent.
+
+**Self-check:** If you are writing more than 3 sentences of domain content (not orchestration bookkeeping), you are doing the sub-agent's job. Stop. Dispatch instead.
+
+### P2: Sub-agent Dispatch Format
+
+When dispatching a sub-agent, the prompt MUST contain these sections in order:
+
+```
+## Your Identity
+[full verbatim content of persona .toml file]
+
+## Domain Knowledge
+[full verbatim content of knowledge/framework file(s)]
+
+## Template to Follow (if applicable)
+[full verbatim content of template file]
+
+## Task
+[step-specific instructions from this SKILL.md]
+
+## Input Files
+[paths to read — sub-agent reads these itself]
+
+## Output
+Write your output to: [exact output file path]
+```
+
+### P3: No Step Merging or Skipping
+
+- Each step = separate sub-agent dispatch = separate output file
+- Steps 1-6 execute in order; you cannot jump ahead
+- If a step fails → fix and retry, do NOT skip
+
+### P4: Output Validation Before Advancing
+
+After each sub-agent completes, verify:
+1. Output file EXISTS at declared path
+2. Output is substantive (not a stub or placeholder)
+3. If review gate → verdict is explicit (PASS / REQUEST_CHANGES)
+
+Only then advance to next step.
+
+---
+
 ## Purpose
 
 Turn a fuzzy idea into an actionable product roadmap + system architecture. This is **Stage 1** of the woos-idea-to-delivery flow. Run once per project.
-
-## Role
-
-This file defines an **orchestrator** — a thin state machine that:
-1. Tracks which step we're on (via `run-manifest.yaml`)
-2. Dispatches sub-agents with the right persona + knowledge
-3. Collects outputs, decides next step
-4. Handles review fix loops
-
-The orchestrator does NOT do the actual creative work — sub-agents do.
-
-## Project Root Requirement
 
 All file paths (`.hep/`, `docs/`, `ideas/`) are relative to a **project root directory** which MUST be a git repository.
 
