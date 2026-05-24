@@ -75,17 +75,24 @@ Only these skills are allowed in this workflow:
 | Run Orchestrator | `woos-run-orchestrator` | local |
 | Git Workflow | `git-workflow` | imported |
 | Handoff Intake | _(reads product handoff)_ | from product pipeline |
+| Codebase Onboarding | `codebase-onboarding` | imported (first run) |
 | Parallel Orchestration | `dmux-workflows` | imported |
 | Feature Design | `woos-feature-design` | local |
+| ADR Capture | `architecture-decision-records` | imported |
 | API Design Review | `api-design` | imported (conditional) |
 | Design Review | `woos-design-review-gate` | local |
 | TDD | `tdd-workflow` | imported |
 | Implement | `coding-standards` | imported |
+| Database Migrations | `database-migrations` | imported (conditional) |
 | Verify | `verification-loop` | imported |
+| E2E Testing | `e2e-testing` | imported (conditional) |
 | Browser QA | `browser-qa` | imported (conditional) |
 | Executable Acceptance | `woos-executable-acceptance-gate` | local |
 | Deviation Control | `woos-deviation-control-gate` | local |
 | Code/Security Review | `woos-code-review-gate` | local |
+| Security Review | `security-review` | imported |
+| Deployment Patterns | `deployment-patterns` | imported (conditional) |
+| Production Audit | `production-audit` | imported (conditional) |
 | PR Readiness | `woos-pr-readiness` | local |
 | Workflow Memory | `woos-workflow-memory` | local |
 | Review Context (cross-gate) | `woos-review-context` | local |
@@ -130,7 +137,9 @@ Progression rule: `NOT_RUN/BLOCKED/REQUEST_CHANGES → PASS → next gate`
 1. Design artifact at `docs/design/<feature>.md`.
 2. Covers: architecture, data model, interfaces, risk, rollout/rollback.
 3. If API endpoints defined and Strict mode: invoke `api-design` for review.
-4. Baseline/deviation fields complete; deviations include ADR + approval refs.
+4. If database schema changes: reference `database-migrations` for migration strategy.
+5. If deployment strategy needed: reference `deployment-patterns` for rollout/rollback.
+6. Baseline/deviation fields complete; deviations captured via `architecture-decision-records`.
 
 ### Gate 1R — Design Review
 
@@ -275,12 +284,13 @@ Trace from original PRD through design to implementation and tests.
 **Skill:** `woos-code-review-gate`
 
 1. Dispatch `code-reviewer` in fresh context (no self-review).
-2. If security-sensitive: also dispatch `security-reviewer`.
+2. If security-sensitive: dispatch `security-reviewer` with `security-review` skill knowledge (auth, input handling, secrets, API endpoints, payment flows).
 3. If Strict mode: verify architecture conformance (component boundaries, data model, API contracts).
 4. Uses `woos-review-context` for cumulative findings.
 5. Uses `woos-agent-decision` when reviewer verdicts conflict.
-6. **PASS** → Gate 8. **REQUEST_CHANGES** → return to Gate 3.
-7. 3 rounds without convergence → `woos-human-handoff`.
+6. If applicable: invoke `production-audit` for pre-merge production readiness check.
+7. **PASS** → Gate 8. **REQUEST_CHANGES** → return to Gate 3.
+8. 3 rounds without convergence → `woos-human-handoff`.
 
 ### Gate 8 — PR Readiness
 

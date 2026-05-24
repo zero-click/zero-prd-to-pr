@@ -59,6 +59,13 @@ ECC_SKILLS = [
     "verification-loop",
     "api-design",
     "browser-qa",
+    "security-review",
+    "architecture-decision-records",
+    "e2e-testing",
+    "deployment-patterns",
+    "database-migrations",
+    "production-audit",
+    "codebase-onboarding",
 ]
 
 MCP_SERVERS = [

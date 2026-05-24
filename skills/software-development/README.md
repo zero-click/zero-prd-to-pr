@@ -260,6 +260,8 @@ When engineering discovers a design issue that can't be resolved within scope:
 
 ## Skill Map
 
+### Local Skills (workflow gates)
+
 | Skill | Role |
 |-------|------|
 | `woos-development-workflow` | **Entry point** — orchestrator, gate progression |
@@ -277,6 +279,27 @@ When engineering discovers a design issue that can't be resolved within scope:
 | `woos-agent-decision` | Infrastructure — reviewer conflict resolution |
 | `woos-systematic-debugging` | Infrastructure — structured debugging on repeated failures |
 | `woos-setup-rules` | Utility — project rule routing setup |
+
+### Imported Skills (from ECC)
+
+| Skill | Gate | Role |
+|-------|------|------|
+| `git-workflow` | Bootstrap | Branch strategy, commit/PR flow |
+| `tdd-workflow` | Gate 3.1 | RED → GREEN → REFACTOR methodology |
+| `coding-standards` | Gate 3.2 | Code quality and convention enforcement |
+| `verification-loop` | Gate 3.3 | Lint/test/type/build verification |
+| `api-design` | Gate 1 (conditional) | REST/GraphQL design patterns |
+| `browser-qa` | Gate 3 (conditional) | UI smoke test, visual regression |
+| `e2e-testing` | Gate 3 (conditional) | Playwright E2E patterns, Page Object Model |
+| `security-review` | Gate 7 | Security checklist: auth, input, secrets, API, payments |
+| `architecture-decision-records` | Gate 1 + cross-gate | Structured ADR capture for deviations |
+| `database-migrations` | Gate 3 (conditional) | Zero-downtime schema changes, rollback strategies |
+| `deployment-patterns` | Gate 1, Gate 8 | CI/CD, Docker, rollback, production readiness |
+| `production-audit` | Gate 7 (conditional) | Pre-merge production readiness audit |
+| `codebase-onboarding` | Gate 0 (first run) | Codebase analysis and onboarding guide |
+| `search-first` | Any gate | Quick research and reference lookup |
+| `deep-research` | Any gate | Deep research when needed |
+| `dmux-workflows` | Gate 3 (parallel) | Parallel coding lanes via worktrees |
 
 ## Key Design Principles
 
