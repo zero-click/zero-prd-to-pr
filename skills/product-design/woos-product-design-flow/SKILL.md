@@ -228,7 +228,7 @@ P0 requirements get full detail, P2 gets brief mention:
 - Edge cases and error handling
 - User flows (text-based)
 
-**⚠️ Template is mandatory, not advisory.** After authoring, the orchestrator runs E3 structural check. If ANY template section is missing, this step is re-dispatched until all sections are present.
+**⚠️ Template is mandatory, not advisory.** After authoring, the orchestrator runs P3 structural check. If ANY template section is missing, this step is re-dispatched until all sections are present.
 
 ---
 
@@ -244,7 +244,7 @@ P0 requirements get full detail, P2 gets brief mention:
 
 **⚠️ PRD Review has TWO phases (both mandatory):**
 
-**Phase A — Structural Completeness (E3 enforcement):**
+**Phase A — Structural Completeness (P3 enforcement):**
 
 Before content review, verify ALL required sections exist per template:
 - `## Background` ✅/❌
@@ -582,7 +582,7 @@ Requirements → PRD → PRD Review → Handoff → Readiness
 
 **⚠️ Standard mode enforcement:**
 - S1 MUST produce a separate requirements file (not folded into PRD)
-- S2 MUST follow `templates/prd-template.md` — E3 structural check applies
+- S2 MUST follow `templates/prd-template.md` — P3 structural check applies
 - S3 MUST run Phase A (structural) + Phase B (content) review. No "Conditional Pass."
 - S5 MUST produce a readiness output file (not just a mental check)
 
@@ -692,7 +692,7 @@ On completion:
 | UI brief but no interface | Skip Step 6 **only with explicit user confirmation**, note in handoff |
 | Crash mid-step | Recovery protocol from run-manifest |
 | Sub-agent file not found | Fix path (use absolute), re-dispatch. **NEVER skip.** |
-| Output validation fails (E3) | Re-dispatch step with "Missing sections: ..." instruction |
+| Output validation fails (P3) | Re-dispatch step with "Missing sections: ..." instruction |
 | Step produces empty/stub file | Re-dispatch. Stub output = step not done |
 
 ### ❌ Explicitly Forbidden Actions
@@ -725,4 +725,4 @@ These are things agents ACTUALLY DO when executing this workflow. Catch yourself
 | Skipping step after file-not-found | The step's output doesn't exist → downstream steps fail silently | Fix path, retry. Never skip |
 | Readiness as mental check | No output file → no audit trail, no proof of validation | Write `docs/reviews/<version>/<feature>-readiness.md` |
 | Sub-agent reviewing own work | Confirmation bias — author can't see own gaps | Fresh sub-agent with no prior context of authoring |
-| Dispatching sub-agent without reading reference files | Sub-agent says "I'm a PM" but has no persona principles, no framework knowledge, no template to follow → shallow generic output | Read persona .toml + knowledge .md + template .md → inject verbatim into dispatch prompt (E7) |
+| Dispatching sub-agent without reading reference files | Sub-agent says "I'm a PM" but has no persona principles, no framework knowledge, no template to follow → shallow generic output | Read persona .md + knowledge .md + template .md → inject verbatim into dispatch prompt (P2) |

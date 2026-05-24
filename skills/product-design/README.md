@@ -56,19 +56,20 @@ This workflow enforces structured product thinking before code is written. It en
           │       Phase 3: Product Design Flow      │
           │      (woos-product-design-flow)         │
           │                                         │
-          │  ┌─────────────────────────────────┐    │
-          │  │  Per Feature (Standard/Strict): │    │
-          │  │                                 │    │
-          │  │  Step 1: Select Version Scope   │    │
-          │  │  Step 2: Requirement Contract   │    │
-          │  │  Step 3: Priority Ranking  [S]  │    │
-          │  │  Step 4: PRD Authoring          │    │
-          │  │  Step 5: PRD Review Gate        │    │
-          │  │  Step 6: UI Brief         [S]   │    │
-          │  │  Step 7: UI Brief Review  [S]   │    │
-          │  │  Step 8: Build Handoff          │    │
-          │  │  Step 9: Readiness Check        │    │
-          │  └─────────────────────────────────┘    │
+          │  ┌──────────────────────────────────┐   │
+          │  │  Per Feature (Standard/Strict):  │   │
+          │  │                                  │   │
+          │  │  Step 1:  Select Version Scope   │   │
+          │  │  Step 2:  Requirement Contract   │   │
+          │  │  Step 3:  Priority Ranking  [S]  │   │
+          │  │  Step 4:  PRD Authoring          │   │
+          │  │  Step 5:  PRD Review Gate        │   │
+          │  │  Step 6:  UI Brief          [S]  │   │
+          │  │  Step 6R: UI Brief Review   [S]  │   │
+          │  │  Step 7:  Analyze Gate      [S]  │   │
+          │  │  Step 8:  Build Handoff          │   │
+          │  │  Step 9:  Readiness Check        │   │
+          │  └──────────────────────────────────┘   │
           │                                         │
           │  Step 10: Version Integration Gate [S]  │
           │  (Cross-feature audit after ALL pass)   │
@@ -80,7 +81,7 @@ This workflow enforces structured product thinking before code is written. It en
                └─────────────────────────┘
 
   [S] = Strict mode only
-  Standard: Steps 1, 2, 4, 5, 8, 9
+  Standard: Steps 1, 2, 4, 5, 8, 9 (no Priority, UI, Analyze, Integration)
   Lite: Mission → Tasks → AC → Handoff (no gates)
 ```
 
@@ -116,7 +117,8 @@ This workflow enforces structured product thinking before code is written. It en
 | 4 | PRD Authoring | Full PRD following template (user stories, flows, edge cases, metrics) |
 | 5 | PRD Review Gate | Phase A: structural check + Phase B: 7-item quality checklist |
 | 6 | UI Brief | Visual direction, wireframes, interaction patterns |
-| 7 | UI Brief Review | Accessibility, consistency, completeness review |
+| 6R | UI Brief Review | Accessibility, consistency, completeness review |
+| 7 | Analyze Gate | Cross-artifact consistency check (coverage, testability, alignment) |
 | 8 | Build Handoff | Package everything into a single handoff file for engineering |
 | 9 | Readiness Check | Final validation: AC testable, flows complete, no gaps |
 | 10 | Integration Gate | Deep cross-feature audit (shared concepts, constants, API contracts) |
@@ -127,7 +129,7 @@ This workflow enforces structured product thinking before code is written. It en
 |------|------|-------|--------------|
 | **Lite** | Trivially simple, < 2 days work | Mission → Tasks → AC → Handoff | None |
 | **Standard** | Single feature, moderate complexity | 1 → 2 → 4 → 5 → 8 → 9 | PRD Review |
-| **Strict** | Multi-feature, UX-heavy, high-risk | 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 | All gates |
+| **Strict** | Multi-feature, UX-heavy, high-risk | 1 → 2 → 3 → 4 → 5 → 6 → 6R → 7 → 8 → 9 → 10 | All gates |
 
 **Mode is NOT chosen upfront.** It's determined at two natural points:
 1. After Capture: trivial → Lite (user confirms)
@@ -135,14 +137,15 @@ This workflow enforces structured product thinking before code is written. It en
 
 ## Enforcement Rules
 
-The workflow includes 6 non-negotiable enforcement rules (E1–E6) to prevent agents from cutting corners:
+The workflow includes 7 non-negotiable enforcement rules (P0–P6) to prevent agents from cutting corners:
 
-- **E1:** No step merging — each step = separate output file
-- **E2:** Output validation gate — file must exist before advancing
-- **E3:** Template compliance — required sections verified by heading
-- **E4:** Full checklist in reviews — every criterion checked, no blanket passes
-- **E5:** No silent step skipping — failures are fixed, not skipped
-- **E6:** No self-review — fresh sub-agent for every review
+- **P0:** Pre-flight checkpoint — MUST output file paths + line counts before every dispatch
+- **P1:** Orchestrator does NOT create content — sub-agents produce all domain output
+- **P2:** Sub-agent dispatch format — persona + knowledge + template injected verbatim
+- **P3:** No step merging — each step = separate output file
+- **P4:** Output validation / full checklist — file must exist, reviews check every criterion
+- **P5:** No silent step skipping — failures are fixed, not skipped
+- **P6:** No self-review — fresh sub-agent for every review
 
 ## Skill Map
 
@@ -177,8 +180,8 @@ Each persona defines a sub-agent's identity, thinking style, communication princ
 | **PM (John)** | `references/persona-pm.md` | Steps 2, 3, 4, 8 | Product thinking — "Why does this matter to users?" Drives requirements, PRD authoring, and handoff packaging |
 | **Analyst** | `references/persona-analyst.md` | Discovery Steps 1–3 | Research-oriented — competitive analysis, market research, pain point extraction |
 | **Architect** | `references/persona-architect.md` | Discovery Step 5 | System-level thinking — components, boundaries, data flow, technical risks |
-| **UX Designer (Sally)** | `references/persona-ux-designer.md` | Steps 6, 7 | User experience — interaction patterns, accessibility, information hierarchy |
-| **PRD Validator** | `references/persona-prd-validator.md` | Steps 5, 5R | Critical reviewer — finds gaps, contradictions, untestable criteria |
+| **UX Designer (Sally)** | `references/persona-ux-designer.md` | Design Flow Steps 6, 6R | User experience — interaction patterns, accessibility, information hierarchy |
+| **PRD Validator** | `references/persona-prd-validator.md` | Discovery Step 4R, Design Flow Step 5 | Critical reviewer — finds gaps, contradictions, untestable criteria |
 
 ### Frameworks (Domain Knowledge)
 
@@ -187,28 +190,28 @@ Frameworks provide methodology and discipline for specific tasks. They define HO
 | Framework | File | Stage | Purpose |
 |-----------|------|-------|---------|
 | `framework-prd.md` | PRD discipline | Design Flow | "PRDs emerge from user interviews, not template filling." Shape → extract → validate cycle |
-| `framework-validate-prd.md` | PRD validation | Design Flow | Review gate methodology — what makes a PRD "done" |
-| `framework-ux-design.md` | UX design | Design Flow | UI brief authoring principles — layout, flows, accessibility |
+| `framework-ux-design.md` | UX design | Design Flow | Dual-spine model (DESIGN.md + EXPERIENCE.md), elicit-not-impose, surface closure |
 | `framework-ux-validate.md` | UX validation | Design Flow | UI brief review methodology |
-| `framework-epics-and-stories.md` | Story breakdown | Design Flow | How to decompose PRD into build tasks for handoff |
-| `framework-implementation-readiness.md` | Readiness check | Design Flow | Criteria for "ready to hand to engineering" |
-| `framework-market-research.md` | Market research | Discovery | Competitive landscape analysis methodology |
-| `framework-competitive-analysis.md` | Competitive analysis | Discovery | Structured competitor evaluation framework |
-| `framework-customer-pain-points.md` | Pain discovery | Discovery | User pain extraction and validation |
-| `framework-create-architecture.md` | Architecture | Discovery | How to produce a system architecture overview |
-| `framework-architecture-validation.md` | Architecture review | Discovery | 7-point architecture validation checklist |
+| `framework-epics-and-stories.md` | Story breakdown | Design Flow | User-value grouping, standalone epics, FR coverage tracking |
+| `framework-implementation-readiness.md` | Readiness check | Design Flow | Four-layer validation, traceability matrix, gap documentation |
+| `framework-market-research.md` | Market research | Discovery | Scope clarification, multi-angle research, synthesis |
+| `framework-competitive-analysis.md` | Competitive analysis | Discovery | Competitor identification, SWOT, differentiation strategy |
+| `framework-customer-pain-points.md` | Pain discovery | Discovery | Pain categories, evidence classification, prioritization matrix |
+| `framework-create-prd.md` | Roadmap authoring | Discovery | Discovery process, PRD discipline, versioned roadmap, decision log |
+| `framework-create-architecture.md` | Architecture | Discovery | Requirements extraction, scale assessment, patterns, version alignment |
+| `framework-architecture-validation.md` | Architecture review | Discovery | Coherence, coverage, readiness validation + completeness checklist |
 
 ### Templates (Output Structure)
 
-Templates define the exact section structure sub-agents must follow. Checked by E3 (structural compliance).
+Templates define the exact section structure sub-agents must follow. Checked by P3 (structural compliance).
 
-| Template | File | Stage | Purpose |
-|----------|------|-------|---------|
-| `template-prd-template.md` | PRD structure | Design Flow | Mandatory sections: Background, Personas, FR, NFR, User Flows, Edge Cases, Metrics |
-| `template-prd-validation-checklist.md` | Review structure | Design Flow / Discovery | Structured review output format |
-| `template-brief-template.md` | Capture structure | Discovery | Idea capture output format |
-| `requirements-template.md` | Requirements structure | Design Flow | Step 2 output: Problem, Goals, Stories, Constraints, Risks |
-| `readiness-template.md` | Readiness structure | Design Flow | Step 9 output: Checklist + Verdict |
+| Template | Location | Stage | Purpose |
+|----------|----------|-------|---------|
+| `template-prd-template.md` | `references/` | Design Flow | Mandatory sections: Background, Personas, FR, NFR, User Flows, Edge Cases, Metrics |
+| `template-prd-validation-checklist.md` | `references/` | Design Flow / Discovery | Structured review output format |
+| `template-brief-template.md` | `references/` | Discovery | Idea capture output format |
+| `requirements-template.md` | `templates/` | Design Flow | Step 2 output: Problem, Goals, Stories, Constraints, Risks |
+| `readiness-template.md` | `templates/` | Design Flow | Step 9 output: Checklist + Verdict |
 
 ### Stage × Knowledge Matrix
 
@@ -216,4 +219,4 @@ Templates define the exact section structure sub-agents must follow. Checked by 
 |-------|--------------|-----------------|---------|
 | **Phase 1: Capture** | Analyst | — | Gather and structure raw idea |
 | **Phase 2: Discovery** | Analyst, PM, Architect, PRD Validator | market-research, competitive-analysis, customer-pain-points, create-architecture, architecture-validation | Research problem space, produce roadmap + architecture |
-| **Phase 3: Design Flow** | PM, UX Designer, PRD Validator | prd, validate-prd, ux-design, ux-validate, epics-and-stories, implementation-readiness | Write PRD, review, UI brief, package handoff |
+| **Phase 3: Design Flow** | PM, UX Designer, PRD Validator | prd, ux-design, ux-validate, epics-and-stories, implementation-readiness | Write PRD, review, UI brief, package handoff |
