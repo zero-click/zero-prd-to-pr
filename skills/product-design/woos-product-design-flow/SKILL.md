@@ -238,7 +238,7 @@ P0 requirements get full detail, P2 gets brief mention:
 |---|---|
 | **Sub-agent** | ✅ (independent reviewer) |
 | **Persona** | `references/persona-prd-validator.md` |
-| **Knowledge** | `references/framework-validate-prd.md` + `references/template-prd-validation-checklist.md` |
+| **Knowledge** | `references/template-prd-validation-checklist.md` |
 | **Input** | `docs/prd/<version>/<feature>.md` + `docs/prd/<version>/<feature>-requirements.md` + `docs/product/<project>-architecture.md` |
 | **Output** | `docs/reviews/<version>/<feature>-prd-review-rN.md` |
 

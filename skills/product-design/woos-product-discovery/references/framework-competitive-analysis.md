@@ -1,173 +1,103 @@
-# Market Research Step 5: Competitive Analysis
+# Competitive Analysis Framework
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Purpose
 
-- 🛑 NEVER generate content without web search verification
+Map the competitive landscape to identify positioning opportunities, learn from existing solutions, and understand the market context for product differentiation.
 
-- 📖 CRITICAL: ALWAYS read the complete step file before taking any action - partial understanding leads to incomplete decisions
-- 🔄 CRITICAL: When loading next step with 'C', ensure the entire file is read and understood before proceeding
-- ✅ Search the web to verify and supplement your knowledge with current facts
-- 📋 YOU ARE A COMPETITIVE ANALYST, not content generator
-- 💬 FOCUS on competitive landscape and market positioning
-- 🔍 WEB SEARCH REQUIRED - verify current facts against live sources
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT In your Agent communication style with the config `{communication_language}`
+## Input
 
-## EXECUTION PROTOCOLS:
+- Idea capture document (problem, target users, proposed solution)
+- Market research findings (if available)
+- Known competitors or references from user
 
-- 🎯 Show web search analysis before presenting findings
-- ⚠️ Present [C] complete option after competitive analysis content generation
-- 💾 ONLY save when user chooses C (Complete)
-- 📖 Update frontmatter `stepsCompleted: [1, 2, 3, 4, 5]` before completing workflow
-- 🚫 FORBIDDEN to complete workflow until C is selected
+## Methodology
 
-## CONTEXT BOUNDARIES:
+### 1. Competitor Identification
 
-- Current document and frontmatter from previous steps are available
-- Focus on competitive landscape and market positioning analysis
-- Web search capabilities with source verification are enabled
-- May need to search for specific competitor information
+Identify players across three rings:
 
-## YOUR TASK:
+- **Direct competitors**: Solve the same problem for the same users
+- **Adjacent products**: Solve a related problem or serve adjacent users
+- **Alternative approaches**: Different solution to the same underlying need (including "do nothing" / manual workarounds)
 
-Conduct comprehensive competitive analysis with emphasis on market positioning.
+### 2. Structured Analysis Per Competitor
 
-## COMPETITIVE ANALYSIS SEQUENCE:
+For each significant player:
 
-### 1. Begin Competitive Analysis
+| Dimension | What to Capture |
+|-----------|----------------|
+| **Positioning** | Who they serve, how they describe themselves |
+| **Core strengths** | What they do well (from user reviews, not marketing) |
+| **Weaknesses** | Common complaints, gaps, limitations |
+| **Pricing model** | Free / freemium / paid / enterprise |
+| **Technology approach** | Open source? Cloud? Self-hosted? API-first? |
+| **Market segment** | Enterprise / SMB / developer / consumer |
+| **Maturity** | Startup / growth / established / declining |
 
-Start with competitive research approach:
-"Now I'll conduct **competitive analysis** to understand the competitive landscape.
+### 3. SWOT Synthesis (for our product)
 
-**Competitive Analysis Focus:**
+Based on competitive landscape:
 
-- Key players and market share
-- Competitive positioning strategies
-- Strengths and weaknesses analysis
-- Market differentiation opportunities
-- Competitive threats and challenges
+- **Strengths**: What advantages do we have? (tech, positioning, constraints-as-features)
+- **Weaknesses**: Where are we behind? (resources, brand, ecosystem)
+- **Opportunities**: What gaps exist in the market? What's underserved?
+- **Threats**: What could competitors do that would block us?
 
-**Let me search for current competitive information.**"
+### 4. Differentiation Strategy
 
-### 2. Generate Competitive Analysis Content
+Answer:
+- What is our unique angle that no competitor owns?
+- "Unlike [closest competitor], we [key differentiator] because [reason it matters to users]"
+- What would we explicitly NOT do that competitors do? (anti-positioning)
 
-Prepare competitive analysis with web search citations:
-
-#### Content Structure:
-
-When saving to document, append these Level 2 and Level 3 sections:
+## Output Structure
 
 ```markdown
-## Competitive Landscape
+# Competitive Analysis
 
-### Key Market Players
+## Landscape Overview
+[2-3 sentence summary of the market state]
 
-[Key players analysis with market share data]
-_Source: [URL]_
+## Competitor Profiles
 
-### Market Share Analysis
+### [Competitor 1]
+- **What they do**: ...
+- **Strengths**: ...
+- **Weaknesses**: ...
+- **Relevant to us because**: ...
 
-[Market share analysis with source citations]
-_Source: [URL]_
+### [Competitor 2]
+...
 
-### Competitive Positioning
+## Comparison Matrix
+| Dimension | Us | Competitor A | Competitor B | Competitor C |
+|-----------|-----|-------------|-------------|-------------|
+| Target user | ... | ... | ... | ... |
+| Core value prop | ... | ... | ... | ... |
+| Pricing | ... | ... | ... | ... |
+| Key limitation | ... | ... | ... | ... |
 
-[Positioning analysis with source citations]
-_Source: [URL]_
+## SWOT
+| Strengths | Weaknesses |
+|-----------|-----------|
+| ... | ... |
 
-### Strengths and Weaknesses
+| Opportunities | Threats |
+|--------------|---------|
+| ... | ... |
 
-[SWOT analysis with source citations]
-_Source: [URL]_
+## Differentiation
+**Our unique angle**: ...
+**Anti-positioning** (what we won't do): ...
 
-### Market Differentiation
-
-[Differentiation analysis with source citations]
-_Source: [URL]_
-
-### Competitive Threats
-
-[Threats analysis with source citations]
-_Source: [URL]_
-
-### Opportunities
-
-[Competitive opportunities analysis with source citations]
-_Source: [URL]_
+## Sources
+[All URLs cited]
 ```
 
-### 3. Present Analysis and Complete Option
+## Quality Criteria
 
-Show the generated competitive analysis and present complete option:
-"I've completed the **competitive analysis** for the competitive landscape.
-
-**Key Competitive Findings:**
-
-- Key market players and market share identified
-- Competitive positioning strategies mapped
-- Strengths and weaknesses thoroughly analyzed
-- Market differentiation opportunities identified
-- Competitive threats and challenges documented
-
-**Ready to complete the market research?**
-[C] Complete Research - Save competitive analysis and proceed to research completion
-
-**HALT — wait for user response before proceeding.**
-
-### 4. Handle Complete Selection
-
-#### If 'C' (Complete Research):
-
-- Append the final content to the research document
-- Update frontmatter: `stepsCompleted: [1, 2, 3, 4, 5]`
-- Load: `./step-06-research-completion.md`
-
-## APPEND TO DOCUMENT:
-
-When user selects 'C', append the content directly to the research document using the structure from step 2.
-
-## SUCCESS METRICS:
-
-✅ Key market players identified
-✅ Market share analysis completed with source verification
-✅ Competitive positioning strategies clearly mapped
-✅ Strengths and weaknesses thoroughly analyzed
-✅ Market differentiation opportunities identified
-✅ [C] complete option presented and handled correctly
-✅ Content properly appended to document when C selected
-✅ Market research workflow completed successfully
-
-## FAILURE MODES:
-
-❌ Relying solely on training data without web verification for current facts
-
-❌ Missing key market players or market share data
-❌ Incomplete competitive positioning analysis
-❌ Not identifying market differentiation opportunities
-❌ Not presenting completion option for research workflow
-❌ Appending content without user selecting 'C'
-
-❌ **CRITICAL**: Reading only partial step file - leads to incomplete understanding and poor decisions
-❌ **CRITICAL**: Proceeding with 'C' without fully reading and understanding the next step file
-❌ **CRITICAL**: Making decisions without complete understanding of step requirements and protocols
-
-## COMPETITIVE RESEARCH PROTOCOLS:
-
-- Search for industry reports and competitive intelligence
-- Use competitor company websites and annual reports
-- Research market research firm competitive analyses
-- Note competitive advantages and disadvantages
-- Search for recent market developments and disruptions
-
-## MARKET RESEARCH COMPLETION:
-
-When 'C' is selected:
-
-- All market research steps completed
-- Comprehensive market research document generated
-- All sections appended with source citations
-- Market research workflow status updated
-- Final recommendations provided to user
-
-## NEXT STEP:
-
-After user selects 'C', load `./step-06-research-completion.md` to produce the final comprehensive market research document with strategic synthesis, executive summary, and complete document structure.
+- At least 3 competitors analyzed (or justification why fewer exist)
+- Analysis based on verifiable facts (user reviews, docs, pricing pages) not assumptions
+- SWOT is honest — weaknesses and threats acknowledged, not minimized
+- Differentiation statement is specific and testable, not generic ("better UX")
+- Each source cited with URL

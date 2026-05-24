@@ -1,96 +1,88 @@
----
-name: bmad-market-research
-description: 'Conduct market research on competition and customers. Use when the user says they need market research'
----
+# Market Research Framework
 
-# Market Research Workflow
+## Purpose
 
-**Goal:** Conduct comprehensive market research using current web data and verified sources to produce complete research documents with compelling narratives and proper citations.
+Investigate the competitive landscape, technical feasibility, and existing solutions to inform product decisions. Produce a structured research document with verified findings and clear recommendations.
 
-**Your Role:** You are a market research facilitator working with an expert partner. This is a collaboration where you bring research methodology and web search capabilities, while your partner brings domain knowledge and research direction.
+## Input
 
-## Conventions
+- Idea capture document (problem statement, target users, constraints)
+- Any existing research or competitor references from the user
 
-- Bare paths (e.g. `steps/step-01-init.md`) resolve from the skill root.
-- `{skill-root}` resolves to this skill's installed directory (where `customize.toml` lives).
-- `{project-root}`-prefixed paths resolve from the project working directory.
-- `{skill-name}` resolves to the skill directory's basename.
+## Methodology
 
-## PREREQUISITE
+### 1. Scope Clarification
 
-**⛔ Web search required.** If unavailable, abort and tell the user.
+Before researching, clarify:
+- **Core question**: What exactly needs to be answered?
+- **Research goals**: What decisions will this research inform?
+- **Boundaries**: What's in scope vs. out of scope?
+- **Depth vs. breadth**: Deep dive on one area, or survey across many?
 
-## On Activation
+### 2. Multi-Angle Research (execute in parallel)
 
-### Step 1: Resolve the Workflow Block
+**A. Market Landscape**
+- Who are the existing players? (direct competitors, adjacent products, open-source alternatives)
+- What's their positioning? (enterprise vs. developer vs. consumer)
+- What's the market trajectory? (growing, consolidating, fragmenting)
 
-Run: `python3 {project-root}/_bmad/scripts/resolve_customization.py --skill {skill-root} --key workflow`
+**B. Technical Feasibility**
+- What technology approaches exist for this problem?
+- What are the proven patterns vs. experimental ones?
+- What are the hard technical constraints or risks?
 
-**If the script fails**, resolve the `workflow` block yourself by reading these three files in base → team → user order and applying the same structural merge rules as the resolver:
+**C. Existing Solutions & Reusable Components**
+- What can be reused vs. must be built from scratch?
+- Are there open-source foundations to build on?
+- What integration points exist with the user's current stack?
 
-1. `{skill-root}/customize.toml` — defaults
-2. `{project-root}/_bmad/custom/{skill-name}.toml` — team overrides
-3. `{project-root}/_bmad/custom/{skill-name}.user.toml` — personal overrides
+### 3. Synthesis
 
-Any missing file is skipped. Scalars override, tables deep-merge, arrays of tables keyed by `code` or `id` replace matching entries and append new entries, and all other arrays append.
+- Cross-reference findings across angles
+- Identify patterns (multiple sources saying the same thing = strong signal)
+- Surface contradictions (one source says X, another says Y = needs resolution)
+- Extract actionable recommendations
 
-### Step 2: Execute Prepend Steps
+## Output Structure
 
-Execute each entry in `{workflow.activation_steps_prepend}` in order before proceeding.
+```markdown
+# [Topic] Research
 
-### Step 3: Load Persistent Facts
+## Executive Summary
+[2-3 sentence overview of key findings and recommendation]
 
-Treat every entry in `{workflow.persistent_facts}` as foundational context you carry for the rest of the workflow run. Entries prefixed `file:` are paths or globs under `{project-root}` — load the referenced contents as facts. All other entries are facts verbatim.
+## Market Landscape
+### Key Players
+[Table: Name | Category | Positioning | Strengths | Weaknesses]
 
-### Step 4: Load Config
+### Market Dynamics
+[Growth trends, consolidation, emerging segments]
 
-Load config from `{project-root}/_bmad/bmm/config.yaml` and resolve:
-- Use `{user_name}` for greeting
-- Use `{communication_language}` for all communications
-- Use `{document_output_language}` for output documents
-- Use `{planning_artifacts}` for output location and artifact scanning
-- Use `{project_knowledge}` for additional context scanning
+## Technical Feasibility
+### Proven Approaches
+[What works today, with evidence]
 
-### Step 5: Greet the User
+### Risks & Unknowns
+[What's uncertain, what could go wrong]
 
-Greet `{user_name}`, speaking in `{communication_language}`.
+## Existing Solutions Analysis
+### Reusable Components
+[What exists that can be leveraged]
 
-### Step 6: Execute Append Steps
+### Build vs. Buy Assessment
+[What must be custom vs. what's available]
 
-Execute each entry in `{workflow.activation_steps_append}` in order.
+## Recommendations
+[Concrete next steps based on findings]
 
-Activation is complete. Begin the workflow below.
+## Sources
+[All URLs and references cited]
+```
 
-## QUICK TOPIC DISCOVERY
+## Quality Criteria
 
-"Welcome {{user_name}}! Let's get started with your **market research**.
-
-**What topic, problem, or area do you want to research?**
-
-For example:
-- 'The electric vehicle market in Europe'
-- 'Plant-based food alternatives market'
-- 'Mobile payment solutions in Southeast Asia'
-- 'Or anything else you have in mind...'"
-
-### Topic Clarification
-
-Based on the user's topic, briefly clarify:
-1. **Core Topic**: "What exactly about [topic] are you most interested in?"
-2. **Research Goals**: "What do you hope to achieve with this research?"
-3. **Scope**: "Should we focus broadly or dive deep into specific aspects?"
-
-## ROUTE TO MARKET RESEARCH STEPS
-
-After gathering the topic and goals:
-
-1. Set `research_type = "market"`
-2. Set `research_topic = [discovered topic from discussion]`
-3. Set `research_goals = [discovered goals from discussion]`
-4. Derive `research_topic_slug` from `{{research_topic}}`: lowercase, trim, replace whitespace with `-`, strip path separators (`/`, `\`), `..`, and any character that is not alphanumeric, `-`, or `_`. Collapse repeated `-` and strip leading/trailing `-`. If the result is empty, use `untitled`.
-5. Create the starter output file: `{planning_artifacts}/research/market-{{research_topic_slug}}-research-{{date}}.md` with exact copy of the `./research.template.md` contents
-6. Load: `./steps/step-01-init.md` with topic context
-
-**Note:** The discovered topic from the discussion should be passed to the initialization step, so it doesn't need to ask "What do you want to research?" again - it can focus on refining the scope for market research.
-
-**✅ YOU MUST ALWAYS SPEAK OUTPUT In your Agent communication style with the config `{communication_language}`**
+- Every factual claim has a cited source
+- Recommendations are actionable (not just "consider X")
+- Critical unknowns are explicitly flagged as blockers
+- Research answers the original scope questions (trace back to goals)
+- No hallucinated competitor names or features — verify everything

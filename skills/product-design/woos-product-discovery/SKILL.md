@@ -227,7 +227,7 @@ Synthesize into a roadmap document containing:
 |---|---|
 | **Sub-agent** | ✅ (independent reviewer) |
 | **Persona** | `references/persona-prd-validator.md` |
-| **Knowledge** | `references/framework-validate-prd.md` + `references/template-prd-validation-checklist.md` |
+| **Knowledge** | `references/template-prd-validation-checklist.md` |
 | **Input** | `docs/product/<project>-roadmap.md` + `ideas/<slug>/00-idea-capture.md` |
 | **Output** | `docs/reviews/<project>-roadmap-review-rN.md` |
 

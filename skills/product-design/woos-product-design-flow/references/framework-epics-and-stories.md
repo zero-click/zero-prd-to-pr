@@ -1,93 +1,115 @@
----
-name: bmad-create-epics-and-stories
-description: 'Break requirements into epics and user stories. Use when the user says "create the epics and stories list"'
----
+# Epics & Stories Breakdown Framework
 
-# Create Epics and Stories
+## Purpose
 
-**Goal:** Transform PRD requirements and Architecture decisions into comprehensive stories organized by user value, creating detailed, actionable stories with complete acceptance criteria for the Developer agent.
+Decompose a PRD into implementable epics and user stories. Each epic delivers complete user value; stories within an epic are individually shippable units of work.
 
-**Your Role:** In addition to your name, communication_style, and persona, you are also a product strategist and technical specifications writer collaborating with a product owner. This is a partnership, not a client-vendor relationship. You bring expertise in requirements decomposition, technical implementation context, and acceptance criteria writing, while the user brings their product vision, user needs, and business requirements. Work together as equals.
+## Input
 
-## Conventions
+- PRD (functional requirements with stable IDs, user journeys, personas)
+- System architecture (component boundaries — informs story scoping)
 
-- Bare paths (e.g. `steps/step-01-validate-prerequisites.md`) resolve from the skill root.
-- `{skill-root}` resolves to this skill's installed directory (where `customize.toml` lives).
-- `{project-root}`-prefixed paths resolve from the project working directory.
-- `{skill-name}` resolves to the skill directory's basename.
+## Methodology
 
-## WORKFLOW ARCHITECTURE
+### 1. Epic Design Principles
 
-This uses **step-file architecture** for disciplined execution:
+**Group by user value, NOT by technical layer:**
+- ❌ WRONG: "Database Setup", "API Development", "Frontend Components"
+- ✅ RIGHT: "User Authentication", "Content Creation", "Search & Discovery"
 
-### Core Principles
+**Each epic must be standalone:**
+- Epic N delivers complete functionality for its domain
+- Epic N should not REQUIRE Epic N+1 to work (though it may be enhanced by it)
+- A user can get value from Epic 1 alone
 
-- **Micro-file Design**: Each step toward the overall goal is a self-contained instruction file; adhere to one file at a time, as directed
-- **Just-In-Time Loading**: Only 1 current step file will be loaded and followed to completion - never load future step files until told to do so
-- **Sequential Enforcement**: Sequence within the step files must be completed in order, no skipping or optimization allowed
-- **State Tracking**: Document progress in output file frontmatter using `stepsCompleted` array when a workflow produces a document
-- **Append-Only Building**: Build documents by appending content as directed to the output file
+**File-churn rule:**
+- If two epics repeatedly modify the same core files → consolidate into one epic
+- This reduces feedback loops and merge conflicts during implementation
 
-### Step Processing Rules
+### 2. Epic Identification Process
 
-1. **READ COMPLETELY**: Always read the entire step file before taking any action
-2. **FOLLOW SEQUENCE**: Execute all numbered sections in order, never deviate
-3. **WAIT FOR INPUT**: If a menu is presented, halt and wait for user selection
-4. **CHECK CONTINUATION**: If the step has a menu with Continue as an option, only proceed to next step when user selects 'C' (Continue)
-5. **SAVE STATE**: Update `stepsCompleted` in frontmatter before loading next step
-6. **LOAD NEXT**: When directed, read fully and follow the next step file
+**Step A: Identify themes from PRD**
+- Group related FRs by the user outcome they enable
+- Each group = candidate epic
+- Name it by what the user can DO, not what the developer builds
 
-### Critical Rules (NO EXCEPTIONS)
+**Step B: Validate independence**
+- Can this epic be built and shipped without other epics existing?
+- If not, either merge with dependency or mark explicit build order
 
-- 🛑 **NEVER** load multiple step files simultaneously
-- 📖 **ALWAYS** read entire step file before execution
-- 🚫 **NEVER** skip steps or optimize the sequence
-- 💾 **ALWAYS** update frontmatter of output files when writing the final output for a specific step
-- 🎯 **ALWAYS** follow the exact instructions in the step file
-- ⏸️ **ALWAYS** halt at menus and wait for user input
-- 📋 **NEVER** create mental todo lists from future steps
+**Step C: Check file overlap**
+- For each epic pair, estimate which source files they'd both modify
+- High overlap → consider merging
+- Low overlap → good separation
 
-## On Activation
+**Step D: Order by value and dependency**
+- Which epic delivers the most value soonest?
+- Which epics enable other epics? (build these first)
+- Result: ordered epic list (not a graph — a linear build sequence)
 
-### Step 1: Resolve the Workflow Block
+### 3. FR Coverage Tracking
 
-Run: `python3 {project-root}/_bmad/scripts/resolve_customization.py --skill {skill-root} --key workflow`
+Every Functional Requirement in the PRD MUST map to exactly one epic:
 
-**If the script fails**, resolve the `workflow` block yourself by reading these three files in base → team → user order and applying the same structural merge rules as the resolver:
+```
+FR-1: Epic 1 — User Authentication
+FR-2: Epic 1 — User Authentication
+FR-3: Epic 2 — Content Creation
+FR-4: Epic 3 — Search & Discovery
+...
+```
 
-1. `{skill-root}/customize.toml` — defaults
-2. `{project-root}/_bmad/custom/{skill-name}.toml` — team overrides
-3. `{project-root}/_bmad/custom/{skill-name}.user.toml` — personal overrides
+If any FR is unmapped → create an epic or assign to existing one. Zero gaps allowed.
 
-Any missing file is skipped. Scalars override, tables deep-merge, arrays of tables keyed by `code` or `id` replace matching entries and append new entries, and all other arrays append.
+### 4. Story Writing (within each epic)
 
-### Step 2: Execute Prepend Steps
+For each story:
+- **Title**: As a [persona], I want to [action] so that [value]
+- **Acceptance criteria**: Testable conditions (Given/When/Then or checklist)
+- **Scope boundary**: What's explicitly NOT in this story
+- **Dependencies**: Other stories that must be done first (minimize these)
 
-Execute each entry in `{workflow.activation_steps_prepend}` in order before proceeding.
+## Output Structure
 
-### Step 3: Load Persistent Facts
+```markdown
+# Epics & Stories — [Project/Feature]
 
-Treat every entry in `{workflow.persistent_facts}` as foundational context you carry for the rest of the workflow run. Entries prefixed `file:` are paths or globs under `{project-root}` — load the referenced contents as facts. All other entries are facts verbatim.
+## Epic Overview
+| # | Epic | FRs Covered | Depends On | Estimated Stories |
+|---|------|-------------|-----------|-------------------|
+| 1 | [Name] | FR-1, FR-2 | — | 4 |
+| 2 | [Name] | FR-3, FR-4, FR-5 | Epic 1 | 6 |
+| 3 | [Name] | FR-6, FR-7 | — | 3 |
 
-### Step 4: Load Config
+## FR Coverage Map
+| FR | Epic | Status |
+|----|------|--------|
+| FR-1 | Epic 1 | ✅ Covered |
+| FR-2 | Epic 1 | ✅ Covered |
+| ... | ... | ... |
 
-Load config from `{project-root}/_bmad/bmm/config.yaml` and resolve:
-- Use `{user_name}` for greeting
-- Use `{communication_language}` for all communications
-- Use `{document_output_language}` for output documents
-- Use `{planning_artifacts}` for output location and artifact scanning
-- Use `{project_knowledge}` for additional context scanning
+## Epic 1: [Name]
+**Goal**: [What user can accomplish when this epic is done]
+**FRs**: FR-1, FR-2
 
-### Step 5: Greet the User
+### Story 1.1: [Title]
+As a [persona], I want to [action] so that [value].
+**Acceptance Criteria:**
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
 
-Greet `{user_name}`, speaking in `{communication_language}`.
+### Story 1.2: [Title]
+...
 
-### Step 6: Execute Append Steps
+## Epic 2: [Name]
+...
+```
 
-Execute each entry in `{workflow.activation_steps_append}` in order.
+## Quality Criteria
 
-Activation is complete. Begin the workflow below.
-
-## Execution
-
-Read fully and follow: `./steps/step-01-validate-prerequisites.md` to begin the workflow.
+- 100% FR coverage — every FR maps to an epic (zero gaps)
+- Epics named by user outcome, not technical layer
+- Each epic is independently valuable (can ship alone)
+- Stories have testable acceptance criteria (not vague "should work")
+- Build order is logical (dependencies flow forward, not circular)
+- No epic touches the same core files as another (file-churn rule checked)

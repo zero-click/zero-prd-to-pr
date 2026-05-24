@@ -1,74 +1,144 @@
----
-name: bmad-create-architecture
-description: 'Create architecture solution design decisions for AI agent consistency. Use when the user says "lets create architecture" or "create technical architecture" or "create a solution design"'
----
+# System Architecture Framework
 
-# Architecture Workflow
+## Purpose
 
-**Goal:** Create comprehensive architecture decisions through collaborative step-by-step discovery that ensures AI agents implement consistently.
+Produce a high-level system architecture that spans all planned versions. Define component boundaries, communication patterns, data architecture, and key technical decisions with rationale.
 
-**Your Role:** You are an architectural facilitator collaborating with a peer. This is a partnership, not a client-vendor relationship. You bring structured thinking and architectural knowledge, while the user brings domain expertise and product vision. Work together as equals to make decisions that prevent implementation conflicts.
+## Input
 
-## Conventions
+- Product roadmap (vision, versioned scope, constraints)
+- Technical preferences from idea capture (if any — treat as input, not constraint)
+- Research findings (technical feasibility, existing solutions)
 
-- Bare paths (e.g. `steps/step-01-init.md`) resolve from the skill root.
-- `{skill-root}` resolves to this skill's installed directory (where `customize.toml` lives).
-- `{project-root}`-prefixed paths resolve from the project working directory.
-- `{skill-name}` resolves to the skill directory's basename.
+## Methodology
 
-## WORKFLOW ARCHITECTURE
+### 1. Requirements Extraction
 
-This uses **micro-file architecture** for disciplined execution:
+From the roadmap, extract:
+- **Functional requirements** — what the system must do (features → capabilities)
+- **Non-functional requirements** — performance, security, scalability, reliability targets
+- **Cross-cutting concerns** — auth, logging, error handling, deployment
+- **Complexity indicators** — real-time features, multi-tenancy, regulatory needs, integration depth
 
-- Each step is a self-contained file with embedded rules
-- Sequential progression with user control at each step
-- Document state tracked in frontmatter
-- Append-only document building through conversation
-- You NEVER proceed to a step file if the current step file indicates the user must approve and indicate continuation.
+### 2. Scale Assessment
 
-## On Activation
+Classify the project:
+- **Solo/hobby**: Single developer, minimal infrastructure, optimize for simplicity
+- **Small team**: 2-5 developers, moderate infrastructure, optimize for developer productivity
+- **Production**: Multiple teams, robust infrastructure, optimize for reliability and scalability
 
-### Step 1: Resolve the Workflow Block
+This determines architectural complexity budget — don't over-architect for scale you won't reach.
 
-Run: `python3 {project-root}/_bmad/scripts/resolve_customization.py --skill {skill-root} --key workflow`
+### 3. Core Architectural Decisions
 
-**If the script fails**, resolve the `workflow` block yourself by reading these three files in base → team → user order and applying the same structural merge rules as the resolver:
+For each decision, document: **Choice + Alternatives Considered + Rationale**
 
-1. `{skill-root}/customize.toml` — defaults
-2. `{project-root}/_bmad/custom/{skill-name}.toml` — team overrides
-3. `{project-root}/_bmad/custom/{skill-name}.user.toml` — personal overrides
+**A. Component Architecture**
+- What are the major system components/services?
+- What is each component's single responsibility?
+- Where are the boundaries? (If a component has >1 responsibility, split it)
 
-Any missing file is skipped. Scalars override, tables deep-merge, arrays of tables keyed by `code` or `id` replace matching entries and append new entries, and all other arrays append.
+**B. Communication Patterns**
+- How do components talk? (REST API, gRPC, message queue, shared DB, events)
+- Pick ONE primary pattern; justify exceptions explicitly
+- Synchronous vs. asynchronous for each communication path
 
-### Step 2: Execute Prepend Steps
+**C. Data Architecture**
+- What storage types? (relational, document, cache, file, search)
+- How does data flow between components?
+- Where is the source of truth for each data entity?
+- Introduce API boundaries between components sharing raw data
 
-Execute each entry in `{workflow.activation_steps_prepend}` in order before proceeding.
+**D. Infrastructure & Deployment**
+- How is it deployed? (containers, serverless, bare metal)
+- What's the minimum viable infrastructure for V1?
+- What infrastructure is NOT needed until V2+? (remove premature complexity)
 
-### Step 3: Load Persistent Facts
+### 4. Implementation Patterns
 
-Treat every entry in `{workflow.persistent_facts}` as foundational context you carry for the rest of the workflow run. Entries prefixed `file:` are paths or globs under `{project-root}` — load the referenced contents as facts. All other entries are facts verbatim.
+Define consistency rules that prevent implementation conflicts:
+- Naming conventions (files, APIs, database tables)
+- Error handling patterns (how errors propagate, what gets logged)
+- Authentication/authorization approach
+- Testing strategy (unit, integration, e2e boundaries)
 
-### Step 4: Load Config
+### 5. Version Alignment
 
-Load config from `{project-root}/_bmad/bmm/config.yaml` and resolve:
-- Use `{user_name}` for greeting
-- Use `{communication_language}` for all communications
-- Use `{document_output_language}` for output documents
-- Use `{planning_artifacts}` for output location and artifact scanning
-- Use `{project_knowledge}` for additional context scanning
+Map architecture to roadmap versions:
+- **V1 architecture**: Minimum components needed. Can be built independently.
+- **V2 additions**: What new components/services appear? How do they connect?
+- **Migration path**: How does V1 architecture evolve to V2 without rewrite?
 
-### Step 5: Greet the User
+### 6. Risk Assessment
 
-Greet `{user_name}`, speaking in `{communication_language}`.
+For each significant technical risk:
+- What could go wrong?
+- What's the impact if it happens?
+- What's the concrete mitigation action? (not just "monitor")
+- What's the fallback plan?
 
-### Step 6: Execute Append Steps
+## Output Structure
 
-Execute each entry in `{workflow.activation_steps_append}` in order.
+```markdown
+# [Project] — System Architecture
 
-Activation is complete. Begin the workflow below.
+## Architecture Overview
+[1-2 paragraph summary of the approach]
 
-## Execution
+## System Components
+### [Component 1]
+- **Responsibility**: [single responsibility]
+- **Technology**: [language/framework]
+- **Interfaces**: [what it exposes, what it consumes]
 
-Read fully and follow: `./steps/step-01-init.md` to begin the workflow.
+### [Component 2]
+...
 
-**Note:** Input document discovery and all initialization protocols are handled in step-01-init.md.
+## Communication Architecture
+[Diagram description or table showing component interactions]
+| From | To | Pattern | Protocol | Notes |
+|------|-----|---------|----------|-------|
+
+## Data Architecture
+### Storage
+| Data Entity | Storage Type | Owner Component | Access Pattern |
+|-------------|-------------|-----------------|----------------|
+
+### Data Flow
+[How data moves through the system]
+
+## Infrastructure
+### V1 (Minimum Viable)
+[What's needed to ship V1]
+
+### V2+ (When Needed)
+[What gets added and what triggers it]
+
+## Implementation Patterns
+- Naming: ...
+- Error handling: ...
+- Auth: ...
+- Testing: ...
+
+## Architecture Decisions
+| Decision | Alternatives | Rationale |
+|----------|-------------|-----------|
+
+## Technical Risks
+| Risk | Impact | Mitigation | Fallback |
+|------|--------|-----------|----------|
+
+## Version Alignment
+| Component | V1 | V2 | V3 |
+|-----------|----|----|-----|
+```
+
+## Quality Criteria
+
+- Components have clear single responsibilities (not "backend" or "services")
+- ONE primary communication pattern with justified exceptions
+- No infrastructure that isn't needed until V2 (proportional complexity)
+- Every dependency can be built independently (or explicitly marked as sequential)
+- Risks have concrete mitigation actions, not "we'll figure it out"
+- Architecture aligned to roadmap versions — V1 components are V1-scoped
+- Technical preferences from user considered and either adopted with rationale or explicitly diverged with explanation

@@ -1,91 +1,115 @@
----
-name: bmad-check-implementation-readiness
-description: 'Validate PRD, UX, Architecture and Epics specs are complete. Use when the user says "check implementation readiness".'
----
+# Implementation Readiness Framework
 
-# Implementation Readiness
+## Purpose
 
-**Goal:** Validate that PRD, UX, Architecture, Epics and Stories are complete and aligned before Phase 4 implementation starts, with a focus on ensuring epics and stories are logical and have accounted for all requirements and planning.
+Validate that all planning artifacts (PRD, epics, stories, architecture) are complete, consistent, and sufficient for engineering to begin implementation without ambiguity.
 
-**Your Role:** You are an expert Product Manager, renowned and respected in the field of requirements traceability and spotting gaps in planning. Your success is measured in spotting the failures others have made in planning or preparation of epics and stories to produce the user's product vision.
+## Input
 
-## Conventions
+- PRD (functional and non-functional requirements)
+- Epics & Stories (with acceptance criteria)
+- System Architecture (components, boundaries, decisions)
+- UX Design Brief (if applicable)
 
-- Bare paths (e.g. `steps/step-01-document-discovery.md`) resolve from the skill root.
-- `{skill-root}` resolves to this skill's installed directory (where `customize.toml` lives).
-- `{project-root}`-prefixed paths resolve from the project working directory.
-- `{skill-name}` resolves to the skill directory's basename.
+## Methodology
 
-## WORKFLOW ARCHITECTURE
+### 1. Four-Layer Validation
 
-### Core Principles
+Check each layer in order. A failure at any layer blocks proceeding.
 
-- **Micro-file Design**: Each step toward the overall goal is a self-contained instruction file; adhere to one file at a time, as directed
-- **Just-In-Time Loading**: Only 1 current step file will be loaded and followed to completion - never load future step files until told to do so
-- **Sequential Enforcement**: Sequence within the step files must be completed in order, no skipping or optimization allowed
-- **State Tracking**: Document progress in output file frontmatter using `stepsCompleted` array when a workflow produces a document
-- **Append-Only Building**: Build documents by appending content as directed to the output file
+**Layer 1: PRD Completeness**
+- Every FR has acceptance criteria that are testable
+- Every NFR has a measurable target (number, not adjective)
+- No TBD / placeholder sections remaining
+- Open questions either resolved or explicitly deferred with rationale
+- Success metrics defined with specific targets
 
-### Step Processing Rules
+**Layer 2: Epic Coverage**
+- Every FR maps to exactly one epic (use coverage map)
+- No orphan FRs (requirements that no epic addresses)
+- No orphan epics (epics that don't trace back to FRs)
+- Epic dependencies are acyclic and explicitly ordered
 
-1. **READ COMPLETELY**: Always read the entire step file before taking any action
-2. **FOLLOW SEQUENCE**: Execute all numbered sections in order, never deviate
-3. **WAIT FOR INPUT**: If a menu is presented, halt and wait for user selection
-4. **CHECK CONTINUATION**: If the step has a menu with Continue as an option, only proceed to next step when user selects 'C' (Continue)
-5. **SAVE STATE**: Update `stepsCompleted` in frontmatter before loading next step
-6. **LOAD NEXT**: When directed, read fully and follow the next step file
+**Layer 3: Architecture Alignment**
+- Every epic maps to specific architecture components
+- No epic requires a component that doesn't exist in architecture
+- Communication patterns between components are defined for each epic's needs
+- Data entities referenced in FRs have a defined storage location
 
-### Critical Rules (NO EXCEPTIONS)
+**Layer 4: Story Quality**
+- Every story has testable acceptance criteria
+- Stories are small enough to implement in a single work session
+- Dependencies between stories are explicitly stated
+- Edge cases from PRD are covered by at least one story's acceptance criteria
 
-- 🛑 **NEVER** load multiple step files simultaneously
-- 📖 **ALWAYS** read entire step file before execution
-- 🚫 **NEVER** skip steps or optimize the sequence
-- 💾 **ALWAYS** update frontmatter of output files when writing the final output for a specific step
-- 🎯 **ALWAYS** follow the exact instructions in the step file
-- ⏸️ **ALWAYS** halt at menus and wait for user input
-- 📋 **NEVER** create mental todo lists from future steps
+### 2. Traceability Matrix
 
-## On Activation
+Build a complete trace from requirement to implementation:
 
-### Step 1: Resolve the Workflow Block
+```
+FR-1 → Epic 1 → Story 1.1 → Component: Auth Service → Test: AC-1.1.1
+FR-2 → Epic 1 → Story 1.2 → Component: Auth Service → Test: AC-1.2.1
+...
+```
 
-Run: `python3 {project-root}/_bmad/scripts/resolve_customization.py --skill {skill-root} --key workflow`
+Any broken chain = gap that must be resolved before handoff.
 
-**If the script fails**, resolve the `workflow` block yourself by reading these three files in base → team → user order and applying the same structural merge rules as the resolver:
+### 3. Gap Documentation
 
-1. `{skill-root}/customize.toml` — defaults
-2. `{project-root}/_bmad/custom/{skill-name}.toml` — team overrides
-3. `{project-root}/_bmad/custom/{skill-name}.user.toml` — personal overrides
+For each gap found:
+- **What's missing**: Specific description
+- **Impact**: What would go wrong if engineering starts without this
+- **Severity**: Critical (blocks all work) / High (blocks specific epic) / Medium (causes rework)
+- **Recommendation**: Who should fix this and how
 
-Any missing file is skipped. Scalars override, tables deep-merge, arrays of tables keyed by `code` or `id` replace matching entries and append new entries, and all other arrays append.
+### 4. Final Verdict
 
-### Step 2: Execute Prepend Steps
+- **READY** — All layers pass, traceability complete, no critical/high gaps
+- **READY WITH CAVEATS** — Minor gaps documented, engineering can start with awareness
+- **NOT READY** — Critical or high gaps exist, specific fixes required before handoff
 
-Execute each entry in `{workflow.activation_steps_prepend}` in order before proceeding.
+## Output Structure
 
-### Step 3: Load Persistent Facts
+```markdown
+# Implementation Readiness Report
 
-Treat every entry in `{workflow.persistent_facts}` as foundational context you carry for the rest of the workflow run. Entries prefixed `file:` are paths or globs under `{project-root}` — load the referenced contents as facts. All other entries are facts verbatim.
+## Summary
+**Verdict**: [READY / READY WITH CAVEATS / NOT READY]
+**Date**: [assessment date]
 
-### Step 4: Load Config
+## Layer Results
+| Layer | Status | Issues Found |
+|-------|--------|-------------|
+| PRD Completeness | ✅/❌ | [count] |
+| Epic Coverage | ✅/❌ | [count] |
+| Architecture Alignment | ✅/❌ | [count] |
+| Story Quality | ✅/❌ | [count] |
 
-Load config from `{project-root}/_bmad/bmm/config.yaml` and resolve:
-- Use `{user_name}` for greeting
-- Use `{communication_language}` for all communications
-- Use `{document_output_language}` for output documents
-- Use `{planning_artifacts}` for output location and artifact scanning
-- Use `{project_knowledge}` for additional context scanning
+## Traceability Matrix
+| FR | Epic | Story | Component | Status |
+|----|------|-------|-----------|--------|
+| FR-1 | Epic 1 | Story 1.1 | Auth | ✅ |
+| FR-2 | Epic 1 | Story 1.2 | Auth | ✅ |
+| FR-3 | Epic 2 | — | — | ❌ Gap |
 
-### Step 5: Greet the User
+## Gaps
+### Critical
+[None / list with impact and recommendation]
 
-Greet `{user_name}`, speaking in `{communication_language}`.
+### High
+[None / list with impact and recommendation]
 
-### Step 6: Execute Append Steps
+### Medium
+[None / list]
 
-Execute each entry in `{workflow.activation_steps_append}` in order.
+## Recommendations
+[Ordered list of actions to reach READY status]
+```
 
-Activation is complete. Begin the workflow below.
+## Quality Criteria
 
-## Execution
-
-Read fully and follow: `./steps/step-01-document-discovery.md` to begin the workflow.
+- All four layers explicitly assessed (no skipping)
+- Every gap has severity, impact, and recommendation (not just "something is missing")
+- Traceability matrix is complete (covers ALL FRs)
+- Verdict is honest — don't say READY if high gaps exist
+- Assessment is based on artifacts as they ARE, not as they should be
