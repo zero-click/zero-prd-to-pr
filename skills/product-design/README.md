@@ -163,3 +163,57 @@ The workflow includes 6 non-negotiable enforcement rules (E1–E6) to prevent ag
 4. **Template-driven** — mandatory templates with `[NEEDS CLARIFICATION: ...]` markers
 5. **Human-in-the-loop** — mandatory approval gate before PRD phase begins
 6. **Bidirectional feedback** — engineering can issue Design Change Requests (DCR) back to product
+
+## BMAD Knowledge Architecture
+
+This workflow adapts the [BMAD](https://github.com/bmad-agent/bmad-agent) methodology — a multi-agent product development framework — into a Hermes-native skill structure. BMAD provides three types of domain knowledge injected into sub-agents at dispatch time (per E7):
+
+### Personas (Role Identity)
+
+Each persona defines a sub-agent's identity, thinking style, communication principles, and behavioral constraints. Injected verbatim into the sub-agent prompt.
+
+| Persona | File | Used In | Purpose |
+|---------|------|---------|---------|
+| **PM (John)** | `personas/pm.toml` | Steps 2, 3, 4, 8 | Product thinking — "Why does this matter to users?" Drives requirements, PRD authoring, and handoff packaging |
+| **Analyst** | `personas/analyst.toml` | Discovery Steps 1–3 | Research-oriented — competitive analysis, market research, pain point extraction |
+| **Architect** | `personas/architect.toml` | Discovery Step 5 | System-level thinking — components, boundaries, data flow, technical risks |
+| **UX Designer (Sally)** | `personas/ux-designer.toml` | Steps 6, 7 | User experience — interaction patterns, accessibility, information hierarchy |
+| **PRD Validator** | `personas/prd-validator.toml` | Steps 5, 5R | Critical reviewer — finds gaps, contradictions, untestable criteria |
+
+### Frameworks (Domain Knowledge)
+
+Frameworks provide methodology and discipline for specific tasks. They define HOW to think about a problem, not just what to produce.
+
+| Framework | File | Stage | Purpose |
+|-----------|------|-------|---------|
+| `prd.md` | PRD discipline | Design Flow | "PRDs emerge from user interviews, not template filling." Shape → extract → validate cycle |
+| `validate-prd.md` | PRD validation | Design Flow | Review gate methodology — what makes a PRD "done" |
+| `ux-design.md` | UX design | Design Flow | UI brief authoring principles — layout, flows, accessibility |
+| `ux-validate.md` | UX validation | Design Flow | UI brief review methodology |
+| `epics-and-stories.md` | Story breakdown | Design Flow | How to decompose PRD into build tasks for handoff |
+| `implementation-readiness.md` | Readiness check | Design Flow | Criteria for "ready to hand to engineering" |
+| `market-research.md` | Market research | Discovery | Competitive landscape analysis methodology |
+| `competitive-analysis.md` | Competitive analysis | Discovery | Structured competitor evaluation framework |
+| `customer-pain-points.md` | Pain discovery | Discovery | User pain extraction and validation |
+| `create-architecture.md` | Architecture | Discovery | How to produce a system architecture overview |
+| `architecture-validation.md` | Architecture review | Discovery | 7-point architecture validation checklist |
+
+### Templates (Output Structure)
+
+Templates define the exact section structure sub-agents must follow. Checked by E3 (structural compliance).
+
+| Template | File | Stage | Purpose |
+|----------|------|-------|---------|
+| `prd-template.md` | PRD structure | Design Flow | Mandatory sections: Background, Personas, FR, NFR, User Flows, Edge Cases, Metrics |
+| `prd-validation-checklist.md` | Review structure | Design Flow / Discovery | Structured review output format |
+| `brief-template.md` | Capture structure | Discovery | Idea capture output format |
+| `requirements-template.md` | Requirements structure | Design Flow | Step 2 output: Problem, Goals, Stories, Constraints, Risks |
+| `readiness-template.md` | Readiness structure | Design Flow | Step 9 output: Checklist + Verdict |
+
+### Stage × Knowledge Matrix
+
+| Stage | Personas Used | Frameworks Used | Purpose |
+|-------|--------------|-----------------|---------|
+| **Phase 1: Capture** | Analyst | — | Gather and structure raw idea |
+| **Phase 2: Discovery** | Analyst, PM, Architect, PRD Validator | market-research, competitive-analysis, customer-pain-points, create-architecture, architecture-validation | Research problem space, produce roadmap + architecture |
+| **Phase 3: Design Flow** | PM, UX Designer, PRD Validator | prd, validate-prd, ux-design, ux-validate, epics-and-stories, implementation-readiness | Write PRD, review, UI brief, package handoff |
