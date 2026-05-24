@@ -13,8 +13,9 @@ metadata:
 
 # Product Design Flow (Orchestrator)
 
-> **🚨 CRITICAL: Read "Enforcement Rules" section before executing ANY step.**
+> **🚨 CRITICAL: Read "Enforcement Rules" (E1–E7) before executing ANY step.**
 > Every step MUST produce its declared output file. Every output MUST pass structural validation.
+> Every sub-agent dispatch MUST inject full persona + knowledge + template file contents (E7).
 > Skipping steps, merging outputs, or passing reviews without checking all criteria = WORKFLOW VIOLATION.
 
 ## Purpose
@@ -95,6 +96,42 @@ The only legitimately skippable steps are:
 ### E6: Review Cannot Self-Validate
 
 The same agent that authored a document MUST NOT review it. Reviews always use a fresh sub-agent dispatch with independent context.
+
+### E7: Reference Injection Is Mandatory
+
+Before dispatching ANY sub-agent, the orchestrator MUST:
+
+1. **Read** the file declared in the step's `Persona` field → inject full content as the sub-agent's identity
+2. **Read** the file(s) declared in the step's `Knowledge` field → inject full content as domain context
+3. **Read** the file declared in the step's `Template` field → inject full content so the sub-agent can follow it exactly
+
+**Do NOT:**
+- Summarize or paraphrase reference files — inject them verbatim
+- Say "you are a PM" without the persona file content — that's a hollow role
+- Describe the template in your own words — the sub-agent needs the actual template to fill
+
+**Why:** Reference files contain principles, thinking frameworks, and structural requirements that cannot be guessed. Without injection, sub-agents produce generic output that ignores the domain knowledge this workflow is built on.
+
+**Dispatch prompt structure:**
+```
+## Your Identity
+[full content of persona .toml file]
+
+## Domain Knowledge
+[full content of knowledge/framework .md file(s)]
+
+## Template to Follow
+[full content of template .md file]
+
+## Task
+[step-specific instructions]
+
+## Input
+[file path(s) to read]
+
+## Output
+[expected output file path]
+```
 
 ---
 
@@ -701,3 +738,4 @@ These are things agents ACTUALLY DO when executing this workflow. Catch yourself
 | Skipping step after file-not-found | The step's output doesn't exist → downstream steps fail silently | Fix path, retry. Never skip |
 | Readiness as mental check | No output file → no audit trail, no proof of validation | Write `docs/reviews/<version>/<feature>-readiness.md` |
 | Sub-agent reviewing own work | Confirmation bias — author can't see own gaps | Fresh sub-agent with no prior context of authoring |
+| Dispatching sub-agent without reading reference files | Sub-agent says "I'm a PM" but has no persona principles, no framework knowledge, no template to follow → shallow generic output | Read persona .toml + knowledge .md + template .md → inject verbatim into dispatch prompt (E7) |
