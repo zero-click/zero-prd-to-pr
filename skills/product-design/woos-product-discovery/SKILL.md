@@ -30,22 +30,25 @@ Before executing ANY step, you MUST output this block in the conversation:
 ┌─────────────────────────────────────────────────────┐
 │ 🛫 PRE-FLIGHT: Step <N> — <Name>                    │
 ├─────────────────────────────────────────────────────┤
-│ Persona:    <file path> (exists? ✅/❌)              │
-│ Framework:  <file path(s)> (exists? ✅/❌)           │
+│ Persona:    <file path> → reading...                │
+│ Knowledge:  <file path(s)> → reading...             │
 │ Template:   <file path or "none">                   │
 │ Input:      <file path(s)>                          │
 │ Output:     <file path>                             │
 ├─────────────────────────────────────────────────────┤
-│ Dispatch mode: PULL (sub-agent self-loads context)  │
-│ Context Receipt required: YES                       │
+│ ✅ Persona loaded: <line count> lines               │
+│ ✅ Knowledge loaded: <line count> lines             │
+│ ✅ Template loaded: <line count> lines / N/A        │
+├─────────────────────────────────────────────────────┤
+│ Dispatching sub-agent with injected context...      │
 └─────────────────────────────────────────────────────┘
 ```
 
 **Rules:**
-- Verify persona/framework files EXIST before dispatching (orchestrator checks path validity)
+- If you cannot produce this block → you have NOT read the files → STOP and read them
+- The line counts prove you actually read the files (not faking it)
 - After this block, the NEXT action must be dispatching a sub-agent (not doing the work yourself)
 - If you catch yourself writing research/analysis/roadmap content instead of dispatching → STOP, you are violating P0
-- After sub-agent returns, verify its response starts with a valid CONTEXT RECEIPT
 
 ### P1: Orchestrator Does NOT Create Content
 
@@ -53,52 +56,29 @@ You MUST NOT write research findings, roadmap sections, architecture designs, or
 
 **Self-check:** If you are writing more than 3 sentences of domain content (not orchestration bookkeeping), you are doing the sub-agent's job. Stop. Dispatch instead.
 
-### P2: Sub-agent Dispatch Format (Pull Model)
+### P2: Sub-agent Dispatch Format
 
-The orchestrator provides **paths and instructions** — the sub-agent **self-loads context** by reading files itself. This design aligns with natural model behavior: orchestrator stays concise (its instinct), sub-agent reads to learn (its need).
-
-**Dispatch prompt structure:**
+When dispatching a sub-agent, the prompt MUST contain these sections in order:
 
 ```
-## Required Context (READ THESE FILES FIRST)
+## Your Identity
+[full verbatim content of persona .toml file]
 
-Before doing anything, read these files in full:
-- Persona: <file path> (defines who you are and how you think)
-- Framework: <file path(s)> (defines your methodology — follow it step by step)
-- Template: <file path or "none"> (defines your output structure)
+## Domain Knowledge
+[full verbatim content of knowledge/framework file(s)]
 
-## Context Receipt (MANDATORY)
-
-After reading, start your response with this block:
-
-CONTEXT RECEIPT:
-- Persona: <name from file> | key principle: <quote one core principle>
-- Framework: <name> | steps: <list step/phase names>
-- Template: <loaded/N/A>
-
-If you cannot fill this → you failed to read the files → STOP and report error.
+## Template to Follow (if applicable)
+[full verbatim content of template file]
 
 ## Task
-<step-specific instructions from this SKILL.md>
+[step-specific instructions from this SKILL.md]
 
 ## Input Files
-<paths to read for task content — read AFTER loading context>
+[paths to read — sub-agent reads these itself]
 
 ## Output
-Write your output to: <exact file path>
-Format: follow the template structure if one was provided.
+Write your output to: [exact output file path]
 ```
-
-**Why this works:**
-- Orchestrator only writes paths + short task description (natural, no incentive to skip)
-- Sub-agent reads files itself (it genuinely needs them — fresh context)
-- Context Receipt proves actual loading (answers require reading the file content)
-- If orchestrator gives wrong paths → sub-agent errors → visible failure
-
-**Orchestrator MUST NOT:**
-- Summarize persona/framework content in the prompt (let sub-agent read originals)
-- Do the sub-agent's task "to help" (that violates P1)
-- Skip the Context Receipt requirement
 
 ### P3: No Step Merging or Skipping
 
@@ -111,10 +91,7 @@ Format: follow the template structure if one was provided.
 After each sub-agent completes, verify:
 1. Output file EXISTS at declared path
 2. Output is substantive (not a stub or placeholder)
-3. **Context Receipt present** — sub-agent response starts with CONTEXT RECEIPT block containing non-empty persona and framework fields
-4. If review gate → verdict is explicit (PASS / REQUEST_CHANGES)
-
-**Note:** Orchestrator checks receipt FORMAT (fields filled, not blank). It does NOT need to verify receipt accuracy by re-reading source files — that would reintroduce the "I already know the content" problem.
+3. If review gate → verdict is explicit (PASS / REQUEST_CHANGES)
 
 Only then advance to next step.
 
