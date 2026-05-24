@@ -13,51 +13,63 @@ metadata:
 
 # Product Design Flow (Orchestrator)
 
-> **🚨 CRITICAL: Read "Enforcement Rules" (E1–E7) before executing ANY step.**
-> Every step MUST produce its declared output file. Every output MUST pass structural validation.
-> Every sub-agent dispatch MUST inject full persona + knowledge + template file contents (E7).
-> Skipping steps, merging outputs, or passing reviews without checking all criteria = WORKFLOW VIOLATION.
-
-## Purpose
-
-Transform one version from the product roadmap into a build-ready product handoff. This is **Stage 2** of the woos-idea-to-delivery flow. Run once per version.
-
-Focus: define WHAT to build and WHY. Technical architecture (HOW) is engineering's job.
-
-## Role
-
-This file defines an **orchestrator** — a thin state machine that:
-1. Tracks which step we're on (via `run-manifest.yaml`)
-2. Dispatches sub-agents with the right persona + knowledge
-3. **Validates outputs before advancing** (structural check)
-4. Collects outputs, decides next step
-5. Handles review fix loops
-
----
+> **🚨 STOP. Read this section FIRST. It overrides any instinct to "just do the work yourself."**
+>
+> You are an ORCHESTRATOR. You do NOT write PRDs, requirements, or reviews yourself.
+> You dispatch sub-agents and validate their outputs. That is your ONLY job.
+>
+> Before EVERY step: output a Pre-flight block (see below). No pre-flight = invalid execution.
 
 ## ⛔ Enforcement Rules (NON-NEGOTIABLE)
 
 These rules prevent the orchestrator from cutting corners. Violating any of them makes the entire flow invalid.
 
-### E1: No Step Merging
+### P0: Pre-flight Checkpoint (MANDATORY — NEW)
+
+Before executing ANY step, you MUST output this block in the conversation:
+
+```
+┌─────────────────────────────────────────────────────┐
+│ 🛫 PRE-FLIGHT: Step <N> — <Name>                    │
+├─────────────────────────────────────────────────────┤
+│ Persona:    <file path> → reading...                │
+│ Knowledge:  <file path(s)> → reading...             │
+│ Template:   <file path or "none">                   │
+│ Input:      <file path(s)>                          │
+│ Output:     <file path>                             │
+├─────────────────────────────────────────────────────┤
+│ ✅ Persona loaded: <line count> lines               │
+│ ✅ Knowledge loaded: <line count> lines             │
+│ ✅ Template loaded: <line count> lines / N/A        │
+├─────────────────────────────────────────────────────┤
+│ Dispatching sub-agent with injected context...      │
+└─────────────────────────────────────────────────────┘
+```
+
+**Rules:**
+- If you cannot produce this block → you have NOT read the files → STOP and read them
+- The line counts prove you actually read the files (not faking it)
+- After this block, the NEXT action must be dispatching a sub-agent (not doing the work yourself)
+- If you catch yourself writing PRD/requirements/review content instead of dispatching → STOP, you are violating P0
+
+### P1: Orchestrator Does NOT Create Content
+
+You MUST NOT write requirements, PRDs, reviews, UI briefs, or handoff content yourself. Every piece of creative/analytical content comes from a dispatched sub-agent.
+
+**Self-check:** If you are writing more than 3 sentences of domain content (not orchestration bookkeeping), you are doing the sub-agent's job. Stop. Dispatch instead.
+
+### P2: No Step Merging
 
 Each step produces its own output file. You MUST NOT combine steps (e.g., writing requirements + PRD in one pass). Each step is a separate sub-agent dispatch with a separate output.
 
-**Why:** Merging steps skips the quality ratchet. Each step builds on the previous step's validated output.
+### P3: Output Validation Gate
 
-### E2: Output Validation Gate
-
-After EVERY step, before advancing to the next, the orchestrator MUST verify:
-
-```
+After EVERY step, before advancing to the next, verify:
 1. Output file EXISTS at the declared path
-2. Output file contains ALL required sections (structural check below)
+2. Output file contains ALL required sections (check H2 headings)
 3. If validation fails → re-dispatch the step, do NOT proceed
-```
 
-### E3: Template Compliance Check
-
-Steps that declare a `Template` field MUST produce output matching that template's section structure. Check by verifying these H2 headings exist:
+**Required sections by step:**
 
 | Step | Required H2 Sections |
 |------|---------------------|
@@ -65,75 +77,35 @@ Steps that declare a `Template` field MUST produce output matching that template
 | Step 4 (PRD) | `## Background`, `## User Personas`, `## Functional Requirements`, `## Non-Functional Requirements`, `## User Flows`, `## Edge Cases`, `## Non-Goals`, `## Success Metrics` |
 | Step 9 (Readiness) | `## Checklist`, `## Verdict` |
 
-If ANY required section is missing → the step is NOT done. Re-dispatch with: "Missing sections: [list]. Add them."
+### P4: Review Prompt Must Include Full Checklist
 
-### E4: Review Prompt Must Include Full Checklist
+When dispatching a review sub-agent, include the COMPLETE checklist table in the prompt. The reviewer must check ALL criteria, not just "look for issues."
 
-When dispatching a review sub-agent, the orchestrator MUST include the COMPLETE checklist table in the prompt. Do NOT summarize or abbreviate it. The reviewer must check ALL criteria, not just "look for issues."
-
-**Review dispatch template:**
 ```
 You are reviewing: [file path]
-Check EVERY row in this checklist. For EACH row, state ✅ or ❌ with a specific finding.
+Check EVERY row. For EACH row, state ✅ or ❌ with specific finding.
 Do NOT skip rows. Do NOT give blanket passes.
-
-[paste full checklist table here]
-
-If you find ❌ on any row, the result is REQUEST_CHANGES.
+[paste full checklist table]
+If any ❌ → result is REQUEST_CHANGES.
 ```
 
-### E5: No Silent Step Skipping
+### P5: No Silent Step Skipping
 
-If a step fails (file not found, sub-agent error, etc.):
-- **FIX the problem** (correct file path, re-dispatch, etc.)
-- Do NOT skip to next step
-- Do NOT mark as "skipped" unless the step is explicitly optional AND user confirms skip
-
-The only legitimately skippable steps are:
+If a step fails → FIX and retry, do NOT skip. Legitimately skippable steps:
 - Step 6 (UI Brief) — only if user confirms "no UI"
 - Step 10 (Integration) — only if single feature
 
-### E6: Review Cannot Self-Validate
+### P6: Review Cannot Self-Validate
 
 The same agent that authored a document MUST NOT review it. Reviews always use a fresh sub-agent dispatch with independent context.
 
-### E7: Reference Injection Is Mandatory
-
-Before dispatching ANY sub-agent, the orchestrator MUST:
-
-1. **Read** the file declared in the step's `Persona` field → inject full content as the sub-agent's identity
-2. **Read** the file(s) declared in the step's `Knowledge` field → inject full content as domain context
-3. **Read** the file declared in the step's `Template` field → inject full content so the sub-agent can follow it exactly
-
-**Do NOT:**
-- Summarize or paraphrase reference files — inject them verbatim
-- Say "you are a PM" without the persona file content — that's a hollow role
-- Describe the template in your own words — the sub-agent needs the actual template to fill
-
-**Why:** Reference files contain principles, thinking frameworks, and structural requirements that cannot be guessed. Without injection, sub-agents produce generic output that ignores the domain knowledge this workflow is built on.
-
-**Dispatch prompt structure:**
-```
-## Your Identity
-[full content of persona .toml file]
-
-## Domain Knowledge
-[full content of knowledge/framework .md file(s)]
-
-## Template to Follow
-[full content of template .md file]
-
-## Task
-[step-specific instructions]
-
-## Input
-[file path(s) to read]
-
-## Output
-[expected output file path]
-```
-
 ---
+
+## Purpose
+
+Transform one version from the product roadmap into a build-ready product handoff. This is **Stage 2** of the woos-idea-to-delivery flow. Run once per version.
+
+Focus: define WHAT to build and WHY. Technical architecture (HOW) is engineering's job.
 
 ## Project Root Requirement
 
