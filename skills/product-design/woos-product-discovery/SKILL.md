@@ -306,21 +306,26 @@ On start (or restart after crash):
 
 ---
 
-## Checkpoint: Stage 1 Completion
+## 🚦 Human Approval Gate (Mandatory)
 
-After all steps done, **pause and present to user**:
-1. Vision (1 sentence)
-2. V1 scope (bullet list)
-3. Architecture overview (key components)
-4. Key risks / open questions
+After all steps done, this is a **hard gate** — you MUST NOT proceed to Stage 2 (PRD) without explicit human approval.
 
-Wait for user confirmation → mark `stages.product-discovery.status: completed`
+**Present to user:**
+1. Output the **full content** of `docs/product/<project>-roadmap.md`
+2. Output the **full content** of `docs/product/<project>-architecture.md`
+3. Ask: "请审阅以上 roadmap 和 architecture。满意后请说「开始拆 PRD」，我会进入 Stage 2。如有修改意见可以直接告诉我。"
 
-To skip checkpoint (fully autonomous): set `checkpoints: []` in run-manifest.
+**Rules:**
+- Show the COMPLETE file contents, not summaries
+- Do NOT proceed until user explicitly says "开始拆 PRD" / "start PRD" / "GREENLIGHT" or equivalent
+- If user has questions or wants changes → make changes → re-present full files → wait again
+- This gate CANNOT be skipped by `checkpoints: []` — it is always mandatory
+
+Wait for user approval → mark `stages.product-discovery.status: completed`
 
 ## Handoff
 
-On completion:
+On completion (after human approval):
 - Roadmap: `docs/product/<project>-roadmap.md`
 - Architecture: `docs/product/<project>-architecture.md`
 - Next: invoke `woos-product-design-flow` (Stage 2)

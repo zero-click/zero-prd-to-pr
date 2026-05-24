@@ -149,6 +149,8 @@ If unsure, start with Standard. User can override with `GREENLIGHT NEXT STAGE` t
 - System architecture overview → **Architecture Review Gate** (independent sub-agent)
 - Output: `docs/product/<project>-roadmap.md` + `docs/product/<project>-architecture.md`
 
+**🚦 Human Approval Gate:** After Stage 2 completes, present FULL roadmap + architecture files to user. Do NOT proceed to Phase 3 until user explicitly approves (e.g., "开始拆 PRD").
+
 **Lite: skip.**
 
 #### Phase 3 — Product Design Flow
