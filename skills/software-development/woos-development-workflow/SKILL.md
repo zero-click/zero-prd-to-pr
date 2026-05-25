@@ -1,21 +1,23 @@
 ---
 name: woos-development-workflow
-description: Skill-first gated workflow for near-unattended Hermes delivery. Every gate binds to one wrapper skill with a minimal contract and enforced sub-invocations.
-version: 1.12.0
+description: "Stage 3 of idea-to-delivery: gated engineering workflow that receives product handoff, decomposes into stories, and executes with TDD, traceability, and review gates."
+version: 2.0.0
 author: Hermes Profile
 license: MIT
 metadata:
   hermes:
-    tags: [development, workflow, skill-first, tdd, review, prd, design]
+    tags: [engineering, workflow, tdd, review, stories, traceability]
+    stage: 3
+    upstream: woos-product-design-flow
 ---
 
 # Woos Development Workflow
 
 ## Purpose
 
-Use this workflow for non-trivial software work.  
-Rule: every gate must invoke exactly one **gate wrapper skill**, then satisfy that wrapper's minimal contract.  
-Wrapper-internal mandatory sub-invocations are allowed and required.
+**Stage 3** of the idea-to-delivery pipeline. Receives a build handoff from `woos-product-design-flow` (Stage 2), decomposes it into stories, and delivers a production-ready PR through gated execution.
+
+Rule: every gate must invoke exactly one **gate wrapper skill**, then satisfy that wrapper's minimal contract.
 
 ## Baseline-First Governance
 
@@ -26,23 +28,15 @@ Wrapper-internal mandatory sub-invocations are allowed and required.
 
 ## Git Branch/Worktree Policy
 
-Define git mode explicitly before implementation:
-
 - `git-workflow` is required for branch strategy, commit/PR flow, and merge/rebase conventions.
 - `dmux-workflows` is required only when running parallel coding lanes.
-
-Minimal contract:
-
-1. Invoke `git-workflow` before meaningful code changes.
-2. Invoke `dmux-workflows` only for parallel execution.
-3. If `dmux-workflows` is active, use worktree-per-worker with isolated branches.
 
 Mandatory bootstrap:
 
 1. Invoke `woos-run-orchestrator` first to initialize run state and produce `run_id`.
 2. Review gates MUST NOT run without orchestrator-issued `run_id`.
 
-## Execution Profiles (tiered activation)
+## Execution Profiles
 
 Default profile is **Standard**.  
 Use **Lite** for low-risk small changes.  
@@ -51,98 +45,138 @@ Use **Strict** for high-risk, ambiguous, or security-critical scope.
 ### Lite (small/low-risk)
 
 ```text
-Run Orchestrator -> Git Workflow -> Handoff Intake -> Implement -> Verify -> Code/Security Review -> PR Readiness
+Run Orchestrator → Git → Handoff Intake → Implement → Verify → Code Review → PR Readiness
 ```
 
-Minimal use criteria:
-
-- Limited scope and low coupling
-- No architecture/API contract changes
-- No high-risk security/compliance impact
+Criteria: limited scope, low coupling, no architecture/API changes, no security impact.
 
 ### Standard (default)
 
 ```text
-Run Orchestrator -> Git Workflow -> Handoff Intake -> Feature Design -> Design Review -> Implement -> Verify -> Code/Security Review -> PR Readiness -> Workflow Memory Update
+Run Orchestrator → Git → Handoff Intake → Feature Design → Design Review → Story Decomposition → Story Loop (TDD+Implement+Verify) → Executable Acceptance → Deviation Control → Traceability → Code Review → PR Readiness → Workflow Memory
 ```
 
-Use when:
+Use when: multi-file change, design choices needed, moderate risk.
 
-- Multi-file or cross-component change
-- Design choices need review
-- Normal feature delivery with moderate risk
-
-### Strict (full hard-gate flow)
+### Strict (full hard-gate)
 
 ```text
-Run Orchestrator -> Git Workflow -> Handoff Intake -> Capability Contract -> Feature Design -> [API Design Review] -> Design Review -> TDD -> Implement -> Verify -> [Browser QA] -> Executable Acceptance -> Deviation Control -> Code/Security Review -> PR Readiness -> Workflow Memory Update
+Standard + [API Design Review] + [Browser QA] + Architecture Conformance within Code Review
 ```
 
-Use when:
-
-- Security-sensitive or compliance-sensitive scope
-- High uncertainty/ambiguity
-- Significant architecture/data model/API changes
-- Release risk is high and full traceability is required
+Use when: security-sensitive, high uncertainty, significant architecture changes, full traceability required.
 
 ## Skill Whitelist
 
 Only these skills are allowed in this workflow:
 
-| Step | Skill | Source |
-|---|---|---|
+| Gate | Skill | Source |
+|------|-------|--------|
 | Run Orchestrator | `woos-run-orchestrator` | local |
 | Git Workflow | `git-workflow` | imported |
-| Handoff Intake | _(reads product handoff)_ | from `woos-product-design-flow` |
-| Parallel Orchestration (when needed) | `dmux-workflows` | imported |
-| Capability Contract | `product-capability` | imported |
+| Handoff Intake | _(reads product handoff)_ | from product pipeline |
+| Codebase Onboarding | `codebase-onboarding` | imported (first run) |
+| Parallel Orchestration | `dmux-workflows` | imported |
 | Feature Design | `woos-feature-design` | local |
-| API Design Review (if REST/GraphQL) | `api-design` | imported |
+| ADR Capture | `architecture-decision-records` | imported |
+| API Design Review | `api-design` | imported (conditional) |
 | Design Review | `woos-design-review-gate` | local |
 | TDD | `tdd-workflow` | imported |
 | Implement | `coding-standards` | imported |
+| Database Migrations | `database-migrations` | imported (conditional) |
 | Verify | `verification-loop` | imported |
-| Browser QA (if frontend) | `browser-qa` | imported |
+| E2E Testing | `e2e-testing` | imported (conditional) |
+| Browser QA | `browser-qa` | imported (conditional) |
 | Executable Acceptance | `woos-executable-acceptance-gate` | local |
 | Deviation Control | `woos-deviation-control-gate` | local |
-| Review Context (cross-gate) | `woos-review-context` | local |
-| Agent Decision (on reviewer conflict) | `woos-agent-decision` | local |
 | Code/Security Review | `woos-code-review-gate` | local |
+| Security Review | `security-review` | imported |
+| Deployment Patterns | `deployment-patterns` | imported (conditional) |
+| Production Audit | `production-audit` | imported (conditional) |
 | PR Readiness | `woos-pr-readiness` | local |
-| Workflow Memory Update | `woos-workflow-memory` | local |
+| Workflow Memory | `woos-workflow-memory` | local |
+| Review Context (cross-gate) | `woos-review-context` | local |
+| Agent Decision (conflicts) | `woos-agent-decision` | local |
+| Failure State Machine | `woos-failure-state-machine` | local |
+| Systematic Debugging | `woos-systematic-debugging` | local |
+| Human Handoff | `woos-human-handoff` | local |
 
 If a required skill is unavailable, status is `BLOCKED` and the workflow stops.
 
-Local wrapper intent:
-
-- `woos-feature-design` wraps `architect` (and `product-planner` for complex scope)
-- `woos-design-review-gate` wraps `architect`
-- `woos-executable-acceptance-gate` wraps measurable acceptance checks
-- `woos-deviation-control-gate` wraps spec drift blocking policy
-- `woos-failure-state-machine` defines retry/degrade/escalate transitions
-- `woos-systematic-debugging` activates during Gate 3/4/5 on repeated failures (cross-cutting protocol)
-- `woos-run-orchestrator` defines queue/concurrency/timeout/retry controls
-- `woos-human-handoff` defines escalation and recovery protocol
-- `woos-workflow-memory` captures failure and rework patterns
-- `woos-review-context` carries cumulative findings across review gates
-- `woos-agent-decision` resolves reviewer conflicts deterministically
-- `woos-code-review-gate` wraps `code-reviewer` (+ `security-reviewer` when needed)
-- `woos-pr-readiness` wraps `verification-loop`
-
-## Global Gate Status
+## Gate Status Model
 
 - `NOT_RUN`: required skill was not invoked
-- `BLOCKED`: required skill unavailable
-- `REQUEST_CHANGES`: gate failed, revise and rerun same skill
-- `PASS`: gate complete
+- `BLOCKED`: required skill unavailable or external dependency missing
+- `REQUEST_CHANGES`: gate failed, revise and rerun
+- `PASS`: gate complete, proceed to next
 
-Progression rule:
+Progression rule: `NOT_RUN/BLOCKED/REQUEST_CHANGES → PASS → next gate`
 
-```text
-NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
+## Enforcement Rules (Non-Negotiable)
+
+These rules prevent known failure modes observed in production agent runs.
+
+### E1: Sub-Agent Knowledge Injection Protocol
+
+Before dispatching ANY review sub-agent (Gate 1R, Gate 7), the orchestrator MUST:
+
+1. Read the relevant imported skill file(s) for that gate
+2. Inject the full skill content into the sub-agent's context/prompt
+3. The sub-agent must receive domain knowledge, not just a role name
+
+**Gate 1R dispatch must include:** full content of `woos-design-review-gate` + `architecture-decision-records`
+**Gate 7 dispatch must include:** full content of `security-review` (+ `production-audit` if applicable)
+
+Skipping this = sub-agent works without methodology = shallow "LGTM" output.
+
+### E2: Structured Review Output Format
+
+All review gates (1R, 7) MUST produce structured findings, not prose verdicts.
+
+**Required output format:**
+
+```markdown
+## Review: <gate name>
+
+### Findings
+| # | Severity | Category | Finding | Location | Recommendation |
+|---|----------|----------|---------|----------|----------------|
+| 1 | critical | security | ... | src/auth.go:42 | ... |
+| 2 | warning  | design   | ... | ... | ... |
+
+### Verdict
+- Status: PASS / REQUEST_CHANGES
+- Blockers: <count>
+- Warnings: <count>
+
+### Evidence
+- Files reviewed: <list>
+- Skills applied: <list>
+- Time spent: <duration>
 ```
 
-## Gate Definitions (skill + minimal contract)
+A review that returns only "PASS" or "Looks good" without the findings table is INVALID. Rerun.
+
+### E3: Conditional Skill Activation Rules
+
+Conditional skills activate based on these concrete triggers (not agent judgment):
+
+| Skill | Triggers When |
+|-------|--------------|
+| `api-design` | Handoff Build Tasks mention REST/GraphQL endpoints, OR design doc defines new API routes |
+| `browser-qa` | Handoff has UI section, OR stories produce `.tsx`/`.vue`/`.svelte`/HTML files |
+| `e2e-testing` | Stories produce integration test files, OR handoff AC reference user flows spanning multiple pages |
+| `database-migrations` | Design doc defines schema changes, OR stories create/modify migration files |
+| `deployment-patterns` | Design doc has rollout/rollback section, OR Strict mode is active |
+| `production-audit` | Strict mode is active, OR handoff flags `security: true` or `compliance: true` |
+| `security-review` | Any story touches auth, input validation, secrets, API endpoints, or payment flows |
+| `codebase-onboarding` | First run on this repository (no prior run-manifest exists) |
+
+**Rule:** If trigger condition is met, activation is MANDATORY, not optional. Agent cannot skip.
+
+---
+
+## Gate Definitions
 
 ### Gate 0 — Handoff Intake
 
@@ -151,167 +185,331 @@ NOT_RUN/BLOCKED/REQUEST_CHANGES -> PASS -> next gate
 **Minimal contract:**
 
 1. Handoff file exists and contains: Mission, Requirements, AC, User Flows, Build Tasks, Verification Plan.
-2. All AC are testable (already validated by product stage).
+2. All AC are testable (validated by product stage).
 3. Record handoff version in run-manifest for traceability.
 
-**If handoff does NOT exist:** Redirect to `woos-product-design-flow` first. Do not proceed without product handoff.
+**If handoff does NOT exist:** Redirect to `woos-product-design-flow`. Do not proceed without product handoff.
 
-### Gate 1.5 — Capability Contract
-**Skill:** `product-capability`  
-**Minimal contract:**
+### Gate 1 — Feature Design
 
-1. Produces implementation-facing capability contract derived from the handoff.
-2. Captures constraints/invariants/interfaces/open questions.
-
-### Gate 2 — Feature Design
-**Skill:** `woos-feature-design` (local)  
-**Minimal contract:**
-
-1. Design artifact exists at `docs/design/<feature>.md` (or repo convention).
-2. Covers architecture, data, interfaces, risk, rollout/rollback.
-3. If API endpoints are defined: API design reviewed against `api-design` patterns.
-4. Baseline/deviation decision fields are complete; deviations include ADR + approval refs.
-5. `unconfirmed_constraints_frozen` must be `false`.
-
-### Gate 2.1 — API Design Review (conditional)
-**Skill:** `api-design` (imported, optional)  
-**When to invoke:**
-- Feature includes new REST/GraphQL API endpoints
-- Existing API is being modified
-- Public or partner-facing API involved
+**Skill:** `woos-feature-design`
 
 **Minimal contract:**
-1. Endpoints follow resource naming conventions (plural, kebab-case, no verbs)
-2. HTTP methods and status codes are semantically correct
-3. Pagination/filtering strategy defined (cursor vs offset)
-4. Authentication and authorization strategy documented
-5. Error response format is standard
-6. Rate limiting policy defined (if applicable)
 
-### Gate 2R — Design Review
-**Skill:** `woos-design-review-gate` (local)  
-**Minimal contract:**
+1. Design artifact at `docs/design/<feature>.md`.
+2. Covers: architecture, data model, interfaces, risk, rollout/rollback.
+3. If API endpoints defined and Strict mode: invoke `api-design` for review.
+4. If database schema changes: reference `database-migrations` for migration strategy.
+5. If deployment strategy needed: reference `deployment-patterns` for rollout/rollback.
+6. Baseline/deviation fields complete; deviations captured via `architecture-decision-records`.
 
-1. Executes independent design review using `architect` via local gate skill.
-2. Uses `woos-review-context` to load/update cumulative findings.
-3. Returns `PASS` or `REQUEST_CHANGES`.
-4. Escalates to `woos-human-handoff` when review loop threshold is exceeded.
+### Gate 1R — Design Review
 
-### Gate 3 — TDD
-**Skill:** `tdd-workflow`  
-**Minimal contract:**
-
-1. RED observed before implementation for behavior changes.
-2. GREEN observed after implementation.
-3. If RED-GREEN cycle stalls (2+ consecutive failed fix attempts), activate `woos-systematic-debugging` before further attempts.
-
-### Gate 4 — Implement
-**Skill:** `coding-standards`  
-**Minimal contract:**
-
-1. Changes are minimal, scoped, and convention-aligned.
-2. No silent failures or unsafe shortcuts.
-3. If implementation causes cascading failures, activate `woos-systematic-debugging`.
-
-### Gate 5 — Verify
-**Skill:** `verification-loop`  
-**Minimal contract:**
-
-1. Relevant lint/test/type/build checks executed.
-2. Verification status reported explicitly.
-3. If verification fails and fix is non-obvious (2+ attempts), activate `woos-systematic-debugging` before further retry.
-
-### Gate 5.3 — Browser QA (conditional)
-**Skill:** `browser-qa` (imported, optional)  
-**When to invoke:**
-- Feature includes frontend/UI changes
-- UI interactions need verification
-- Cross-browser or responsive testing required
-- Pre-launch visual regression check
+**Skill:** `woos-design-review-gate`
 
 **Minimal contract:**
-1. Smoke test: page loads, no critical console errors, network requests succeed
-2. Interaction test: key user flows work (forms, navigation, state changes)
-3. Visual regression: screenshots at 3 breakpoints (375px, 768px, 1440px)
-4. Accessibility: WCAG AA violations checked, keyboard navigation verified
-5. Core Web Vitals: LCP/CLS/INP within acceptable ranges
-6. Report: screenshot evidence, issue log, verdict (ship/needs-fixes)
 
-### Gate 5.5 — Executable Acceptance
-**Skill:** `woos-executable-acceptance-gate` (local)  
-**Minimal contract:**
+1. Independent design review using `architect` via local gate skill.
+2. Sub-agent MUST be injected with `architecture-decision-records` skill content (per E1).
+3. Output MUST follow structured findings format (per E2).
+4. Uses `woos-review-context` to load/update cumulative findings.
+5. Returns `PASS` or `REQUEST_CHANGES`.
+6. Escalates to `woos-human-handoff` when review loop threshold (3 rounds) exceeded.
 
-1. Done criteria are mapped to executable checks (tests, schema checks, thresholds, policies).
-2. Missing automation is explicitly tracked as a blocker.
-3. Gate returns `REQUEST_CHANGES` when required checks are missing or failing.
+### Gate 2 — Story Decomposition
 
-### Gate 5.8 — Deviation Control
-**Skill:** `woos-deviation-control-gate` (local)  
-**Minimal contract:**
+**Skill:** built-in (orchestrator decomposes)
 
-1. Implementation is compared against PRD/design/capability artifacts.
+Parse handoff and decompose into independent stories. Each story is a self-contained unit of work.
+
+**Story file format:**
+
+```markdown
+# Story <NNN>: <task name>
+
+## Build Tasks
+- [ ] Task 1
+- [ ] Task 2
+
+## Acceptance Criteria
+- AC-01: ...
+
+## Verification
+- Unit test: ...
+- Integration test: ...
+
+## Dependencies
+- None (or: depends on story-NNN)
+
+## Status: pending
+```
+
+**Output:** `docs/stories/<feature>/story-001.md`, `story-002.md`, ...
+
+**Rules:**
+- Each story covers 1–3 related Build Tasks from the handoff
+- Stories have clear dependencies (DAG order)
+- Each story is independently verifiable
+- Total stories should be manageable (typically 3–8 per feature)
+
+### Gate 3 — Story Execution Loop
+
+Execute stories in dependency order. For **each story**:
+
+#### 3.1 TDD
+
+**Skill:** `tdd-workflow`
+
+1. **RED**: Write failing test for the story's behavior
+2. **GREEN**: Implement minimum code to pass
+3. **REFACTOR**: Clean up while keeping tests green
+
+If RED-GREEN stalls (2+ consecutive failed attempts): activate `woos-systematic-debugging`.
+
+#### 3.2 Implement
+
+**Skill:** `coding-standards`
+
+- Follow Build Tasks within the story
+- Changes are minimal, scoped, convention-aligned
+- Design issue discovered → write DCR (see DCR section), do NOT improvise
+
+#### 3.3 Verify
+
+**Skill:** `verification-loop`
+
+- Run tests for the current story
+- Run lint / type check
+- Verify story-level AC
+
+#### 3.4 Story Verification Gate
+
+Per-story AC check:
+- **PASS** → mark story `status: completed`, next story
+- **FAIL (1st)** → fix and retry
+- **FAIL (2nd)** → activate `woos-systematic-debugging`
+- **FAIL (3rd)** → mark story `status: blocked`, continue with other stories
+
+#### 3.5 Failure Isolation
+
+- A blocked story does NOT block independent stories
+- Blocked stories are retried after all other stories complete
+- If still blocked → write DCR with context
+
+### Gate 4 — Executable Acceptance
+
+**Skill:** `woos-executable-acceptance-gate`
+
+After ALL stories complete (or remaining are blocked):
+1. Map ALL handoff AC to executable checks.
+2. Missing automation is tracked as a blocker.
+3. **PASS** → Gate 5. **REQUEST_CHANGES** → return to Gate 3 (specific story).
+
+### Gate 5 — Deviation Control
+
+**Skill:** `woos-deviation-control-gate`
+
+1. Compare implementation against handoff and design artifacts.
 2. Unresolved deviations block progression.
-3. Intentional deviations require updated artifacts and explicit rationale.
+3. Intentional deviations require updated artifacts + rationale.
+4. **PASS** → Gate 6. **REQUEST_CHANGES** → return to Gate 3.
 
-### Gate 6 — Code/Security Review
-**Skill:** `woos-code-review-gate` (local)  
-**Minimal contract:**
+### Gate 6 — Requirement Traceability
 
-1. Runs `code-reviewer`.
-2. Runs `security-reviewer` when scope is security-sensitive.
-3. Uses `woos-review-context` to load/update cumulative findings.
-4. Uses `woos-agent-decision` when reviewer verdicts conflict.
-5. Enforces implementation-vs-spec alignment (`spec_alignment_status`).
-6. Returns `PASS` or `REQUEST_CHANGES`.
-7. Escalates to `woos-human-handoff` when review loop threshold is exceeded.
-8. Rejects unapproved baseline deviations or frozen unconfirmed constraints.
+**Skill:** built-in (traceability procedure)
 
-### Gate 7 — PR Readiness
-**Skill:** `woos-pr-readiness` (local)  
-**Minimal contract:**
+Trace from original PRD through design to implementation and tests.
 
-1. Diff/status/review/verification readiness is checked.
-2. Traceability matrix is provided (requirement -> test -> code).
-3. Artifact sync status is `PASS` when deviations exist.
-4. Conventional commit + PR test plan readiness confirmed.
+**Procedure:**
 
-### Gate 8 — Workflow Memory Update
-**Skill:** `woos-workflow-memory` (local)  
-**Minimal contract:**
+1. Read PRD from `docs/prd/<feature>.md`
+2. Read design from `docs/design/<feature>.md`
+3. For each PRD AC, trace the chain:
 
-1. Capture failures, rework causes, and mitigation patterns from this run.
-2. Persist reusable guidance for next run.
-3. Record whether human handoff occurred and why.
+| PRD AC | Design Spec | Code | Test | Status |
+|--------|-------------|------|------|--------|
+| AC-4.5.1 | §API endpoint | routes/tasks.py:fn | test_file:test_fn | ✅ Aligned |
+| AC-6.2 | §Data model | N/A | N/A | ❌ Missing |
+
+4. Classify each AC:
+   - **✅ Aligned** — PRD, design, code, test all match
+   - **⚠️ Deviated** — implemented differently (rationale required)
+   - **❌ Missing** — not implemented or not tested
+   - **🆕 Added** — implemented but not in PRD (extra scope)
+
+5. Write output to `docs/handoff/<feature>-traceability.md`
+
+**Gate rules:**
+- **PASS** — all ACs ✅ or ⚠️ with rationale, zero ❌
+- **REQUEST_CHANGES** — any ❌, or ⚠️ without rationale → return to Gate 3
+
+### Gate 7 — Code/Security Review
+
+**Skill:** `woos-code-review-gate`
+
+1. Dispatch `code-reviewer` in fresh context (no self-review).
+2. Sub-agent MUST be injected with relevant skill content (per E1):
+   - Always: `coding-standards` knowledge
+   - If security-sensitive (per E3 triggers): full `security-review` skill content
+3. If security-sensitive: dispatch `security-reviewer` with `security-review` knowledge.
+4. If Strict mode: verify architecture conformance (component boundaries, data model, API contracts).
+5. If applicable (per E3 triggers): invoke `production-audit` for pre-merge readiness.
+6. Output MUST follow structured findings format (per E2). "LGTM" without findings table = INVALID, rerun.
+7. Uses `woos-review-context` for cumulative findings.
+8. Uses `woos-agent-decision` when reviewer verdicts conflict.
+9. **PASS** → Gate 8. **REQUEST_CHANGES** → return to Gate 3.
+10. 3 rounds without convergence → `woos-human-handoff`.
+
+### Gate 8 — PR Readiness
+
+**Skill:** `woos-pr-readiness`
+
+1. All tests pass (unit + integration + e2e as applicable).
+2. Lint is clean, type check passes.
+3. No TODO/FIXME/HACK without linked issues.
+4. Traceability matrix provided (requirement → test → code).
+5. Conventional commit messages.
+6. PR description includes: story summary, test plan, blocked stories (if any with DCR refs).
+7. Create PR via `gh pr create`.
+
+### Post — Workflow Memory Update
+
+**Skill:** `woos-workflow-memory`
+
+1. Capture failures, rework causes, mitigation patterns.
+2. Record story decomposition quality (too granular? too broad?).
+3. Record whether DCR was triggered and outcome.
+4. Persist reusable guidance for next run.
+
+---
+
+## DCR (Design Change Request)
+
+**Trigger:** At any step, if a design issue is discovered that cannot be resolved within scope.
+
+**Action:**
+
+1. Write `docs/feedback/<feature>-dcr.md`:
+
+```markdown
+# DCR: <Issue Title>
+
+## Issue Description
+(What's wrong with the current design)
+
+## Impact Scope
+(Which Build Tasks / AC / Stories are affected)
+
+## Proposed Resolution
+(Suggested fix)
+
+## Priority
+(blocking / non-blocking)
+```
+
+2. Stop work on affected stories.
+3. Continue with unaffected stories if possible.
+4. DCR flows back to product pipeline (Stage 2) for resolution.
+
+---
+
+## Step Completion Rule (MANDATORY)
+
+After completing ANY gate, you MUST:
+
+1. Update `run-manifest.yaml` — mark the gate as `completed`.
+2. State: **"Gate N: <name> — DONE ✅. Next: Gate N+1: <name>"**
+3. Do NOT proceed to the next gate until current gate's work is confirmed.
+
+**Run-manifest `gates` format:**
+
+```yaml
+gates:
+  gate-0-handoff: completed
+  gate-1-design: completed
+  gate-1r-review: completed
+  gate-2-stories: completed
+  gate-3-execution: in_progress
+  gate-4-acceptance: pending
+  gate-5-deviation: pending
+  gate-6-traceability: pending
+  gate-7-codereview: pending
+  gate-8-pr: pending
+  post-memory: pending
+```
+
+---
+
+## Lite Mode (simplified)
+
+| Step | What |
+|------|------|
+| L1 | Read handoff (validate 4 required fields) |
+| L2 | Implement tasks directly (no story decomposition) |
+| L3 | Verify (test + lint) |
+| L4 | Self-review (no independent dispatch) |
+| L5 | Create PR via `woos-pr-readiness` |
+
+No story decomposition, no deviation control, no traceability gate.
+
+---
+
+## Failure Handling
+
+| Situation | Action |
+|-----------|--------|
+| Handoff missing or invalid | BLOCKED — redirect to product pipeline |
+| Single story fails 3× | Mark BLOCKED, continue others |
+| Build/test fails 2× (within story) | `woos-systematic-debugging` |
+| Review fails 3× | `woos-human-handoff` escalation |
+| Design issue found | DCR → back to product pipeline |
+| Overall timeout | `woos-failure-state-machine` (retry → degrade → escalate) |
+| Required skill unavailable | BLOCKED — report which skill |
+| All stories blocked | `woos-human-handoff` — fundamental design issue |
 
 ## Stop Conditions
 
 Stop and surface blocker when:
 
-- Required skill was not invoked (`NOT_RUN`)
+- Required skill not invoked (`NOT_RUN`)
 - Required skill unavailable (`BLOCKED`)
 - Gate returns `REQUEST_CHANGES`
-- Ambiguity blocks acceptance criteria definition
 - Review loop threshold exceeded without convergence
 
-## Runtime Control for Near-Unattended Execution
+## Runtime Control
 
-Use these control skills across all gates:
+Cross-gate control skills:
 
-- `woos-run-orchestrator`: queue policy, concurrency limits, timeout and retry envelope
-- `woos-failure-state-machine`: deterministic transition after failure (`retry` -> `degrade` -> `human_handoff`)
+- `woos-run-orchestrator`: queue policy, concurrency limits, timeout/retry
+- `woos-failure-state-machine`: deterministic transition (retry → degrade → human_handoff)
 - `woos-human-handoff`: escalation trigger, handoff payload, resume conditions
-- `woos-review-context`: cumulative findings and resolution tracking across review gates
-- `woos-agent-decision`: conflict resolution when reviewer outputs disagree
+- `woos-review-context`: cumulative findings across review gates
+- `woos-agent-decision`: conflict resolution when reviewers disagree
 
-Review context persistence file:
+Persistence:
 
-- `<workspace_root>/hep/review-context/<run_id>.yaml`
+- Run manifest: `<workspace_root>/.hep/runs/<run_id>/run-manifest.yaml`
+- Review context: `<workspace_root>/.hep/review-context/<run_id>.yaml`
+- Stories: `<workspace_root>/docs/stories/<feature>/`
 - For gated runs, `run_id` is mandatory; if missing, return `BLOCKED`.
 
-Review gates MUST emit machine-readable `enforcement` output that lists required and actually-invoked skills with invocation evidence.
+## File Layout
 
-Run orchestration MUST persist and verify:
-
-- `<workspace_root>/hep/runs/<run_id>/run-manifest.yaml`
-- `runs/` and `review-context/` are created by orchestrator at run start when missing.
-- Missing required sections is a `BLOCKED` condition.
+```text
+<project-root>/
+├── .hep/
+│   ├── runs/<run_id>/
+│   │   └── run-manifest.yaml
+│   └── review-context/<run_id>.yaml
+├── docs/
+│   ├── handoff/<version>/<feature>.md    ← input (from Stage 2)
+│   ├── prd/<feature>.md                  ← read for traceability
+│   ├── design/<feature>.md               ← output of Gate 1
+│   ├── stories/<feature>/                ← output of Gate 2
+│   │   ├── story-001.md
+│   │   ├── story-002.md
+│   │   └── ...
+│   ├── feedback/<feature>-dcr.md         ← DCR output (back to Stage 2)
+│   └── handoff/<feature>-traceability.md ← traceability output
+└── (implementation files)
+```
