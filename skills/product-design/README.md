@@ -15,7 +15,7 @@ This workflow enforces structured product thinking before code is written. It en
 
 1. Start a conversation with the agent and describe your idea
 2. The agent activates `woos-idea-to-delivery` (entry point skill)
-3. Follow the guided flow — the agent handles orchestration, sub-agent dispatch, and gating
+3. Follow the guided flow — the agent handles orchestration, sub-agent dispatch where needed, direct script checks for mechanical steps, and gating
 
 **Trigger phrases:** "I have an idea for...", "let's build...", "design this feature", "start V1"
 
@@ -113,15 +113,17 @@ This workflow enforces structured product thinking before code is written. It en
 |------|------|--------------|
 | 1 | Select Version Scope | Extract features from roadmap, confirm boundaries |
 | 2 | Requirement Contract | Structured requirements per template (goals, AC, risks) |
-| 3 | Priority Ranking | MoSCoW/RICE/Kano ranking, P0/P1/P2 cut-line |
+| 3 | Priority Ranking | Direct orchestrator step: MoSCoW/RICE/Kano ranking, P0/P1/P2 cut-line |
 | 4 | PRD Authoring | Full PRD following template (user stories, flows, edge cases, metrics) |
 | 5 | PRD Review Gate | Phase A: structural check + Phase B: 7-item quality checklist |
 | 6 | UI Brief | Visual direction, wireframes, interaction patterns |
 | 6R | UI Brief Review | Accessibility, consistency, completeness review |
-| 7 | Analyze Gate | Cross-artifact consistency check (coverage, testability, alignment) |
+| 7 | Analyze Gate | Script-assisted cross-artifact consistency check (coverage, testability, alignment) |
 | 8 | Build Handoff | Package everything into a single handoff file for engineering |
-| 9 | Readiness Check | Final validation: AC testable, flows complete, no gaps |
-| 10 | Integration Gate | Deep cross-feature audit (shared concepts, constants, API contracts) |
+| 9 | Readiness Check | Script-assisted final validation: AC testable, flows complete, no gaps |
+| 10 | Integration Gate | Script-assisted deep cross-feature audit (shared concepts, constants, API contracts) |
+
+Creative authoring and independent review steps stay on sub-agents. Priority, analysis, readiness, and integration checks stay in the orchestrator context and use scripts to avoid repeated file rereads and context bloat.
 
 ## Three Execution Modes
 
@@ -139,8 +141,8 @@ This workflow enforces structured product thinking before code is written. It en
 
 The workflow includes 7 non-negotiable enforcement rules (P0–P6) to prevent agents from cutting corners:
 
-- **P0:** Pre-flight checkpoint — MUST output file paths + line counts before every dispatch
-- **P1:** Orchestrator does NOT create content — sub-agents produce all domain output
+- **P0:** Pre-flight checkpoint — MUST output file paths + line counts before every declared execution path
+- **P1:** Orchestrator does NOT create creative artifacts — sub-agents handle authoring/review, direct steps stay bounded
 - **P2:** Sub-agent dispatch format — persona + knowledge + template injected verbatim
 - **P3:** No step merging — each step = separate output file
 - **P4:** Output validation / full checklist — file must exist, reviews check every criterion
@@ -162,18 +164,18 @@ The workflow includes 7 non-negotiable enforcement rules (P0–P6) to prevent ag
 
 1. **Product defines WHAT/WHY, Engineering decides HOW** — no architecture in PRD
 2. **File-based handoff** — all state in human-readable markdown, version-controllable
-3. **Independent reviewers** — fresh sub-agent context for every review gate
+3. **Independent reviewers** — fresh sub-agent context for every review gate; mechanical checks stay local/scripted
 4. **Template-driven** — mandatory templates with `[NEEDS CLARIFICATION: ...]` markers
 5. **Human-in-the-loop** — mandatory approval gate before PRD phase begins
 6. **Bidirectional feedback** — engineering can issue Design Change Requests (DCR) back to product
 
 ## BMAD Knowledge Architecture
 
-This workflow adapts the [BMAD](https://github.com/bmad-agent/bmad-agent) methodology — a multi-agent product development framework — into a Hermes-native skill structure. BMAD provides three types of domain knowledge injected into sub-agents at dispatch time (per E7):
+This workflow adapts the [BMAD](https://github.com/bmad-agent/bmad-agent) methodology — a multi-agent product development framework — into a Hermes-native skill structure. BMAD provides three types of domain knowledge used by the orchestrator and injected verbatim for sub-agent steps:
 
 ### Personas (Role Identity)
 
-Each persona defines a sub-agent's identity, thinking style, communication principles, and behavioral constraints. Injected verbatim into the sub-agent prompt.
+Each persona defines an execution lens: sub-agent identity for authoring/review steps, or a direct decision lens for bounded orchestrator-owned steps like Priority Ranking.
 
 | Persona | File | Used In | Purpose |
 |---------|------|---------|---------|
@@ -203,7 +205,7 @@ Frameworks provide methodology and discipline for specific tasks. They define HO
 
 ### Templates (Output Structure)
 
-Templates define the exact section structure sub-agents must follow. Checked by P3 (structural compliance).
+Templates define the exact section structure outputs must follow. Checked by P3 (structural compliance).
 
 | Template | Location | Stage | Purpose |
 |----------|----------|-------|---------|
