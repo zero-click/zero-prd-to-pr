@@ -118,12 +118,12 @@ This workflow enforces structured product thinking before code is written. It en
 | 5 | PRD Review Gate | Phase A: structural check + Phase B: 7-item quality checklist |
 | 6 | UI Brief | Visual direction, wireframes, interaction patterns |
 | 6R | UI Brief Review | Accessibility, consistency, completeness review |
-| 7 | Analyze Gate | Script-assisted cross-artifact consistency check (coverage, testability, alignment) |
+| 7 | Analyze Gate | Two-phase check: script preprocessing + orchestrator semantic consistency review |
 | 8 | Build Handoff | Package everything into a single handoff file for engineering |
-| 9 | Readiness Check | Script-assisted final validation: AC testable, flows complete, no gaps |
-| 10 | Integration Gate | Script-assisted deep cross-feature audit (shared concepts, constants, API contracts) |
+| 9 | Readiness Check | Two-phase check: script preprocessing + orchestrator semantic readiness review |
+| 10 | Integration Gate | Two-phase check: script preprocessing + orchestrator semantic cross-feature audit |
 
-Creative authoring and independent review steps stay on sub-agents. Priority, analysis, readiness, and integration checks stay in the orchestrator context and use scripts to avoid repeated file rereads and context bloat.
+Creative authoring and independent review steps stay on sub-agents. Priority stays in the orchestrator. Analyze, readiness, and integration use a two-phase path: scripts extract complete structured data first, then the orchestrator performs semantic comparison and writes the final judgment.
 
 ## Three Execution Modes
 

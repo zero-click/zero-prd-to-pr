@@ -36,7 +36,7 @@ Before executing ANY step, you MUST output this block in the conversation:
 │ Persona:    <file path or "none"> → reading...      │
 │ Knowledge:  <file path(s) or "none"> → reading...   │
 │ Template:   <file path or "none">                   │
-│ Execution:  <sub-agent | direct | script-assisted>  │
+│ Execution:  <sub-agent | direct | script-assisted (two-phase)> │
 │ Input:      <file path(s)>                          │
 │ Output:     <file path>                             │
 ├─────────────────────────────────────────────────────┤
@@ -380,11 +380,24 @@ When the feature has user-facing interface:
 | **Persona** | none |
 | **Knowledge** | `references/framework-implementation-readiness.md` |
 | **Script** | `scripts/analyze_gate.py` |
-| **Execution** | Script-assisted direct step — script does extraction/comparison, orchestrator consumes only compact findings + verdict |
+| **Execution** | Script-assisted (two-phase) — script extracts structured artifacts first, then orchestrator performs semantic comparison and writes the final report |
 | **Input** | `docs/prd/<version>/<feature>.md` + `docs/design/<version>/<feature>-ui-brief.md` (if exists) |
 | **Output** | `docs/handoff/<version>/<feature>-analyze-report.md` |
 
-This step is mechanical. Run the script, let it write the full report, and keep only the verdict + hotspot list in conversation context.
+This step has two mandatory phases:
+
+**Phase 1 — Script Preprocessing**
+- Run `scripts/analyze_gate.py`
+- Extract structured artifacts from the PRD/UI brief: user stories, AC list, flow list, screen list, placeholder list, and deterministic overlap hotspots
+- The script must run first. Do NOT skip directly to semantic review from raw documents
+
+**Phase 2 — Orchestrator Semantic Comparison**
+- Read the script output, not just the raw source docs
+- Compare the extracted lists semantically: allow synonymy and implicit equivalence (e.g. "user login" vs "authentication flow")
+- Decide whether a script-flagged mismatch is a real gap or an acceptable wording difference
+- Write the final analyze report with the verdict and rationale
+
+The script guarantees extraction completeness. The orchestrator guarantees semantic understanding. Both phases are required.
 
 Cross-artifact consistency check:
 
@@ -438,11 +451,24 @@ Package all product artifacts into a single handoff file:
 | **Knowledge** | `references/framework-implementation-readiness.md` |
 | **Template** | `templates/readiness-template.md` |
 | **Script** | `scripts/readiness_check.py` |
-| **Execution** | Script-assisted direct step — script writes the checklist report, orchestrator only reacts to failing rows |
+| **Execution** | Script-assisted (two-phase) — script extracts checklist evidence first, then orchestrator performs semantic readiness judgment and writes the final report |
 | **Input** | `docs/handoff/<version>/<feature>.md` |
 | **Output** | `docs/reviews/<version>/<feature>-readiness.md` |
 
-This is a checklist step, not a fresh authoring pass. Do NOT dispatch a sub-agent. Run the script against the handoff and use the resulting verdict.
+This step has two mandatory phases:
+
+**Phase 1 — Script Preprocessing**
+- Run `scripts/readiness_check.py`
+- Extract the structured evidence set: AC list, testability flags, task blocks, flow list, unresolved items, UI-direction presence, and DCR markers
+- Produce a machine-readable checklist draft so no deterministic signal is missed
+
+**Phase 2 — Orchestrator Semantic Comparison**
+- Review the extracted checklist evidence row by row
+- Apply semantic judgment where wording differs but intent matches, or where a script warning is too literal
+- Confirm whether each failing row is a true readiness blocker
+- Write the final readiness report using the template structure and final PASS/FAIL verdict
+
+Do NOT skip Phase 1 and read the handoff ad hoc. Do NOT stop after Phase 1 and treat the script output as the verdict.
 
 Checklist:
 - [ ] All AC are testable
@@ -483,7 +509,7 @@ Checklist:
 | **Persona** | none |
 | **Knowledge** | `references/framework-implementation-readiness.md` (traceability discipline) |
 | **Script** | `scripts/integration_gate.py` |
-| **Execution** | Script-assisted direct step — script reads all version docs, writes the audit report, and returns only compact conflicts to the orchestrator |
+| **Execution** | Script-assisted (two-phase) — script extracts cross-document structures first, then orchestrator performs semantic integration review and writes the final report |
 | **Input** | **ALL documents for this version** (see Input Scope below) |
 | **Output** | `docs/reviews/<version>/integration-report.md` |
 
@@ -492,7 +518,20 @@ Checklist:
 
 #### Input Scope (MUST read all of these)
 
-The integration script MUST read the full content of every document below — not just handoffs:
+This step has two mandatory phases:
+
+**Phase 1 — Script Preprocessing**
+- Run `scripts/integration_gate.py`
+- Extract structured comparison sets: feature coverage matrix, constants, endpoints, state signatures, UI-to-PRD mappings, and file-presence gaps
+- Build deterministic candidate conflicts without relying on fuzzy narrative reading
+
+**Phase 2 — Orchestrator Semantic Comparison**
+- Review the script-produced structures and candidate conflicts
+- Resolve semantic equivalence across features (same concept, different wording)
+- Distinguish true contradictions from acceptable evolution or harmless naming differences
+- Write the final integration report with conflict severity and fix order
+
+The integration script MUST read the full content of every document below during Phase 1 — not just handoffs:
 
 ```
 docs/product/<project>-roadmap.md
@@ -764,7 +803,9 @@ These are things agents ACTUALLY DO when executing this workflow. Catch yourself
 | Readiness as mental check | No output file → no audit trail, no proof of validation | Write `docs/reviews/<version>/<feature>-readiness.md` |
 | Sub-agent reviewing own work | Confirmation bias — author can't see own gaps | Fresh sub-agent with no prior context of authoring |
 | Dispatching sub-agent without reading reference files | Sub-agent says "I'm a PM" but has no persona principles, no framework knowledge, no template to follow → shallow generic output | Read persona .md + knowledge .md + template .md → inject verbatim into dispatch prompt (P2) |
-| Using a sub-agent for Step 7/9/10 | The agent rereads hundreds of lines just to extract/checklist data → bloated context, weak comparisons | Keep mechanical steps local. Use the script, store the full report on disk, keep only verdict + hotspots in context |
+| Using a sub-agent for Step 7/9/10 | The agent rereads hundreds of lines just to extract/checklist data → bloated context, weak comparisons | Keep mechanical steps local. Use the script for extraction, then do semantic review in the orchestrator |
+| Skipping script preprocessing and letting the orchestrator read raw docs for Step 7/9/10 | Raw-document comparison is expensive and easy to miss deterministic coverage gaps | Always run Phase 1 first so the orchestrator starts from complete extracted lists and matrices |
+| Treating script output as the final verdict | Scripts catch structure, not meaning; synonymy and implied relationships get misclassified | Always run Phase 2 semantic review before writing the final report |
 | Carrying every prior feature summary into the next feature | F4 pays token cost for F1-F3, and step discipline degrades under compression | Keep only current feature context plus cross-feature facts that are actually needed |
 | Passing full roadmap + architecture + all reviews into every authoring step | Creative work gets buried under irrelevant context and quality drops feature-by-feature | Inject only the current feature inputs and the minimum shared documents required for that step |
 | Echoing full script reports back into the main conversation | You pay token cost twice: once to generate the report and again to restate it | Keep the report on disk; summarize only verdict, failing checks, and exact files to revisit |
@@ -773,5 +814,6 @@ These are things agents ACTUALLY DO when executing this workflow. Catch yourself
 
 1. Use sub-agents only where persona isolation or reviewer independence matters: Steps 2, 4, 5, 6, 6R, and 8.
 2. Keep Step 3 in the orchestrator context — it is bounded judgment on a file that is already open, not a fresh authoring pass.
-3. Run Steps 7, 9, and 10 through scripts first. Let the script read the files, write the full markdown report, and return only a compact verdict.
-4. Retain only the current feature's live context in conversation. Older feature reports stay on disk unless a later step explicitly needs them.
+3. Run Steps 7, 9, and 10 through Phase 1 script preprocessing first. Let the script extract complete lists/matrices so deterministic signals are not missed.
+4. After Phase 1, do Phase 2 semantic review in the orchestrator. Use the extracted structures as the comparison substrate; do not fall back to rereading everything ad hoc.
+5. Retain only the current feature's live context in conversation. Older feature reports stay on disk unless a later step explicitly needs them.
