@@ -1,7 +1,7 @@
 ---
 name: woos-product-design-flow
-description: "Stage 2 orchestrator: take a version from the product roadmap and produce PRD + UI direction + build handoff. Dispatches sub-agents per step with domain knowledge."
-version: 4.0.0
+description: "Stage 2 orchestrator: take a version from the product roadmap and produce PRD + UI direction + build handoff. Uses sub-agents for creative/review work and direct script-assisted execution for mechanical checks."
+version: 4.1.0
 author: Hermes Profile
 license: MIT
 metadata:
@@ -13,10 +13,11 @@ metadata:
 
 # Product Design Flow (Orchestrator)
 
-> **🚨 STOP. Read this section FIRST. It overrides any instinct to "just do the work yourself."**
+> **🚨 STOP. Read this section FIRST. It overrides any instinct to use the same execution mode for every step.**
 >
-> You are an ORCHESTRATOR. You do NOT write PRDs, requirements, or reviews yourself.
-> You dispatch sub-agents and validate their outputs. That is your ONLY job.
+> You are an ORCHESTRATOR. You dispatch sub-agents for creative authoring and independent review steps.
+> You execute bounded direct steps yourself when they are deterministic, checklist-driven, or script-assisted.
+> You do NOT turn every step into a sub-agent.
 >
 > Before EVERY step: output a Pre-flight block (see below). No pre-flight = invalid execution.
 
@@ -32,9 +33,10 @@ Before executing ANY step, you MUST output this block in the conversation:
 ┌─────────────────────────────────────────────────────┐
 │ 🛫 PRE-FLIGHT: Step <N> — <Name>                    │
 ├─────────────────────────────────────────────────────┤
-│ Persona:    <file path> → reading...                │
-│ Knowledge:  <file path(s)> → reading...             │
+│ Persona:    <file path or "none"> → reading...      │
+│ Knowledge:  <file path(s) or "none"> → reading...   │
 │ Template:   <file path or "none">                   │
+│ Execution:  <sub-agent | direct | script-assisted>  │
 │ Input:      <file path(s)>                          │
 │ Output:     <file path>                             │
 ├─────────────────────────────────────────────────────┤
@@ -42,32 +44,39 @@ Before executing ANY step, you MUST output this block in the conversation:
 │ ✅ Knowledge loaded: <line count> lines             │
 │ ✅ Template loaded: <line count> lines / N/A        │
 ├─────────────────────────────────────────────────────┤
-│ Dispatching sub-agent with injected context...      │
+│ Executing declared path...                          │
 └─────────────────────────────────────────────────────┘
 ```
 
 **Rules:**
 - If you cannot produce this block → you have NOT read the files → STOP and read them
 - The line counts prove you actually read the files (not faking it)
-- After this block, the NEXT action must be dispatching a sub-agent (not doing the work yourself)
-- If you catch yourself writing PRD/requirements/review content instead of dispatching → STOP, you are violating P0
+- After this block, the NEXT action must be executing the declared path: either dispatching the named sub-agent or running the direct/script-assisted step
+- Direct steps must stay bounded to ranking, extraction, comparison, or checklist output. If you start re-authoring PRD/UI/handoff content, STOP.
 
-### P1: Orchestrator Does NOT Create Content
+### P1: Orchestrator Does NOT Create Creative Artifacts
 
-You MUST NOT write requirements, PRDs, reviews, UI briefs, or handoff content yourself. Every piece of creative/analytical content comes from a dispatched sub-agent.
+You MUST NOT write requirements, PRDs, UI briefs, review verdicts, or handoff content yourself. Those artifacts belong to sub-agents or independent reviewers.
 
-**Self-check:** If you are writing more than 3 sentences of domain content (not orchestration bookkeeping), you are doing the sub-agent's job. Stop. Dispatch instead.
+The orchestrator MAY directly execute only bounded steps that do not benefit from context isolation:
+- Step 1 (scope selection)
+- Step 3 (priority ranking)
+- Step 7 (analyze gate)
+- Step 9 (readiness check)
+- Step 10 (integration gate)
+
+**Self-check:** If you are writing new product prose beyond a ranking/checklist/comparison report, you are doing the sub-agent's job. Stop and dispatch instead.
 
 ### P2: No Step Merging
 
-Each step produces its own output file. You MUST NOT combine steps (e.g., writing requirements + PRD in one pass). Each step is a separate sub-agent dispatch with a separate output.
+Each step produces its own output file. You MUST NOT combine steps (e.g., writing requirements + PRD in one pass). Each step uses one declared execution path and one output.
 
 ### P3: Output Validation Gate
 
 After EVERY step, before advancing to the next, verify:
 1. Output file EXISTS at the declared path
 2. Output file contains ALL required sections (check H2 headings)
-3. If validation fails → re-dispatch the step, do NOT proceed
+3. If validation fails → rerun the declared execution path, do NOT proceed
 
 **Required sections by step:**
 
@@ -188,11 +197,14 @@ Produce structured requirements following the template. Mark uncertain items wit
 
 | | |
 |---|---|
-| **Sub-agent** | ✅ |
-| **Persona** | `references/persona-pm.md` |
-| **Knowledge** | _(persona sufficient — ranking is judgment, not methodology)_ |
+| **Sub-agent** | ❌ (orchestrator does this directly) |
+| **Persona** | `references/persona-pm.md` (read directly; no separate dispatch) |
+| **Knowledge** | `references/framework-prd.md` |
+| **Execution** | Direct skill step — append only `## Priority Ranking` to the existing requirements file |
 | **Input** | `docs/prd/<version>/<feature>-requirements.md` |
 | **Output** | `docs/prd/<version>/<feature>-requirements.md` → appends `## Priority Ranking` |
+
+Do this in the current feature context. Do NOT spawn a fresh PM sub-agent just to reread the same requirements file.
 
 Rank requirements by priority using one framework:
 
@@ -364,11 +376,15 @@ When the feature has user-facing interface:
 
 | | |
 |---|---|
-| **Sub-agent** | ✅ |
-| **Persona** | _(qa — no BMAD persona needed)_ |
+| **Sub-agent** | ❌ (orchestrator does this directly) |
+| **Persona** | none |
 | **Knowledge** | `references/framework-implementation-readiness.md` |
+| **Script** | `scripts/analyze_gate.py` |
+| **Execution** | Script-assisted direct step — script does extraction/comparison, orchestrator consumes only compact findings + verdict |
 | **Input** | `docs/prd/<version>/<feature>.md` + `docs/design/<version>/<feature>-ui-brief.md` (if exists) |
 | **Output** | `docs/handoff/<version>/<feature>-analyze-report.md` |
+
+This step is mechanical. Run the script, let it write the full report, and keep only the verdict + hotspot list in conversation context.
 
 Cross-artifact consistency check:
 
@@ -393,7 +409,7 @@ Cross-artifact consistency check:
 | **Sub-agent** | ✅ |
 | **Persona** | `references/persona-pm.md` |
 | **Knowledge** | `references/framework-epics-and-stories.md` |
-| **Input** | `docs/prd/<version>/<feature>.md` + `docs/design/<version>/<feature>-ui-brief.md` + analyze report |
+| **Input** | `docs/prd/<version>/<feature>.md` + `docs/design/<version>/<feature>-ui-brief.md` + `docs/handoff/<version>/<feature>-analyze-report.md` |
 | **Output** | `docs/handoff/<version>/<feature>.md` |
 
 **Skill:** `woos-build-handoff`
@@ -419,8 +435,14 @@ Package all product artifacts into a single handoff file:
 | | |
 |---|---|
 | **Sub-agent** | ❌ (orchestrator does this directly) |
+| **Knowledge** | `references/framework-implementation-readiness.md` |
+| **Template** | `templates/readiness-template.md` |
+| **Script** | `scripts/readiness_check.py` |
+| **Execution** | Script-assisted direct step — script writes the checklist report, orchestrator only reacts to failing rows |
 | **Input** | `docs/handoff/<version>/<feature>.md` |
 | **Output** | `docs/reviews/<version>/<feature>-readiness.md` |
+
+This is a checklist step, not a fresh authoring pass. Do NOT dispatch a sub-agent. Run the script against the handoff and use the resulting verdict.
 
 Checklist:
 - [ ] All AC are testable
@@ -431,7 +453,7 @@ Checklist:
 - [ ] Non-goals clear enough to prevent scope creep
 - [ ] DCR protocol specified
 
-**Output file format:**
+**Output file format (matches `templates/readiness-template.md`):**
 ```markdown
 # Readiness Check — <feature>
 
@@ -441,7 +463,11 @@ Checklist:
 | 2 | Tasks → stories | ✅ | — |
 | ...
 
-## Verdict: PASS / FAIL
+## Unresolved Items
+- [Item] — [Why blocked, what decision needed]
+
+## Verdict
+**PASS** / **FAIL**
 ```
 
 **PASS** → handoff ready for engineering (if single feature) or proceed to Step 10 (if multi-feature version)
@@ -453,9 +479,11 @@ Checklist:
 
 | | |
 |---|---|
-| **Sub-agent** | ✅ |
-| **Persona** | `references/persona-pm.md` |
-| **Knowledge** | `references/framework-implementation-readiness.md` |
+| **Sub-agent** | ❌ (orchestrator does this directly) |
+| **Persona** | none |
+| **Knowledge** | `references/framework-implementation-readiness.md` (traceability discipline) |
+| **Script** | `scripts/integration_gate.py` |
+| **Execution** | Script-assisted direct step — script reads all version docs, writes the audit report, and returns only compact conflicts to the orchestrator |
 | **Input** | **ALL documents for this version** (see Input Scope below) |
 | **Output** | `docs/reviews/<version>/integration-report.md` |
 
@@ -464,7 +492,7 @@ Checklist:
 
 #### Input Scope (MUST read all of these)
 
-The reviewer MUST read the full content of every document below — not just handoffs:
+The integration script MUST read the full content of every document below — not just handoffs:
 
 ```
 docs/product/<project>-roadmap.md
@@ -548,9 +576,9 @@ docs/design/<version>/<feature>-ui-brief.md    (× all features, if exists)
 2. ...
 ```
 
-#### Review Rules
+#### Audit Rules
 
-- Reviewer MUST produce a finding for EVERY check (A1-A5, B1-B5, C1-C5) — no skipping
+- The orchestrator/script pair MUST produce a finding for EVERY check (A1-A5, B1-B5, C1-C5) — no skipping
 - ANY ❌ in Part A = **CONFLICTS_FOUND** (shared concepts MUST be unified before build)
 - Part B gaps = **CONFLICTS_FOUND** (traceability must be complete)
 - Part C issues = **CONFLICTS_FOUND** unless explicitly documented as intentional divergence
@@ -645,8 +673,8 @@ Same as Stage 1:
 4. Continue
 
 ### Update Rules
-- Write manifest BEFORE dispatching sub-agent (`status: in_progress`)
-- Write manifest AFTER sub-agent returns (`status: done` + output)
+- Write manifest BEFORE executing a step (`status: in_progress`, plus declared execution path if tracked)
+- Write manifest AFTER the step completes (`status: done` + output)
 - Reviews record: `round: N`, `result: PASS|REQUEST_CHANGES`
 
 ---
@@ -691,17 +719,19 @@ On completion:
 | Scope too large | Split into multiple handoffs per sub-feature |
 | UI brief but no interface | Skip Step 6 **only with explicit user confirmation**, note in handoff |
 | Crash mid-step | Recovery protocol from run-manifest |
-| Sub-agent file not found | Fix path (use absolute), re-dispatch. **NEVER skip.** |
-| Output validation fails (P3) | Re-dispatch step with "Missing sections: ..." instruction |
-| Step produces empty/stub file | Re-dispatch. Stub output = step not done |
+| Reference/template/script file not found | Fix path (use absolute), rerun the declared step. **NEVER skip.** |
+| Script exits non-zero | Fix input assumptions or parser bug, then rerun. Do NOT switch to sub-agent just to bypass the failure. |
+| Output validation fails (P3) | Rerun the same declared path with "Missing sections: ..." or parser fix instruction |
+| Step produces empty/stub file | Rerun. Stub output = step not done |
 
 ### ❌ Explicitly Forbidden Actions
 
-- **Do NOT merge steps** — each step = 1 sub-agent dispatch → 1 verified output
+- **Do NOT merge steps** — each step = 1 declared execution path → 1 verified output
 - **Do NOT skip a step because it "failed"** — fix the failure and retry
 - **Do NOT pass a review without checking every row** — partial review = review not done
 - **Do NOT accept "Conditional Pass"** — only PASS or REQUEST_CHANGES exist
 - **Do NOT write PRD without the template** — free-form PRD = not a PRD
+- **Do NOT use sub-agents for purely mechanical extraction/checklist steps** — that wastes context and hides deterministic checks inside prose
 
 ## Skills Used
 
@@ -709,6 +739,14 @@ On completion:
 |-------|------|
 | `woos-ui-design-brief` | 6 |
 | `woos-build-handoff` | 8 |
+
+## Scripts Used
+
+| Script | Step |
+|--------|------|
+| `scripts/analyze_gate.py` | 7 |
+| `scripts/readiness_check.py` | 9 |
+| `scripts/integration_gate.py` | 10 |
 
 ---
 
@@ -726,3 +764,14 @@ These are things agents ACTUALLY DO when executing this workflow. Catch yourself
 | Readiness as mental check | No output file → no audit trail, no proof of validation | Write `docs/reviews/<version>/<feature>-readiness.md` |
 | Sub-agent reviewing own work | Confirmation bias — author can't see own gaps | Fresh sub-agent with no prior context of authoring |
 | Dispatching sub-agent without reading reference files | Sub-agent says "I'm a PM" but has no persona principles, no framework knowledge, no template to follow → shallow generic output | Read persona .md + knowledge .md + template .md → inject verbatim into dispatch prompt (P2) |
+| Using a sub-agent for Step 7/9/10 | The agent rereads hundreds of lines just to extract/checklist data → bloated context, weak comparisons | Keep mechanical steps local. Use the script, store the full report on disk, keep only verdict + hotspots in context |
+| Carrying every prior feature summary into the next feature | F4 pays token cost for F1-F3, and step discipline degrades under compression | Keep only current feature context plus cross-feature facts that are actually needed |
+| Passing full roadmap + architecture + all reviews into every authoring step | Creative work gets buried under irrelevant context and quality drops feature-by-feature | Inject only the current feature inputs and the minimum shared documents required for that step |
+| Echoing full script reports back into the main conversation | You pay token cost twice: once to generate the report and again to restate it | Keep the report on disk; summarize only verdict, failing checks, and exact files to revisit |
+
+### Context Cost Management Best Practices
+
+1. Use sub-agents only where persona isolation or reviewer independence matters: Steps 2, 4, 5, 6, 6R, and 8.
+2. Keep Step 3 in the orchestrator context — it is bounded judgment on a file that is already open, not a fresh authoring pass.
+3. Run Steps 7, 9, and 10 through scripts first. Let the script read the files, write the full markdown report, and return only a compact verdict.
+4. Retain only the current feature's live context in conversation. Older feature reports stay on disk unless a later step explicitly needs them.
