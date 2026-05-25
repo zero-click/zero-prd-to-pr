@@ -2,14 +2,14 @@
 
 ## Purpose
 
-Validate that all planning artifacts (PRD, epics, stories, architecture) are complete, consistent, and sufficient for engineering to begin implementation without ambiguity.
+Validate that all planning artifacts (PRD, epics, UX, stories, and supporting architecture) are complete, consistent, and sufficient for engineering to begin implementation without ambiguity.
 
 ## Input
 
 - PRD (functional and non-functional requirements)
 - Epics & Stories (with acceptance criteria)
-- System Architecture (components, boundaries, decisions)
 - UX Design Brief (if applicable)
+- System Architecture (supporting context for feasibility and UX support)
 
 ## Methodology
 
@@ -30,11 +30,11 @@ Check each layer in order. A failure at any layer blocks proceeding.
 - No orphan epics (epics that don't trace back to FRs)
 - Epic dependencies are acyclic and explicitly ordered
 
-**Layer 3: Architecture Alignment**
-- Every epic maps to specific architecture components
-- No epic requires a component that doesn't exist in architecture
-- Communication patterns between components are defined for each epic's needs
-- Data entities referenced in FRs have a defined storage location
+**Layer 3: UX Alignment**
+- If the feature is user-facing, UX documentation exists or the gap is explicitly called out
+- UX flows map back to PRD use cases and functional requirements
+- Every key screen/surface supports at least one validated user story
+- UX requirements are supportable by the current architecture and platform constraints
 
 **Layer 4: Story Quality**
 - Every story has testable acceptance criteria
@@ -47,8 +47,8 @@ Check each layer in order. A failure at any layer blocks proceeding.
 Build a complete trace from requirement to implementation:
 
 ```
-FR-1 → Epic 1 → Story 1.1 → Component: Auth Service → Test: AC-1.1.1
-FR-2 → Epic 1 → Story 1.2 → Component: Auth Service → Test: AC-1.2.1
+FR-1 → Epic 1 → UX Surface: Sign-in Screen → Story 1.1 → Test: AC-1.1.1
+FR-2 → Epic 1 → UX Surface: Password Reset Flow → Story 1.2 → Test: AC-1.2.1
 ...
 ```
 
@@ -82,14 +82,14 @@ For each gap found:
 |-------|--------|-------------|
 | PRD Completeness | ✅/❌ | [count] |
 | Epic Coverage | ✅/❌ | [count] |
-| Architecture Alignment | ✅/❌ | [count] |
+| UX Alignment | ✅/❌ | [count] |
 | Story Quality | ✅/❌ | [count] |
 
 ## Traceability Matrix
-| FR | Epic | Story | Component | Status |
-|----|------|-------|-----------|--------|
-| FR-1 | Epic 1 | Story 1.1 | Auth | ✅ |
-| FR-2 | Epic 1 | Story 1.2 | Auth | ✅ |
+| FR | Epic | UX Surface | Story | Status |
+|----|------|------------|-------|--------|
+| FR-1 | Epic 1 | Sign-in | Story 1.1 | ✅ |
+| FR-2 | Epic 1 | Reset Password | Story 1.2 | ✅ |
 | FR-3 | Epic 2 | — | — | ❌ Gap |
 
 ## Gaps
@@ -108,7 +108,7 @@ For each gap found:
 
 ## Quality Criteria
 
-- All four layers explicitly assessed (no skipping)
+- All four layers explicitly assessed (PRD, epic coverage, UX alignment, story quality)
 - Every gap has severity, impact, and recommendation (not just "something is missing")
 - Traceability matrix is complete (covers ALL FRs)
 - Verdict is honest — don't say READY if high gaps exist
