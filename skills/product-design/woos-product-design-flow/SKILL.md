@@ -43,6 +43,7 @@ Before executing any step, state the step being run and the exact:
 The orchestrator may directly execute only:
 
 - Step 1: version scope selection
+- Step 1.5: feature dependency analysis
 
 All other outputs must come from their declared skills.
 
@@ -60,6 +61,7 @@ After each step, verify the declared output exists and is substantive.
 
 | Step | Required result |
 |------|-----------------|
+| Step 1.5 | execution order stated with dependency classification (Strict only) |
 | Step 2 | `docs/prd/<version>/<feature>-requirements.md` exists with required sections and `## Priority Ranking` |
 | Step 3 | `docs/prd/<version>/<feature>.md` exists with required sections |
 | Step 4 | PRD review file exists with explicit `PASS` or `REQUEST_CHANGES` |
@@ -108,7 +110,7 @@ All file paths (`docs/`) are relative to a project root directory which must be 
 |------|------|-------|
 | **Lite** | Small scope, obvious, 1-2 days work | Mission → Tasks → AC → Handoff |
 | **Standard** | Single feature, moderate complexity | Requirements → PRD → PRD Review → Handoff → Readiness |
-| **Strict** | Multi-feature version, higher uncertainty, UX-heavy | Select Scope → Requirements → PRD → Review → UI → UI Review → Analyze → Handoff → Readiness → Integration |
+| **Strict** | Multi-feature version, higher uncertainty, UX-heavy | Select Scope → Dependency Analysis → Requirements → PRD → Review → UI → UI Review → Analyze → Handoff → Readiness → Integration |
 
 ---
 
@@ -117,8 +119,9 @@ All file paths (`docs/`) are relative to a project root directory which must be 
 The orchestrator runs per feature:
 
 ```text
-Step 1: Select Version Scope
-  → For each feature:
+Step 1:   Select Version Scope
+Step 1.5: Feature Dependency Analysis (auto, Strict only)
+  → For each feature (in dependency order):
       Steps 2–8
   → After all features pass Step 8:
       Step 9
@@ -133,6 +136,42 @@ Step 1: Select Version Scope
 | **Output** | selected version + feature list for downstream steps |
 
 **Advance when:** the version, feature boundaries, non-goals, and success metrics are confirmed.
+
+---
+
+### Step 1.5: Feature Dependency Analysis
+
+| | |
+|---|---|
+| **Skill** | direct orchestrator step |
+| **Trigger** | Strict mode with 2+ features |
+| **Input** | `docs/product/<project>-roadmap.md` § selected version features |
+| **Output** | ordered execution plan (inline, not a separate file) |
+
+The orchestrator scans the roadmap features for shared entities:
+
+1. **Extract shared signals** — identify mentions of shared data models, shared state, common APIs/endpoints, or explicit "depends on Feature X" references across features
+2. **Classify relationships:**
+   - `independent` — no shared entities, can run in any order
+   - `feeds` — Feature A produces a concept that Feature B consumes (A before B)
+   - `mutual` — features share a concept but neither strictly depends on the other
+3. **Determine execution order:**
+   - `independent` features: process in roadmap-listed order (arbitrary but deterministic)
+   - `feeds` relationships: process upstream feature first
+   - `mutual` relationships: process in roadmap-listed order, but flag for Step 9 integration focus
+
+**Output format (stated before proceeding):**
+
+```text
+Execution order:
+  1. <feature-A> (independent)
+  2. <feature-B> (feeds: depends on A's <shared-entity>)
+  3. <feature-C> (mutual with B — flagged for integration audit)
+```
+
+**Advance when:** execution order is determined. No blocking — this step always produces a result.
+
+**Skip when:** Standard or Lite mode (single feature, no dependency to analyze).
 
 ---
 

@@ -59,15 +59,16 @@ This workflow enforces structured product thinking before code is written. It en
           │  ┌──────────────────────────────────┐   │
           │  │  Per Feature (Standard/Strict):  │   │
           │  │                                  │   │
-          │  │  Step 1:  Select Version Scope   │   │
-          │  │  Step 2:  Requirement Contract   │   │
-          │  │  Step 3:  PRD Authoring          │   │
-          │  │  Step 4:  PRD Review Gate   [S]  │   │
-          │  │  Step 5:  UI Brief          [S]  │   │
-          │  │  Step 5R: UI Brief Review   [S]  │   │
-          │  │  Step 6:  Analyze Gate      [S]  │   │
-          │  │  Step 7:  Build Handoff          │   │
-          │  │  Step 8:  Readiness Check   [S]  │   │
+          │  │  Step 1:   Select Version Scope  │   │
+          │  │  Step 1.5: Dependency Analysis[S]│   │
+          │  │  Step 2:   Requirement Contract  │   │
+          │  │  Step 3:   PRD Authoring         │   │
+          │  │  Step 4:   PRD Review Gate  [S]  │   │
+          │  │  Step 5:   UI Brief         [S]  │   │
+          │  │  Step 5R:  UI Brief Review  [S]  │   │
+          │  │  Step 6:   Analyze Gate     [S]  │   │
+          │  │  Step 7:   Build Handoff         │   │
+          │  │  Step 8:   Readiness Check  [S]  │   │
           │  └──────────────────────────────────┘   │
           │                                         │
           │  Step 9: Version Integration Gate  [S]  │
@@ -111,6 +112,7 @@ This workflow enforces structured product thinking before code is written. It en
 | Step | Name | What It Does |
 |------|------|--------------|
 | 1 | Select Version Scope | Extract features from roadmap, confirm boundaries |
+| 1.5 | Feature Dependency Analysis | Scan for shared entities across features, determine execution order (Strict only) |
 | 2 | Requirement Contract | `woos-requirement-contract` writes the per-feature requirements file including `P0/P1/P2` cut-line |
 | 3 | PRD Authoring | `woos-prd-authoring` writes the PRD from the ranked requirements |
 | 4 | PRD Review Gate | Isolated subagent runs dedicated review skill and returns `PASS` or `REQUEST_CHANGES` |
@@ -129,7 +131,7 @@ The orchestrator now only routes steps, validates outputs, and controls transiti
 |------|------|-------|--------------|
 | **Lite** | Trivially simple, < 2 days work | Mission → Tasks → AC → Handoff | None |
 | **Standard** | Single feature, moderate complexity | 1 → 2 → 3 → 4 → 7 → 8 | PRD Review |
-| **Strict** | Multi-feature, UX-heavy, high-risk | 1 → 2 → 3 → 4 → 5 → 5R → 6 → 7 → 8 → 9 | All gates |
+| **Strict** | Multi-feature, UX-heavy, high-risk | 1 → 1.5 → 2 → 3 → 4 → 5 → 5R → 6 → 7 → 8 → 9 | All gates |
 
 **Mode is NOT chosen upfront.** It's determined at two natural points:
 1. After Capture: trivial → Lite (user confirms)
