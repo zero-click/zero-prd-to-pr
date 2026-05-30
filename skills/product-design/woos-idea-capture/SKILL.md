@@ -35,7 +35,9 @@ Skip when:
 
 ## Capture Process
 
-> **Note:** Idea Capture is mode-agnostic. The execution mode (Lite/Standard/Strict) is decided LATER, at the Human Approval Gate after Product Discovery. Capture always runs the same way regardless of eventual mode.
+> **Note:** Capture itself always runs the same way, but mode selection happens in two places:
+> - **Lite** may branch immediately after Capture if the idea is obviously trivial and the user confirms.
+> - **Standard / Strict** are inferred later, after Product Discovery, from the approved roadmap.
 
 **Two capture depths based on idea complexity:**
 
@@ -106,17 +108,38 @@ Ask sequentially. Skip if user already provided the information unprompted.
 
 ### Category 4: Context & Dependencies
 
-10. **Are there integration points?** (Third-party services, existing systems)
-11. **Any security or compliance concerns?** (Data sensitivity, access control)
+10. **Does this need to connect to anything that already exists?** (Existing products, data sources, user accounts — NOT tech stack)
+11. **Any security or compliance concerns?** (Data sensitivity, access control, regulatory)
 
 ### Category 5: Quality & Risk
 
 12. **What would make this fail?** (Risks, failure modes, deal-breakers)
 13. **How will you know this is successful?** (Observable outcomes, metrics)
 
-## Technical Defaults (Recommend-Then-Confirm)
+## Handling Technical Preferences
 
-This section has been removed from idea-capture. Technical decisions belong in later stages (feature-design or engineering workflow). Idea capture focuses purely on product intent.
+Users often volunteer technical opinions during capture ("I want to use Go", "let's use SQLite", "no React"). This is natural — but it must NOT become a hard constraint in this phase.
+
+**Rules:**
+
+1. **Do NOT ask** questions about tech stack, frameworks, languages, or databases
+2. **If user volunteers a tech preference** → acknowledge it, then record it in the output under a dedicated `## Technical Preferences (Deferred)` section
+3. **Label clearly** — these are preferences, not decisions. They will be evaluated by the architect sub-agent in Discovery Step 5
+4. **Do NOT let preferences leak** into Problem Statement, Vision, Core Behaviors, or Constraints sections
+5. **Do NOT push back** on preferences — just record and defer. No debate in this phase.
+
+**Output format for deferred preferences:**
+
+```markdown
+## Technical Preferences (Deferred)
+
+> ⚠️ These are user preferences expressed during idea capture. They are NOT confirmed
+> technical decisions. They will be evaluated by the architect sub-agent in Discovery
+> Step 5, where trade-offs can be properly assessed.
+
+- "Backend in Go" — user preference, to be evaluated in architecture
+- "SQLite for storage" — user preference, to be evaluated in architecture
+```
 
 ## Output Format (Standard / Strict Mode)
 
@@ -153,6 +176,13 @@ Ideal experience: [describe]
 - Resources: [team size or "flexible"]
 - Dependencies: [integration points or "none"]
 - Security: [concerns or "standard"]
+
+## Technical Preferences (Deferred)
+
+> ⚠️ User preferences only. NOT decisions. Evaluated in Discovery Step 5 (Architecture).
+
+- [preference]: user preference, to be evaluated in architecture
+- (or "None expressed")
 
 ## Risks
 - [risk]: [mitigation or "accepted"]
@@ -198,3 +228,6 @@ Is it obviously trivial? (typo, 1-liner, single obvious change, user explicitly 
 - Don't make technical decisions — those belong in later stages
 - Don't discuss tech stack, frameworks, or databases — stay on product intent
 - Don't auto-select Lite without user confirmation
+- **Don't ASK about tech stack** — if user volunteers preferences, record under "Technical Preferences (Deferred)", never in Constraints
+- **Don't let tech preferences become constraints** — "user wants Go" ≠ "must use Go". Record as preference, let architect evaluate in Discovery Step 5
+- **Don't debate tech choices** — this phase has no authority to confirm or reject technical decisions
