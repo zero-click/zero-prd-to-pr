@@ -83,7 +83,7 @@ Step 1: Select Version → extract feature list
 | Step | Name | Sub-agent? | Persona | Output |
 |------|------|:----------:|---------|--------|
 | 1 | Select Version Scope | ❌ orchestrator | — | _(version + feature list)_ |
-| 1.5 | Feature Dependency Analysis | ❌ orchestrator | — | _(execution order)_ |
+| 1.5 | Feature Dependency Analysis | ❌ orchestrator | — | _(execution order + feature IDs)_ |
 | 2 | Requirement Contract | ✅ | pm | `docs/prd/<version>/<feature-id>-requirements.md` |
 | 3 | PRD Authoring | ✅ | pm | `docs/prd/<version>/<feature-id>.md` |
 | 4 | PRD Review | ✅ | product-planner | `docs/reviews/<version>/<feature-id>-prd-review-rN.md` |
