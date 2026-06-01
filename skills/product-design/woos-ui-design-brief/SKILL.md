@@ -11,7 +11,6 @@ metadata:
       - woos-idea-capture
       - woos-product-design-flow
       - woos-ui-brief-review
-      - woos-build-handoff
 ---
 
 # UI Design Brief
@@ -163,14 +162,13 @@ Style: <visual direction>.
 If user selects a visual direction:
 1. Update `Selected Direction` section with chosen layout, components, visual rules
 2. Translate image choices into concrete component specs
-3. Update handoff notes with constraints
 
 ## Relation to Product Design Flow
 
 In `woos-product-design-flow`:
 - Runs after PRD is approved (user knows WHAT to build)
 - Followed by `woos-ui-brief-review` when UI review is required
-- Runs before Build Handoff packaging (handoff includes UI direction)
+- UI brief is delivered directly to coding agent alongside PRD
 - **Lite mode:** skipped entirely
 - **Standard mode:** skipped (Standard is single-feature, keeps scope tight)
 - **Strict mode:** triggered when feature has user-facing UI (orchestrator asks user)

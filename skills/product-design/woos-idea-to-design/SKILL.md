@@ -1,12 +1,12 @@
 ---
 name: woos-idea-to-design
-description: Entry-point product workflow from raw idea to validated product design artifacts. Stops at PRD/UI/handoff readiness and does not include engineering implementation.
-version: 3.1.0
+description: Entry-point product workflow from raw idea to validated product design artifacts. Stops at reviewed PRD readiness and does not include engineering implementation.
+version: 4.0.0
 author: Hermes Profile
 license: MIT
 metadata:
   hermes:
-    tags: [idea, prd, design, handoff, review, workflow, product]
+    tags: [idea, prd, design, review, workflow, product]
     related_skills:
       - woos-idea-capture
       - woos-product-discovery
@@ -23,8 +23,6 @@ metadata:
       - woos-ui-design-brief
       - woos-ui-brief-review
       - woos-prd-consistency-audit
-      - woos-build-handoff
-      - woos-handoff-readiness-check
       - woos-version-integration-audit
 ---
 
@@ -86,15 +84,15 @@ Discovery approved?
 **Skill:** `woos-product-design-flow`
 **Output:** `docs/prd/<version>/<feature>.md`
 **Optional Output:** `docs/design/<version>/<feature>-ui-brief.md`
-**Final Output:** `docs/handoff/<version>/<feature>.md`
+**Interface Summary:** `docs/prd/<version>/<feature>-interface.md` (Strict only)
 
 ## Completion
 
 This skill is complete when the selected scope has finished the product-design flow for its mode:
 
-- Lite → lite product artifact ready
-- Standard → handoff readiness passed
-- Strict → all features pass readiness and required integration audit passes
+- Lite → PRD ready
+- Standard → PRD review passed
+- Strict → all features pass analyze gate and required integration audit passes
 
 ## Skill Dependency Map
 
@@ -115,7 +113,5 @@ idea-to-design entry skill
     ├── woos-ui-design-brief
     ├── woos-ui-brief-review
     ├── woos-prd-consistency-audit
-    ├── woos-build-handoff
-    ├── woos-handoff-readiness-check
     └── woos-version-integration-audit
 ```
