@@ -48,31 +48,9 @@ def main() -> int:
     build_tasks = extract_task_blocks(section_text(handoff_text, ["Build Tasks"]))
     out_of_scope_items = list_items(section_text(handoff_text, ["Out of Scope"]))
     open_questions = list_items(section_text(handoff_text, ["Open Questions", "Unresolved Items"]))
-    ui_direction = section_text(handoff_text, ["UI Direction", "UI Design Brief"])
+    ui_direction = section_text(handoff_text, ["UI Direction"])
     dcr_protocol = section_text(handoff_text, ["DCR Protocol"])
     placeholders = detect_placeholders(handoff_text)
-
-    def is_real_unresolved_item(item: str) -> bool:
-        normalized = item.strip().lower()
-        if not normalized:
-            return False
-        non_blocking_prefixes = (
-            "no blocking",
-            "no unresolved",
-            "none",
-            "n/a",
-        )
-        if normalized.startswith(non_blocking_prefixes):
-            return False
-        non_blocking_signals = (
-            "implementation decisions",
-            "implementation choice",
-            "coding agent's responsibility",
-            "coding agent's responsibility",
-        )
-        if any(signal in normalized for signal in non_blocking_signals):
-            return False
-        return True
 
     ac_failures = [item for item in ac_lines if not is_testable_acceptance_criterion(item)]
     ac_ok = bool(ac_lines) and not ac_failures
@@ -80,7 +58,7 @@ def main() -> int:
     mapped_tasks = [task for task in build_tasks if "user story:" in task.lower()]
     task_mapping_ok = bool(build_tasks) and len(mapped_tasks) == len(build_tasks)
 
-    unresolved_items = [item for item in open_questions if is_real_unresolved_item(item)] + placeholders
+    unresolved_items = open_questions + placeholders
     unresolved_ok = not unresolved_items
 
     flow_failures = [flow for flow in flows if "->" not in flow and "→" not in flow]

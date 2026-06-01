@@ -18,7 +18,6 @@ Before writing requirements:
 - **Identify the feature boundary** — what's in, what's explicitly out
 - **Map to architecture** — which system components does this feature touch?
 - **Identify dependencies** — does this feature require other features to exist first?
-- **Use upstream interface summaries as dependency sources** — for every completed upstream feature that contributes shared terms (states, models, events, IDs, idempotency keys), load and cite its `*-interface.md` summary instead of depending on the full upstream PRD as the shared-contract source. If the upstream feature has no interface summary yet, create or update that summary before finalizing the downstream PRD.
 - **Clarify the user journey** — what's the end-to-end flow for this feature?
 
 ### 2. Requirements Discipline

@@ -285,28 +285,6 @@ git-branch: feature/<feature-slug>
 
 If not specified, the coding agent creates its own branch following project conventions.
 
-## Build Task Minimum Contract (per task)
-
-Every build task in the handoff MUST include these elements when the feature has an API surface. Omit only for pure-UI tasks with no backend interaction.
-
-1. **API endpoint path** — e.g., `POST /api/tasks/:id/cancel`. Source from the interface summary (`*-interface.md`). If the interface summary doesn't exist yet, write it first.
-2. **Auth role** — Who can call this: Operator, Agent (run owner), or both. Reference the auth mechanism (see Security Requirements below).
-3. **Request body schema** — Field names + types + required/optional.
-4. **Success response** — HTTP status code + response body fields (e.g., `Return {comment_id, task_id, created_at} on success (201)`).
-5. **Error responses** — At minimum: 400 (invalid input), 401/403 (auth), 404 (not found), 409 (conflict/invalid state). One line each.
-6. **Idempotency rule** — If the mutation should be idempotent, state the key and replay behavior.
-
-## Security Requirements (Standard/Strict mode)
-
-When the handoff has a `## Security Requirements` section, it MUST include:
-
-- **Auth mechanism** — Header name, token format, how identity is extracted
-- **Role-to-token mapping** — Which env var or credential each role uses
-- **Token validation** — Where/how tokens are validated (middleware, gateway, etc.)
-- **V1 scope** — What auth complexity is deferred (e.g., no JWT rotation, no OAuth)
-
-The point is: a coding agent must know what header to send, what format the token is, and how identity is extracted. Do NOT leave auth as `Bearer ***` with no explanation.
-
 ## Handoff Quality Checklist
 
 Before finalizing the handoff, verify:
@@ -319,9 +297,8 @@ Before finalizing the handoff, verify:
 6. **Verification defined**: Each task has a clear "done" check
 7. **Delta annotations**: Every Build Task has `[ADDED]`/`[MODIFIED]`/`[REMOVED]` prefix
 8. **Spec versioning**: `spec-version` header present; `based-on` set for iterations
-9. **Product-only**: No technical architecture decisions — leave those for engineering. BUT: API endpoint paths, request/response shapes, auth mechanism, and error codes are **product contract**, not architecture — include them.
+9. **Product-only**: No technical architecture decisions — leave those for engineering
 10. **UI direction**: If feature has UI, reference UI brief or provide direction summary
-11. **Build task contract**: Every API build task has endpoint, auth role, request body, success response, and error responses per the "Build Task Minimum Contract" above
 
 ## Anti-Patterns to Avoid
 

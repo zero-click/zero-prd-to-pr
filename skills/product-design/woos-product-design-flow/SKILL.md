@@ -46,7 +46,7 @@ The orchestrator may directly execute only:
 - Step 1.5: feature dependency analysis
 - Step 8.5: interface summary extraction (bookkeeping, not creative)
 
-**Exception — Subagent timeout recovery:** If a subagent dispatched for Steps 2–9 fails due to 600s timeout or output truncation (max tokens), the orchestrator MAY directly author the artifact. This fallback is preferable to repeated subagent failures that stall the pipeline. The orchestrator should still attempt subagent dispatch first; only switch to direct authoring after the first failure.
+All other outputs must come from their declared skills.
 
 ### P2: No Step Merging or Silent Skipping
 
@@ -55,28 +55,6 @@ The orchestrator may directly execute only:
 - Failures are fixed and retried, not skipped
 - Optional UI steps may be skipped only when the user confirms there is no user-facing UI
 - Step 9 may be skipped only when the version has a single feature
-
-### P2.5: Continuous Progression After User Approval
-
-When the user has already approved the roadmap scope/mode and explicitly says to continue (e.g. "继续", "直接继续不要老是停"), the orchestrator should keep moving through the remaining queued feature steps without pausing for permission between gates.
-
-Default behavior in that situation:
-
-- complete the current step
-- update task state / artifact state
-- immediately start the next deterministic step in the flow
-- summarize progress only after meaningful milestones, not as a stop signal
-
-Pause only when one of these is true:
-
-- a required input is genuinely missing and cannot be inferred from existing artifacts
-- a review gate returns unresolved `REQUEST_CHANGES` / `FAIL` after the allowed retry loop
-- the next step requires a real product decision that changes scope, not just execution order
-- a side effect would exceed the already-approved workflow scope
-
-Common failure mode to avoid:
-
-- finishing one gate, posting a progress note, and waiting for another explicit "continue" even though the user already instructed uninterrupted execution
 
 ### P3: Validate Output Before Advancing
 
@@ -109,17 +87,6 @@ The following steps MUST run in isolated subagent contexts so their skill loads,
 - Step 6: `woos-prd-consistency-audit`
 - Step 8: `woos-handoff-readiness-check`
 - Step 9: `woos-version-integration-audit`
-
-### P5.5: Parallelizable Review Gates
-
-Steps 4 (PRD Review) and 6 (Analyze Gate) are **independent reviews of the same PRD** and can be dispatched to separate subagents in parallel using `delegate_task(tasks=[...])`. This saves significant wall-clock time — each gate takes 90–200s, so parallelizing cuts a combined 3–7 minutes per feature down to the slower of the two.
-
-**Rules for parallel dispatch:**
-- Both subagents must receive the same PRD + requirements + interface inputs.
-- If either returns `FAIL`/`REQUEST_CHANGES`, the orchestrator applies fixes and re-runs ONLY the failed gate (sequential for rework).
-- Step 5R (UI Review) can also run in parallel with Step 6 if the UI Brief was already written.
-
-**Do NOT parallelize:** Steps that depend on the output of a previous step (e.g., Step 8 depends on Step 7 handoff).
 
 ### P6: Fix Propagation (Global Sync)
 
@@ -472,5 +439,3 @@ On completion:
 | Scope too large | Split into multiple handoffs |
 | Output file missing or stub | Re-run the same declared step |
 | Script-based audit fails | Fix the inputs or parser bug, then re-run |
-| Subagent timeout (600s) on content-heavy step (PRD, research) | Do NOT retry the same subagent — it will hit the same timeout. Fall back to orchestrator-direct authoring using write_file/execute_code, which avoids the subagent's time/output budget limits. |
-| Subagent output truncation (max tokens exceeded) | Same fallback as timeout. The orchestrator can produce the output in its own context, which typically has larger output capacity. |
