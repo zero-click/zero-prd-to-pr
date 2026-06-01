@@ -91,6 +91,26 @@ Run `scripts/integration_gate.py` to extract candidate evidence, including:
 - UI-to-PRD mappings
 - deterministic coverage gaps
 
+#### Script execution setup
+
+The scripts import `_audit_utils` as a sibling module. Before running, copy both `scripts/integration_gate.py` and `scripts/_audit_utils.py` to a working directory (e.g. `/tmp`) and run from there:
+
+```
+cd /tmp && python3 integration_gate.py --roadmap ... --architecture ... ...
+```
+
+#### `--handoff-glob` pitfalls
+
+1. **Single-pattern only.** The argument is NOT `action='append'` — passing multiple `--handoff-glob` flags silently keeps only the last value. Use a single glob pattern that covers all handoff files.
+
+2. **Exclude analyze artifacts.** When using a broad glob like `docs/handoff/v1/*.md`, the script treats every matched file as feature handoff input. `*-analyze-report*.md` and `*-analyze-script*.md` artifacts will produce false constant conflicts (e.g. `acceptance_criteria_extracted: 24` vs `32`). Either:
+   - Use a targeted glob (list each handoff file explicitly via `--feature` to scope), or
+   - Accept the false-positive constants and resolve them as noise in Phase 2.
+
+#### Roadmap matching pitfall
+
+The current script checks roadmap coverage by literal feature-slug presence (`task-offer-claim-assignment`) or space-separated slug text, so conceptually named roadmap entries can show false `missing_roadmap` conflicts even when scope is clearly covered. Treat roadmap misses as candidate conflicts requiring semantic review against roadmap scope bullets and core-loop language, not as automatic blockers.
+
 ### Phase 2 — Semantic Audit
 
 Review the extracted evidence and decide whether candidate mismatches are:
@@ -147,6 +167,19 @@ It MUST also include:
 - `PASS` — all 15 checks reviewed and no real conflicts remain
 - `CONFLICTS_FOUND` — all 15 checks reviewed and one or more real conflicts remain
 - `BLOCKED` — script not run, full input scope not read, row coverage incomplete, or evidence missing
+
+## Subagent Delegation Pitfall (Phase Splitting)
+
+When delegating the integration audit to a subagent via `delegate_task`, the full scope of files (all interface summaries + roadmap + architecture + script) can exceed the subagent's 600s timeout when the version has **6+ features**. The subagent reads every file sequentially and the combined token volume causes timeout.
+
+**Mitigation: split into phases.** For large feature sets, run the audit in 2 (or more) phases:
+
+- Phase 1: Features F1–Fk (first half)
+- Phase 2: Features F(k+1)–Fn (second half), plus Phase 1 report as additional input
+
+Each phase reads only its subset of interface summaries plus the architecture/roadmap, staying within the subagent budget. The phase-2 audit also cross-checks against the phase-1 findings.
+
+**When to split:** If the version has 6+ features, proactively split rather than waiting for a timeout. The orchestrator should instruct the subagent to read ONLY the phase-scoped interface files, not all of them.
 
 ## Fail-Closed Rules
 
