@@ -53,7 +53,7 @@ A6 failures count toward `GAPS_FOUND`.
 
 ## Output
 
-- `docs/handoff/<version>/<feature>-analyze-report.md`
+- `docs/reviews/<version>/<feature>-analyze-report.md`
 
 ## Two-Phase Protocol
 

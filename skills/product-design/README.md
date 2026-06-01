@@ -7,7 +7,7 @@ A skill-driven product design pipeline for AI coding agents. Takes a raw idea fr
 This workflow enforces structured product thinking before code is written. It ensures:
 
 - **WHAT/WHY** is fully defined before engineering decides **HOW**
-- Every decision is documented and traceable (roadmap → requirements → PRD → handoff)
+- Every decision is documented and traceable (roadmap → requirements → PRD → coding agent)
 - Quality gates prevent weak specs from reaching engineering
 - Cross-feature consistency is validated before build starts
 
@@ -121,8 +121,8 @@ Discovery dispatches 4 sub-skills in sequence:
 | | |
 |---|---|
 | **Skill** | `woos-product-design-flow` (orchestrator) |
-| **What** | Turn roadmap into build-ready specs per feature |
-| **Final output** | `docs/handoff/<version>/<feature>.md` |
+| **What** | Turn roadmap into reviewed PRDs + interface summaries per feature |
+| **Final output** | `docs/prd/<version>/<feature>.md` + `docs/prd/<version>/<feature>-interface.md` |
 
 | Step | Skill | What It Does |
 |------|-------|--------------|
@@ -134,10 +134,8 @@ Discovery dispatches 4 sub-skills in sequence:
 | 5 | `woos-ui-design-brief` | UI direction, screens, interaction patterns |
 | 5R | `woos-ui-brief-review` | Isolated UI review → `PASS` / `REQUEST_CHANGES` |
 | 6 | `woos-prd-consistency-audit` | Script extraction + semantic audit (+upstream interface check) |
-| 7 | `woos-build-handoff` | Self-contained handoff file for coding agent |
-| 8 | `woos-handoff-readiness-check` | Script extraction + readiness audit |
-| 8.5 | (orchestrator) | Interface summary extraction — shared concepts for downstream features |
-| 9 | `woos-version-integration-audit` | Incremental cross-feature conflict detection (after each 2nd+ feature) |
+| 6.5 | (orchestrator) | Interface summary extraction — shared concepts for downstream features |
+| 7 | `woos-version-integration-audit` | Incremental cross-feature conflict detection (after each 2nd+ feature) |
 
 ---
 
@@ -145,9 +143,9 @@ Discovery dispatches 4 sub-skills in sequence:
 
 | Mode | When | Steps | Gates |
 |------|------|-------|-------|
-| **Lite** | Trivial, < 2 days | Mission → Tasks → AC → Handoff | None |
-| **Standard** | Single feature, moderate | 1 → 2 → 3 → 4 → 7 → 8 | PRD Review, Readiness |
-| **Strict** | Multi-feature, UX-heavy, high-risk | 1 → 1.5 → [per feature: 2 → 3 → 4 → 5 → 5R → 6 → 7 → 8 → 8.5 → 9(incremental)] | All |
+| **Lite** | Trivial, < 2 days | Requirements → PRD | None |
+| **Standard** | Single feature, moderate | 1 → 2 → 3 → 4 | PRD Review |
+| **Strict** | Multi-feature, UX-heavy, high-risk | 1 → 1.5 → [per feature: 2 → 3 → 4 → 5 → 5R → 6 → 6.5 → 7(incremental)] | All |
 
 Mode is determined automatically:
 1. After Capture: trivial → Lite (user confirms)
@@ -160,11 +158,11 @@ Mode is determined automatically:
 | Rule | Principle |
 |------|-----------|
 | **P0** | Explicit step dispatch — state skill, inputs, output before each step |
-| **P1** | Orchestrator does NOT author — only Steps 1, 1.5, and 8.5 are direct |
+| **P1** | Orchestrator does NOT author — only Steps 1, 1.5, and 6.5 are direct |
 | **P2** | No merging or skipping — each step has verified output |
 | **P3** | Output validation — file must exist with expected structure/verdict |
 | **P4** | No self-review — fresh skill in fresh context for every gate |
-| **P5** | Subagent isolation — Steps 4, 5R, 6, 8, 9 run in isolated contexts |
+| **P5** | Subagent isolation — Steps 4, 5R, 6, 7 run in isolated contexts |
 | **P6** | Fix propagation — any fix must grep + sync all affected docs globally |
 | **P7** | Upstream interface awareness — downstream features receive upstream interface summaries |
 
@@ -189,7 +187,7 @@ Adapted from the [BMAD](https://github.com/bmad-agent/bmad-agent) methodology. T
 
 | Persona | Used In | Purpose |
 |---------|---------|---------|
-| **PM (John)** | Step 7 (Handoff) | Product thinking — shapes handoff from user-value perspective |
+| **PM (John)** | Steps 2, 3 | Product thinking — shapes requirements and PRD from user-value perspective |
 | **UX Designer (Sally)** | Steps 5, 5R | Interaction patterns, accessibility, information hierarchy |
 | **PRD Validator** | Discovery 3R, Step 4 | Critical reviewer — gaps, contradictions, untestable criteria |
 
@@ -216,4 +214,3 @@ Adapted from the [BMAD](https://github.com/bmad-agent/bmad-agent) methodology. T
 | `template-prd-template.md` | `woos-prd-authoring` | PRD section structure |
 | `template-prd-validation-checklist.md` | `woos-product-prd-review-gate` | Review output format |
 | `requirements-template.md` | `woos-requirement-contract` | Requirements contract structure |
-| `readiness-template.md` | `woos-handoff-readiness-check` | Readiness checklist structure |

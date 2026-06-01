@@ -1,12 +1,12 @@
 ---
 name: woos-product-design-flow
-description: "Stage 3 orchestrator: route dedicated product-design skills to turn an approved roadmap version into PRDs, UI direction, and build handoff."
-version: 6.0.0
+description: "Stage 3 orchestrator: route dedicated product-design skills to turn an approved roadmap version into reviewed PRDs and interface summaries ready for coding agents."
+version: 7.0.0
 author: Hermes Profile
 license: MIT
 metadata:
   hermes:
-    tags: [product, design, prd, handoff, orchestrator]
+    tags: [product, design, prd, orchestrator]
     stage: 3
     flow: woos-idea-to-design
     related_skills:
@@ -16,8 +16,6 @@ metadata:
       - woos-ui-design-brief
       - woos-ui-brief-review
       - woos-prd-consistency-audit
-      - woos-build-handoff
-      - woos-handoff-readiness-check
       - woos-version-integration-audit
 ---
 
@@ -25,8 +23,12 @@ metadata:
 
 > You are an ORCHESTRATOR.
 >
-> You do not write requirements, PRDs, UI briefs, reviews, audits, or handoffs yourself.
+> You do not write requirements, PRDs, UI briefs, reviews, or audits yourself.
 > You route dedicated skills, validate outputs, and control transitions.
+
+## Design Principle
+
+**PRD is the source of truth for coding agents.** There is no intermediate "handoff" layer. Coding agents receive the full PRD (with background, rationale, edge cases) and decompose work themselves. Product defines WHAT and WHY. Engineering decides HOW, including task decomposition and ordering.
 
 ## ⛔ Enforcement Rules (NON-NEGOTIABLE)
 
@@ -44,7 +46,7 @@ The orchestrator may directly execute only:
 
 - Step 1: version scope selection
 - Step 1.5: feature dependency analysis
-- Step 8.5: interface summary extraction (bookkeeping, not creative)
+- Step 6.5: interface summary extraction (bookkeeping, not creative)
 
 All other outputs must come from their declared skills.
 
@@ -54,7 +56,7 @@ All other outputs must come from their declared skills.
 - Steps run in order
 - Failures are fixed and retried, not skipped
 - Optional UI steps may be skipped only when the user confirms there is no user-facing UI
-- Step 9 may be skipped only when the version has a single feature
+- Step 7 may be skipped only when the version has a single feature
 
 ### P3: Validate Output Before Advancing
 
@@ -69,10 +71,8 @@ After each step, verify the declared output exists and is substantive.
 | Step 5 | UI brief exists when UI is in scope |
 | Step 5R | UI review file exists with explicit `PASS` or `REQUEST_CHANGES` |
 | Step 6 | analyze report exists with explicit `PASS` or `GAPS_FOUND` |
-| Step 7 | handoff file exists |
-| Step 8 | readiness report exists with explicit `PASS` or `FAIL` |
-| Step 8.5 | `docs/prd/<version>/<feature>-interface.md` exists (Strict only) |
-| Step 9 | integration report exists with explicit `PASS` or `CONFLICTS_FOUND` |
+| Step 6.5 | `docs/prd/<version>/<feature>-interface.md` exists (Strict only) |
+| Step 7 | integration report exists with explicit `PASS` or `CONFLICTS_FOUND` |
 
 ### P4: No Self-Review
 
@@ -85,15 +85,14 @@ The following steps MUST run in isolated subagent contexts so their skill loads,
 - Step 4: `woos-product-prd-review-gate`
 - Step 5R: `woos-ui-brief-review`
 - Step 6: `woos-prd-consistency-audit`
-- Step 8: `woos-handoff-readiness-check`
-- Step 9: `woos-version-integration-audit`
+- Step 7: `woos-version-integration-audit`
 
 ### P6: Fix Propagation (Global Sync)
 
 When any review gate returns `REQUEST_CHANGES` and a fix is applied:
 
 1. Identify all terms, enums, field names, or concepts that were modified
-2. Grep ALL existing version documents (`docs/prd/<version>/`, `docs/design/<version>/`, `docs/handoff/<version>/`, `docs/product/`) for those terms
+2. Grep ALL existing version documents (`docs/prd/<version>/`, `docs/design/<version>/`, `docs/product/`) for those terms
 3. Update every occurrence to maintain consistency
 4. If an upstream interface summary exists for a completed feature and the fix contradicts it, update the interface summary too
 
@@ -107,7 +106,7 @@ When Step 1.5 identifies `feeds` or `mutual` relationships, downstream features 
 
 ## Purpose
 
-Transform one approved roadmap version into build-ready product handoff files. This is **Stage 3** of the `woos-idea-to-design` flow.
+Transform one approved roadmap version into reviewed PRDs and interface summaries that coding agents can directly implement. This is **Stage 3** of the `woos-idea-to-design` flow.
 
 Product defines **WHAT** and **WHY**. Engineering decides **HOW**.
 
@@ -125,9 +124,9 @@ All file paths (`docs/`) are relative to a project root directory which must be 
 
 | Mode | When | Steps |
 |------|------|-------|
-| **Lite** | Small scope, obvious, 1-2 days work | Mission → Tasks → AC → Handoff |
-| **Standard** | Single feature, moderate complexity | Requirements → PRD → PRD Review → Handoff → Readiness |
-| **Strict** | Multi-feature version, higher uncertainty, UX-heavy | Select Scope → Dependency Analysis → [per feature: Requirements → PRD → Review → UI → UI Review → Analyze → Handoff → Readiness → Interface Summary → Integration (incremental)] |
+| **Lite** | Small scope, obvious, 1-2 days work | Requirements → PRD (lightweight) |
+| **Standard** | Single feature, moderate complexity | Requirements → PRD → PRD Review |
+| **Strict** | Multi-feature version, higher uncertainty, UX-heavy | Select Scope → Dependency Analysis → [per feature: Requirements → PRD → Review → UI → UI Review → Analyze → Interface Summary → Integration (incremental)] |
 
 ---
 
@@ -139,10 +138,10 @@ The orchestrator runs per feature:
 Step 1:   Select Version Scope
 Step 1.5: Feature Dependency Analysis (auto, Strict only)
   → For each feature (in dependency order):
-      Steps 2–8.5
-      Step 9 (incremental, after 2nd+ feature)
-  → After last feature passes Step 9:
-      Done — all handoffs ready
+      Steps 2–6.5
+      Step 7 (incremental, after 2nd+ feature)
+  → After last feature passes Step 7:
+      Done — all PRDs + interface summaries ready for coding agents
 ```
 
 ### Step 1: Select Version Scope
@@ -273,7 +272,7 @@ Interface pass-through:
 | **Execution** | isolated subagent |
 | **Input** | `docs/prd/<version>/<feature>.md` + `docs/design/<version>/<feature>-ui-brief.md` (if exists) |
 | **Conditional input** | `docs/prd/<version>/<upstream-feature>-interface.md` for each upstream dependency |
-| **Output** | `docs/handoff/<version>/<feature>-analyze-report.md` |
+| **Output** | `docs/reviews/<version>/<feature>-analyze-report.md` |
 
 **Advance when:** verdict is `PASS`.
 
@@ -284,41 +283,13 @@ Interface pass-through:
 
 ---
 
-### Step 7: Build Handoff
-
-| | |
-|---|---|
-| **Skill** | `woos-build-handoff` |
-| **Input** | `docs/prd/<version>/<feature>.md` + `docs/design/<version>/<feature>-ui-brief.md` (if exists) + `docs/handoff/<version>/<feature>-analyze-report.md` (if exists) |
-| **Output** | `docs/handoff/<version>/<feature>.md` |
-
-**Advance when:** the handoff file exists and is substantive.
-
----
-
-### Step 8: Handoff Readiness Check
-
-| | |
-|---|---|
-| **Skill** | `woos-handoff-readiness-check` |
-| **Execution** | isolated subagent |
-| **Input** | `docs/handoff/<version>/<feature>.md` |
-| **Output** | `docs/reviews/<version>/<feature>-readiness.md` |
-
-**Results:**
-
-- `PASS` → continue to Step 8.5
-- `FAIL` → return to Step 7
-
----
-
-### Step 8.5: Interface Summary Extraction
+### Step 6.5: Interface Summary Extraction
 
 | | |
 |---|---|
 | **Skill** | direct orchestrator step |
-| **Trigger** | Strict mode, after Step 8 PASS |
-| **Input** | `docs/prd/<version>/<feature>-requirements.md` + `docs/prd/<version>/<feature>.md` + `docs/handoff/<version>/<feature>.md` |
+| **Trigger** | Strict mode, after Step 6 PASS |
+| **Input** | `docs/prd/<version>/<feature>-requirements.md` + `docs/prd/<version>/<feature>.md` |
 | **Output** | `docs/prd/<version>/<feature>-interface.md` |
 
 The orchestrator extracts the feature's **shared interface contract** — a lightweight summary (~500 bytes–1KB) of concepts that other features may depend on:
@@ -354,7 +325,7 @@ The orchestrator extracts the feature's **shared interface contract** — a ligh
 
 ---
 
-### Step 9: Version Integration Gate
+### Step 7: Version Integration Gate
 
 | | |
 |---|---|
@@ -365,8 +336,8 @@ The orchestrator extracts the feature's **shared interface contract** — a ligh
 
 **Trigger:** Strict mode with 2+ features. Runs **incrementally**:
 
-- After the **2nd feature** completes Step 8.5 → first integration check (F1 + F2)
-- After each subsequent feature completes Step 8.5 → incremental integration check (all completed features)
+- After the **2nd feature** completes Step 6.5 → first integration check (F1 + F2)
+- After each subsequent feature completes Step 6.5 → incremental integration check (all completed features)
 - Final run after the last feature → full integration report
 
 **Incremental strategy:**
@@ -397,19 +368,17 @@ Single feature, no priority/UI/analyze/integration path.
 | S1 | `woos-requirement-contract` | `docs/prd/<version>/<feature>-requirements.md` |
 | S2 | `woos-prd-authoring` | `docs/prd/<version>/<feature>.md` |
 | S3 | `woos-product-prd-review-gate` | `docs/reviews/<version>/<feature>-prd-review-rN.md` |
-| S4 | `woos-build-handoff` | `docs/handoff/<version>/<feature>.md` |
-| S5 | `woos-handoff-readiness-check` | `docs/reviews/<version>/<feature>-readiness.md` |
 
 ---
 
 ## Steps — Lite Mode
 
-Lite skips the review/audit pipeline and uses `woos-build-handoff` to package:
+Lite skips the review/audit pipeline. The orchestrator produces a lightweight PRD directly:
 
-1. Mission
-2. Build Tasks
-3. Acceptance Criteria
-4. Verification
+1. Requirements (brief)
+2. PRD (focused: FRs + ACs, no extensive edge cases)
+
+Output: `docs/prd/<version>/<feature>-requirements.md` + `docs/prd/<version>/<feature>.md`
 
 ## DCR Reception
 
@@ -417,16 +386,25 @@ When engineering sends `docs/feedback/<feature>-dcr.md`:
 
 1. Read the DCR
 2. Assess impact
-3. Small change → update handoff directly
+3. Small change → update PRD directly
 4. Large change → return to Step 3 or Step 5
 
-## Handoff to Engineering
+## Deliverable to Engineering
 
-On completion:
+On completion, the coding agent receives:
 
-- Handoff: `docs/handoff/<version>/<feature>.md`
-- Analyze report: `docs/handoff/<version>/<feature>-analyze-report.md` (if generated)
-- Integration report: `docs/reviews/<version>/integration-report.md` (Strict only)
+**Required:**
+- PRD: `docs/prd/<version>/<feature>.md`
+- Interface summary: `docs/prd/<version>/<feature>-interface.md` (Strict only)
+
+**Supporting (if exists):**
+- UI brief: `docs/design/<version>/<feature>-ui-brief.md`
+- Architecture: `docs/product/<project>-architecture.md`
+- Upstream interfaces: `docs/prd/<version>/<upstream>-interface.md`
+- Analyze report: `docs/reviews/<version>/<feature>-analyze-report.md`
+- Integration report: `docs/reviews/<version>/integration-report.md`
+
+The coding agent is responsible for task decomposition, ordering, and implementation decisions.
 
 ---
 
@@ -436,6 +414,6 @@ On completion:
 |-----------|--------|
 | Roadmap missing | Return to `woos-product-discovery` |
 | Review loop hits max rounds | Ask the user for direction |
-| Scope too large | Split into multiple handoffs |
+| Scope too large | Split into multiple features |
 | Output file missing or stub | Re-run the same declared step |
 | Script-based audit fails | Fix the inputs or parser bug, then re-run |
