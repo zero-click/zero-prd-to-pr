@@ -173,7 +173,24 @@ In `woos-product-design-flow`:
 - Runs before Build Handoff packaging (handoff includes UI direction)
 - **Lite mode:** skipped entirely
 - **Standard mode:** skipped (Standard is single-feature, keeps scope tight)
-- **Strict mode:** triggered when feature has user-facing UI (orchestrator asks user)
+- **Strict mode:** triggered when feature has user-facing UI. Do not keep re-asking for permission between adjacent design-flow steps when the user has already said to continue uninterrupted.
+
+## Special Case: API-first Features With Minimal Operator Visibility
+
+Some features are primarily backend/control-plane capabilities but still require a small operator-facing supervision surface. In these cases, the UI brief should explicitly separate:
+
+- the primary API / agent-facing contract
+- the minimal operator-visible read-side surface
+
+Rules for this class of feature:
+- Do **not** reframe the feature as a full "UI feature" just because a small visibility surface exists.
+- Do **not** invent a standalone page if the requirement is satisfied by existing dashboard/detail surfaces.
+- Describe the smallest operator-visible elements that make the backend capability legible (for example: badge/state chip, latest progress snippet, blocker marker, typed timeline rows).
+- Make the read-only vs mutable boundary explicit.
+- If the feature is read-side only, say so directly in the brief.
+- Carry scope boundaries forward so adjacent roadmap features are not accidentally absorbed.
+
+This pattern is especially important for heartbeat/reporting/timeline-style features where the user may object if the brief implies "there is a new page" instead of "there is minimal visibility in existing supervision surfaces".
 
 ## Pitfalls
 
@@ -183,3 +200,4 @@ In `woos-product-design-flow`:
 - Don't replace product decisions — if "what to build" is unclear, go back to PRD
 - Don't over-specify — give direction, not pixel-perfect mockups
 - Don't block the workflow if UI brief is skipped — carry UI as assumptions
+- For workflow-heavy / control-plane interfaces, do not stop at screen lists. Explicitly cover: (1) legal state-transition flows end to end, (2) concurrent-update or save-overtaken feedback, (3) multi-step invalidation/re-confirmation flows (e.g. revise plan → invalidate current state → explicit second confirm), and (4) concrete component inventory for filters/search/sort, state-transition controls, and repeater/aggregate-validation patterns. Missing these is a common reason UI review gates fail.

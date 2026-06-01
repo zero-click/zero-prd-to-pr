@@ -56,6 +56,39 @@ When upstream interface summaries are present, add **P8** to the content quality
 
 P8 failures count toward `REQUEST_CHANGES`.
 
+## Fix-Loop Guidance for Upstream Contract Gaps
+
+When the reviewer returns `REQUEST_CHANGES` because the PRD leaves **must-ship P0 product semantics** unresolved, the review MUST say whether the gap is:
+
+- confined to PRD wording, or
+- inherited from the upstream requirement contract.
+
+This matters for the fix loop. If the unresolved issue originates upstream, the reviewer MUST explicitly instruct the orchestrator to update **both**:
+
+- `docs/prd/<version>/<feature>-requirements.md`
+- `docs/prd/<version>/<feature>.md`
+
+before rerunning the gate.
+
+Examples of upstream contract gaps include:
+
+- missing state enums or allowed transitions
+- unresolved canonical field structure
+- undefined mutable-vs-locked rules
+- placeholder success metrics or NFR thresholds
+- missing concurrency / idempotency / partial-failure behavior for P0 flows
+
+When the PRD introduces a **new shared enum value, event type, or idempotency field** that is intended to become part of the cross-feature contract (for example extending an upstream interface summary with new states such as `offered` / `claimed`, or defining a canonical `claim_request_id` replay key), the review MUST NOT stop at saying "interface drift". The fix loop must explicitly instruct the orchestrator to patch the relevant upstream `*-interface.md` summary alongside the feature requirements/PRD so downstream gates review the updated shared contract rather than a stale interface snapshot.
+
+When auditing rejection behavior, distinguish:
+
+- **semantic business rejections after decision evaluation** (for example closed offer, no-longer-eligible claimant), which may require durable task-timeline audit events; from
+- **unauthorized or malformed requests rejected before business evaluation**, which may be excluded from task-timeline audit history as long as no partial state is created.
+
+Do not mark these as contradictory unless the document collapses the two categories into one rule.
+
+For must-ship P0 semantics, prefer recommending **concrete product defaults** over preserving `[NEEDS CLARIFICATION]` markers, unless the uncertainty is genuinely irreducible without user input.
+
 ## Output
 
 - `docs/reviews/<version>/<feature>-prd-review-rN.md`

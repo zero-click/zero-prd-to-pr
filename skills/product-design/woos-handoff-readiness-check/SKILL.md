@@ -58,6 +58,13 @@ Run `scripts/readiness_check.py` to extract:
 
 Review script findings row by row and decide whether any literal warning is a true readiness blocker.
 
+Known false-positive patterns to override semantically when evidence supports readiness:
+- `UI direction present` may be satisfied by either a `## UI Direction` section or a `## UI Design Brief` section that clearly references the UI artifact and required interaction surfaces.
+- `Open Questions` is not automatically a blocker when the section explicitly states that no blocking product questions remain and the remaining items are implementation-shape choices left intentionally to engineering.
+- `User flows have no dead ends` may be a false positive when flows are expressed as headed prose paragraphs with explicit arrow transitions rather than as bullets or numbered list items; assess the actual state transitions semantically.
+- If the readiness run starts before the handoff file exists, return `BLOCKED` (not `FAIL`), write that the gate failed closed on missing input, then rerun after the handoff lands.
+- A script warning only counts as a real blocker when the final report can point to a missing product decision, missing task mapping, dead-end flow, absent UI coverage, or absent DCR protocol in the handoff itself.
+
 ## Checklist
 
 1. All AC are testable
