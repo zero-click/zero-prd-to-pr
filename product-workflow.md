@@ -41,45 +41,48 @@ The orchestrator only tracks: current step, output file paths, pass/fail status.
 
 ## Stage 2: `woos-product-design-flow`
 
+### Design Principle: PRD is the Source of Truth
+
+Coding agents receive PRD + interface summaries directly. No intermediate "handoff" translation layer — it adds information loss and noise without value for capable coding agents that can decompose work themselves.
+
 ### Three Modes
 
 | Mode | When | Steps | Reviews |
 |------|------|-------|---------|
-| **Lite** | Small scope, obvious, 1-2 days | Mission → Tasks → AC → Handoff | None |
-| **Standard** | Single feature, moderate complexity | Requirements → PRD → PRD Review → Handoff | 1 (PRD) |
-| **Strict** | Multi-feature version, high uncertainty | Full: Priority → PRD → Review → UI → Review → Analyze → Handoff → Integration | All |
+| **Lite** | Small scope, obvious, 1-2 days | Requirements → PRD → Done | None |
+| **Standard** | Single feature, moderate complexity | Requirements → PRD → PRD Review → Done | 1 (PRD) |
+| **Strict** | Multi-feature version, high uncertainty | Full: Priority → PRD → Review → UI → Review → Analyze → Integration | All |
 
 ### Strict Mode (full pipeline, per version)
 
 ```
 Step 1: Select Version → extract feature list
   → For each feature:
-      Steps 2–9 (Requirements → Readiness)
-  → After ALL features pass Step 9:
-      Step 10: Version Integration Gate
+      Steps 2–7 (Requirements → Analyze Gate)
+  → After ALL features pass Step 7:
+      Step 8: Version Integration Gate
 ```
 
 | Step | Name | Sub-agent? | Persona | Output | BMAD Knowledge |
 |------|------|:----------:|---------|--------|----------------|
 | 1 | Select Version Scope | ❌ orchestrator | — | _(version + feature list in run-manifest)_ | _(none)_ |
+| 1.5 | Feature Dependency Analysis | ❌ orchestrator | — | _(execution order + interface pass-through plan)_ | _(none)_ |
 | 2 | Requirement Contract | ✅ | pm | `docs/prd/<version>/<feature>-requirements.md` | `personas/pm.toml`<br>`frameworks/prd.md` |
-| 3 | Priority Ranking | ✅ | pm | ↑ appends `## Priority Ranking` (P0/P1/P2 + cut-line) | `personas/pm.toml` |
-| 4 | PRD Authoring | ✅ | pm | `docs/prd/<version>/<feature>.md` | `frameworks/prd.md`<br>`templates/prd-template.md` |
-| 5 | PRD Review | ✅ | product-planner | `docs/reviews/<version>/<feature>-prd-review-rN.md` | `frameworks/validate-prd.md`<br>`templates/prd-validation-checklist.md` |
-| 6 | UI Design Brief (opt-in) | ✅ | ux-designer | `docs/design/<version>/<feature>-ui-brief.md` | `personas/ux-designer.toml`<br>`frameworks/ux-design.md` |
-| 6R | UI Brief Review | ✅ | ux-reviewer | `docs/reviews/<version>/<feature>-ui-review-rN.md` | `frameworks/ux-validate.md` |
-| 7 | Analyze Gate | ✅ | qa | `docs/handoff/<version>/<feature>-analyze-report.md` | `frameworks/implementation-readiness.md` |
-| 8 | Build Handoff | ✅ | pm | `docs/handoff/<version>/<feature>.md` | `frameworks/epics-and-stories.md` |
-| 9 | Readiness Check | ❌ orchestrator | — | _(pass/fail in run-manifest)_ | _(none)_ |
-| **10** | **Version Integration Gate** | ✅ | pm | `docs/reviews/<version>/integration-report.md` | `frameworks/implementation-readiness.md` |
+| 3 | PRD Authoring | ✅ | pm | `docs/prd/<version>/<feature>.md` | `frameworks/prd.md`<br>`templates/prd-template.md` |
+| 4 | PRD Review | ✅ | product-planner | `docs/reviews/<version>/<feature>-prd-review-rN.md` | `frameworks/validate-prd.md`<br>`templates/prd-validation-checklist.md` |
+| 5 | UI Design Brief (opt-in) | ✅ | ux-designer | `docs/design/<version>/<feature>-ui-brief.md` | `personas/ux-designer.toml`<br>`frameworks/ux-design.md` |
+| 5R | UI Brief Review | ✅ | ux-reviewer | `docs/reviews/<version>/<feature>-ui-review-rN.md` | `frameworks/ux-validate.md` |
+| 6 | Analyze Gate | ✅ | qa | `docs/reviews/<version>/<feature>-analyze-report.md` | `frameworks/implementation-readiness.md` |
+| 6.5 | Interface Summary | ❌ orchestrator | — | `docs/prd/<version>/<feature>-interface.md` | _(none)_ |
+| **7** | **Version Integration Gate** | ✅ | pm | `docs/reviews/<version>/integration-report.md` | `frameworks/implementation-readiness.md` |
 
-**Step 6 trigger:** Orchestrator asks user "Does this feature have UI?" — Yes → run, No → skip 6+6R.
-**Step 10 trigger:** Runs after ALL features pass Step 9. Skipped if only 1 feature in version.
+**Step 5 trigger:** Orchestrator asks user "Does this feature have UI?" — Yes → run, No → skip 5+5R.
+**Step 7 trigger:** Runs incrementally after 2nd+ feature completes. Skipped if only 1 feature in version.
 
 ### Standard Mode (single feature)
 
 ```
-Requirements → PRD → PRD Review → Handoff → Readiness
+Requirements → PRD → PRD Review → Done
 ```
 
 | Step | Name | Sub-agent? | Output |
@@ -87,8 +90,6 @@ Requirements → PRD → PRD Review → Handoff → Readiness
 | S1 | Requirement Contract | ✅ (pm) | `docs/prd/<version>/<feature>-requirements.md` |
 | S2 | PRD Authoring | ✅ (pm) | `docs/prd/<version>/<feature>.md` |
 | S3 | PRD Review | ✅ (prd-validator) | `docs/reviews/<version>/<feature>-prd-review-rN.md` |
-| S4 | Build Handoff | ✅ (pm) | `docs/handoff/<version>/<feature>.md` |
-| S5 | Readiness Check | ❌ orchestrator | _(pass/fail)_ |
 
 No: Priority Ranking, UI Brief, Analyze Gate, Integration Gate.
 
@@ -96,37 +97,35 @@ No: Priority Ranking, UI Brief, Analyze Gate, Integration Gate.
 
 | Step | What | Output |
 |------|------|--------|
-| L1 | Mission (1 sentence) | — |
-| L2 | Build Tasks | — |
-| L3 | Acceptance Criteria | — |
-| L4 | Verification | — |
-| L5 | Package handoff | `docs/handoff/<version>/<feature>.md` (4 fields) |
+| L1 | Requirements | `docs/prd/<version>/<feature>-requirements.md` |
+| L2 | PRD (lightweight) | `docs/prd/<version>/<feature>.md` |
 
 No review gates. Self-check only.
 
 ### Final Deliverable (all modes)
 
-⭐ **`docs/handoff/<version>/<feature>.md`** — coding agent 的唯一输入
+⭐ **Coding agent 的输入 = PRD + 支撑文档（不再有 handoff 中间层）**
 
-Handoff 文件中包含 `mode` 字段标识产品设计用了哪个模式：
-
-```yaml
----
-spec-version: 1
-mode: standard  # lite | standard | strict
-feature: auth
-version: v1
-based-on: docs/prd/v1/auth.md
----
 ```
+必需：
+  - docs/prd/<version>/<feature>.md              ← PRD（完整 context：why + what + edge cases）
+  - docs/prd/<version>/<feature>-interface.md    ← 跨 feature 共享契约（Strict mode）
+
+可选（如存在）：
+  - docs/design/<version>/<feature>-ui-brief.md  ← UI 实现方向
+  - docs/product/<project>-architecture.md       ← 系统架构约束
+  - docs/prd/<version>/<upstream>-interface.md   ← 上游依赖接口
+```
+
+Coding agent 自己负责 task decomposition、ordering、implementation decisions。Product 不替 engineering 拆活。
 
 **Per-mode deliverables:**
 
 | Mode | 产出物 |
 |------|--------|
-| Lite | `docs/handoff/<version>/<feature>.md` (4 fields: mission, tasks, AC, verification) |
-| Standard | `docs/prd/<version>/<feature>-requirements.md`<br>`docs/prd/<version>/<feature>.md`<br>`docs/reviews/<version>/<feature>-prd-review-rN.md`<br>⭐ `docs/handoff/<version>/<feature>.md` |
-| Strict | Standard 全部 +<br>`docs/design/<version>/<feature>-ui-brief.md` (如有)<br>`docs/reviews/<version>/<feature>-ui-review-rN.md` (如有)<br>`docs/handoff/<version>/<feature>-analyze-report.md`<br>`docs/reviews/<version>/integration-report.md` |
+| Lite | `docs/prd/<version>/<feature>-requirements.md`<br>`docs/prd/<version>/<feature>.md` |
+| Standard | Lite 全部 +<br>`docs/reviews/<version>/<feature>-prd-review-rN.md` |
+| Strict | Standard 全部 +<br>`docs/design/<version>/<feature>-ui-brief.md` (如有)<br>`docs/reviews/<version>/<feature>-ui-review-rN.md` (如有)<br>`docs/reviews/<version>/<feature>-analyze-report.md`<br>`docs/prd/<version>/<feature>-interface.md`<br>`docs/reviews/<version>/integration-report.md` |
 
 ---
 
@@ -161,8 +160,7 @@ Templates in `skills/product-design/templates/` define the structure each step m
 | Template | Used By |
 |----------|---------|
 | `requirements-template.md` | Step 2 (Requirement Contract) |
-| `prd-template.md` | Step 4 (PRD Authoring) |
-| `readiness-template.md` | Step 9 (Readiness Check) |
+| `prd-template.md` | Step 3 (PRD Authoring) |
 
 **Convention:** When a sub-agent encounters an unknown or unresolved decision, it MUST mark it as `[NEEDS CLARIFICATION: <what is needed>]` rather than inventing an answer. The orchestrator collects these markers and asks the user before proceeding to the next step.
 
@@ -185,21 +183,20 @@ Every step declares explicit `input` and `output` so the next agent knows exactl
 | 5R Architecture Review | `docs/product/<project>-architecture.md` + `docs/product/<project>-roadmap.md` | `docs/reviews/<project>-architecture-review-rN.md` |
 | 6 Decision Log | `docs/product/<project>-roadmap.md` | `docs/product/<project>-roadmap.md` → appends to `## Decision Log` |
 
-### Stage 2 (Steps 2–9 run per feature, Step 10 runs once for the version)
+### Stage 2 (Steps 2–6 run per feature, Step 7 runs incrementally)
 
 | Step | Input | Output |
 |------|-------|--------|
 | 1 Select Scope | `docs/product/<project>-roadmap.md` | _(confirmed version + feature list — stored in run-manifest)_ |
+| 1.5 Dependency Analysis | `docs/product/<project>-roadmap.md` § selected version | _(execution order + interface pass-through plan)_ |
 | 2 Requirements | `docs/product/<project>-roadmap.md` § target version § feature | `docs/prd/<version>/<feature>-requirements.md` |
-| 3 Priority Ranking | `docs/prd/<version>/<feature>-requirements.md` | ↑ appends `## Priority Ranking` |
-| 4 PRD Authoring | `docs/prd/<version>/<feature>-requirements.md` (含 Priority Ranking) | `docs/prd/<version>/<feature>.md` |
-| 5 PRD Review | `docs/prd/<version>/<feature>.md` + requirements | `docs/reviews/<version>/<feature>-prd-review-rN.md` |
-| 6 UI Brief | `docs/prd/<version>/<feature>.md` | `docs/design/<version>/<feature>-ui-brief.md` |
-| 6R UI Review | UI brief + PRD | `docs/reviews/<version>/<feature>-ui-review-rN.md` |
-| 7 Analyze Gate | PRD + UI brief (if exists) | `docs/handoff/<version>/<feature>-analyze-report.md` |
-| 8 Handoff | PRD + UI brief + analyze report | `docs/handoff/<version>/<feature>.md` |
-| 9 Readiness | `docs/handoff/<version>/<feature>.md` | `docs/reviews/<version>/<feature>-readiness.md` |
-| **10 Integration** | All `docs/handoff/<version>/*.md` | `docs/reviews/<version>/integration-report.md` |
+| 3 PRD Authoring | `docs/prd/<version>/<feature>-requirements.md` (含 Priority Ranking) | `docs/prd/<version>/<feature>.md` |
+| 4 PRD Review | `docs/prd/<version>/<feature>.md` + requirements | `docs/reviews/<version>/<feature>-prd-review-rN.md` |
+| 5 UI Brief | `docs/prd/<version>/<feature>.md` | `docs/design/<version>/<feature>-ui-brief.md` |
+| 5R UI Review | UI brief + PRD | `docs/reviews/<version>/<feature>-ui-review-rN.md` |
+| 6 Analyze Gate | PRD + UI brief (if exists) | `docs/reviews/<version>/<feature>-analyze-report.md` |
+| 6.5 Interface Summary | PRD + requirements | `docs/prd/<version>/<feature>-interface.md` |
+| **7 Integration** | All `docs/prd/<version>/*-interface.md` + architecture | `docs/reviews/<version>/integration-report.md` |
 
 ---
 

@@ -9,7 +9,7 @@ metadata:
     tags: [integration, audit, cross-feature, traceability, gate, product-design]
     related_skills:
       - woos-product-design-flow
-      - woos-handoff-readiness-check
+      - woos-prd-consistency-audit
 ---
 
 # Version Integration Audit
@@ -56,7 +56,6 @@ Before auditing, load and report:
 - `docs/product/<project>-architecture.md`
 - `docs/prd/<version>/<newest-feature>-requirements.md` (full doc for newest feature)
 - `docs/prd/<version>/<newest-feature>.md` (full doc for newest feature)
-- `docs/handoff/<version>/<newest-feature>.md` (full doc for newest feature)
 - `docs/design/<version>/<newest-feature>-ui-brief.md` (if present, for newest feature)
 - `docs/prd/<version>/<feature>-interface.md` for ALL previously completed features
 
@@ -70,7 +69,6 @@ If any required file is not loaded, return `BLOCKED`.
 - `docs/product/<project>-architecture.md`
 - `docs/prd/<version>/<feature>-requirements.md` for all features
 - `docs/prd/<version>/<feature>.md` for all features
-- `docs/handoff/<version>/<feature>.md` for all features
 - `docs/design/<version>/<feature>-ui-brief.md` for all features that have one
 - `scripts/integration_gate.py`
 
