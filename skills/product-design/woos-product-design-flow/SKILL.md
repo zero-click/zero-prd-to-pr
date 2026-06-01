@@ -67,7 +67,7 @@ After each step, verify the declared output exists and is substantive.
 
 | Step | Required result |
 |------|-----------------|
-| Step 1.5 | execution order + interface pass-through plan stated (Strict only) |
+| Step 1.5 | execution order + feature IDs + interface pass-through plan stated (Strict only) |
 | Step 2 | `docs/prd/<version>/<feature-id>-requirements.md` exists with required sections and `## Priority Ranking` |
 | Step 3 | `docs/prd/<version>/<feature-id>.md` exists with required sections |
 | Step 4 | PRD review file exists with explicit `PASS` or `REQUEST_CHANGES` |
