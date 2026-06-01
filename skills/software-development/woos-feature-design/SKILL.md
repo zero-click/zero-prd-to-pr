@@ -1,7 +1,7 @@
 ---
 name: woos-feature-design
-description: Create implementation-ready feature technical design after PRD and capability contract are available.
-version: 1.2.0
+description: Create implementation-ready feature technical design after PRD, roadmap, and architecture are available.
+version: 2.0.0
 author: Hermes Profile
 license: MIT
 ---
@@ -23,13 +23,13 @@ Produce a technical design artifact that is precise enough for TDD and implement
 ## Reviewer Isolation (hard gate)
 
 - The `architect` (and `product-planner` when invoked) MUST be dispatched as a separate agent instance with fresh context (e.g., via task/spawn tool). In-context skill injection where the same LLM session plays the reviewer role is NOT a valid invocation.
-- The dispatched agent receives only the design inputs (approved PRD, capability contract, prior context). It MUST NOT inherit the implementer's session history or reasoning.
+- The dispatched agent receives only the design inputs (approved PRD, roadmap, architecture, optional interface summary/UI brief/upstream interfaces, prior context). It MUST NOT inherit the implementer's session history or reasoning.
 - `invocation_evidence` MUST include `dispatch_mode: "fresh_context"`. Any other value is invalid and MUST return `BLOCKED`.
 
 ## Contract
 
-- Input: approved PRD + capability contract
-- Output file: `docs/design/<feature>.md` (or project convention)
+- Input: approved PRD + roadmap + architecture (+ optional interface summary/UI brief/upstream interfaces)
+- Output file: `docs/engineering/<version>/<feature-id>-design.md` (or project convention)
 - Output status: `PASS` | `REQUEST_CHANGES` | `NOT_RUN` | `BLOCKED`
 - Output fields (required):
   - `design_owner: architect`

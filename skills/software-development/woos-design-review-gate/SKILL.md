@@ -80,7 +80,7 @@ Run a strict design review gate before coding starts.
         "skill": "architect",
         "dispatch_mode": "fresh_context",
         "invoked_at": "2026-05-12T22:00:00Z",
-        "artifact_ref": "docs/design/<feature>.md",
+        "artifact_ref": "docs/engineering/<version>/<feature-id>-design.md",
         "output_digest": "sha256:..."
       }
     ],

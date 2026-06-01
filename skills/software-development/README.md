@@ -1,12 +1,12 @@
 # Software Development Workflow
 
-A gated engineering pipeline for AI coding agents. Receives a build handoff from the product design stage, decomposes into stories, and delivers a production-ready PR through TDD, review gates, and end-to-end requirement traceability.
+A gated engineering pipeline for AI coding agents. Receives PRD, roadmap, and architecture from the product design stage, decomposes into stories, and delivers a production-ready PR through TDD, review gates, and end-to-end requirement traceability.
 
 ## Purpose
 
 This is **Stage 3** of the idea-to-delivery pipeline. It ensures:
 
-- Engineering receives a fully-defined handoff — no product-phase work happens here
+- Engineering receives product design inputs — PRD, roadmap, and architecture — no product-phase work happens here
 - Work is decomposed into independent, verifiable stories with clear DAG ordering
 - Every story is implemented via TDD (RED → GREEN → REFACTOR)
 - Requirements are traced end-to-end: PRD → design → code → test
@@ -14,18 +14,18 @@ This is **Stage 3** of the idea-to-delivery pipeline. It ensures:
 
 ## Quick Start
 
-1. Ensure a build handoff exists at `docs/handoff/<version>/<feature>.md`
+1. Ensure required product inputs exist: PRD, roadmap, and architecture
 2. The agent activates `woos-development-workflow` (entry point skill)
-3. The workflow auto-selects Lite/Standard/Strict based on handoff content
+3. The workflow auto-selects Lite/Standard/Strict based on PRD scope and risk
 4. Follow the gated flow — each gate must PASS before the next begins
 
-**Prerequisite:** Product design pipeline must have completed. No handoff = BLOCKED.
+**Prerequisite:** Product design pipeline must have completed the feature checkpoint. Missing PRD, roadmap, or architecture = BLOCKED.
 
 ## Workflow Flowchart
 
 ```
                      ┌───────────────────────┐
-                     │  Build Handoff        │
+                     │  Product Inputs       │
                      │  (from product stage) │
                      └───────────┬───────────┘
                                  │
@@ -35,9 +35,9 @@ This is **Stage 3** of the idea-to-delivery pipeline. It ensures:
                   └──────────────┬──────────────┘
                                  │
                   ┌──────────────▼──────────────┐
-                  │  Gate 0: Handoff Intake      │
-                  │  Validate handoff, record    │
-                  │  version in run-manifest     │
+                  │  Gate 0: Product Intake      │
+                  │  Validate PRD, roadmap,      │
+                  │  architecture, record inputs │
                   └──────────────┬──────────────┘
                                  │
                   ┌──────────────▼──────────────┐
@@ -54,7 +54,7 @@ This is **Stage 3** of the idea-to-delivery pipeline. It ensures:
                                  │
                   ┌──────────────▼──────────────┐
                   │  Gate 2: Story Decomposition │
-                  │  Break handoff into 3–8      │
+                  │  Break PRD into 3–8          │
                   │  independent stories (DAG)   │
                   └──────────────┬──────────────┘
                                  │
@@ -81,7 +81,7 @@ This is **Stage 3** of the idea-to-delivery pipeline. It ensures:
                                  │
                   ┌──────────────▼──────────────┐
                   │  Gate 5: Deviation Control   │
-                  │  Implementation vs handoff   │
+                  │  Implementation vs PRD/design│
                   └──────────────┬──────────────┘
                                  │
                   ┌──────────────▼──────────────┐
@@ -112,26 +112,29 @@ This is **Stage 3** of the idea-to-delivery pipeline. It ensures:
 
   On design issue at any gate:
   ┌─────────────────────────────────────────┐
-  │  DCR → docs/feedback/<feature>-dcr.md   │
+  │  DCR → docs/feedback/<version>/<feature-id>-dcr.md │
   │  → back to product pipeline for fix     │
   └─────────────────────────────────────────┘
 ```
 
 ## Gate Breakdown
 
-### Gate 0 — Handoff Intake
+### Gate 0 — Product Intake
 
-**What:** Validate the build handoff from product pipeline.
+**What:** Validate product inputs from product pipeline.
 
-- Confirm file at `docs/handoff/<version>/<feature>.md`
-- Verify required sections: Mission, Requirements, AC, User Flows, Build Tasks, Verification Plan
-- Record handoff version in run-manifest for traceability
+- Confirm required inputs:
+  - PRD: `docs/prd/<version>/<feature-id>.md`
+  - Roadmap: `docs/product/<project>-roadmap.md`
+  - Architecture: `docs/product/<project>-architecture.md`
+- Verify PRD includes goals/background, functional requirements, AC, and edge cases
+- Record product input paths and feature ID in run-manifest for traceability
 - If first time on this codebase: invoke `codebase-onboarding` for analysis
-- Output: validated handoff reference in run-manifest
+- Output: validated product input references in run-manifest
 
 ### Gate 1 — Feature Design
 
-**What:** Produce the technical design artifact based on handoff.
+**What:** Produce the technical design artifact based on PRD, roadmap, and architecture.
 
 - **Skill:** `woos-feature-design`
 - Covers: architecture, data model, interfaces, risk, rollout/rollback
@@ -139,7 +142,7 @@ This is **Stage 3** of the idea-to-delivery pipeline. It ensures:
 - If database changes: reference `database-migrations` strategy
 - If deployment needed: reference `deployment-patterns` for rollout/rollback
 - Deviations from baseline captured via `architecture-decision-records`
-- Output: `docs/design/<feature>.md`
+- Output: `docs/engineering/<version>/<feature-id>-design.md`
 
 ### Gate 1R — Design Review
 
@@ -152,14 +155,14 @@ This is **Stage 3** of the idea-to-delivery pipeline. It ensures:
 
 ### Gate 2 — Story Decomposition
 
-**What:** Break the handoff into independent, verifiable stories.
+**What:** Break the PRD and engineering design into independent, verifiable stories.
 
 - Built-in orchestrator procedure
-- Each story covers 1–3 related Build Tasks
+- Each story covers 1–3 related PRD requirements, AC, or engineering design tasks
 - Stories form a DAG (dependency order)
 - Each story is independently verifiable
 - Target: 3–8 stories per feature
-- Output: `docs/stories/<feature>/story-NNN.md`
+- Output: `docs/stories/<version>/<feature-id>/story-NNN.md`
 
 ### Gate 3 — Story Execution Loop
 
@@ -186,13 +189,13 @@ Per story (in dependency order):
 **What:** Full-feature acceptance check after all stories complete.
 
 - **Skill:** `woos-executable-acceptance-gate`
-- Maps ALL handoff AC to executable checks
+- Maps ALL PRD AC to executable checks
 - Missing automation = blocker
 - Output: PASS → proceed. REQUEST_CHANGES → back to Gate 3.
 
 ### Gate 5 — Deviation Control
 
-**What:** Compare implementation against handoff and design.
+**What:** Compare implementation against PRD, product architecture, and engineering design.
 
 - **Skill:** `woos-deviation-control-gate`
 - Unresolved deviations block progression
@@ -206,7 +209,7 @@ Per story (in dependency order):
 - Produces traceability table: `PRD AC → Design Spec → Code → Test → Status`
 - Classifications: ✅ Aligned, ⚠️ Deviated (rationale required), ❌ Missing, 🆕 Added
 - Zero ❌ required for PASS
-- Output: `docs/handoff/<feature>-traceability.md`
+- Output: `docs/traceability/<version>/<feature-id>-traceability.md`
 
 ### Gate 7 — Code/Security Review
 
@@ -242,14 +245,14 @@ Per story (in dependency order):
 
 | Mode | When | Gates | Story Loop |
 |------|------|-------|------------|
-| **Lite** | Low-risk, limited scope, no arch changes | Handoff → Implement → Verify → Review → PR | No decomposition |
+| **Lite** | Low-risk, limited scope, no arch changes | Product Intake → Implement → Verify → Review → PR | No decomposition |
 | **Standard** | Multi-file, moderate risk (default) | All 9 gates | Full story loop |
 | **Strict** | Security-sensitive, high uncertainty | All + API Review + Browser QA + Arch Conformance | Full story loop |
 
-**Mode is determined by handoff content**, not chosen manually:
-- Lite handoff (4 sections) → Lite mode
-- Full handoff (13 sections) → Standard mode
-- Full handoff + security/compliance flags → Strict mode
+**Mode is determined by PRD scope and risk**, not chosen manually:
+- Small, low-risk PRD → Lite mode
+- Multi-file or moderate-risk PRD → Standard mode
+- Security/compliance-sensitive or high-uncertainty PRD → Strict mode
 
 ## Enforcement Rules
 
@@ -304,7 +307,7 @@ The workflow includes 3 non-negotiable enforcement rules (E1–E3) learned from 
 
 ## Key Design Principles
 
-1. **Handoff-first** — no product-phase work here; handoff is the input contract
+1. **Product-input-first** — no product-phase work here; PRD, roadmap, and architecture are the input contract
 2. **Story-based decomposition** — large features broken into independently verifiable units
 3. **TDD per story** — RED/GREEN/REFACTOR is not optional
 4. **Failure isolation** — blocked stories don't cascade; independent work continues
@@ -373,7 +376,7 @@ Skills that provide information-gathering capability:
 
 | Gate | Core | Security | Architecture | Testing | Research |
 |------|------|----------|-------------|---------|----------|
-| **0: Handoff Intake** | — | — | — | — | `codebase-onboarding` |
+| **0: Product Intake** | — | — | — | — | `codebase-onboarding` |
 | **1: Feature Design** | — | — | `api-design`, `architecture-decision-records`, `deployment-patterns`, `database-migrations` | — | `deep-research` |
 | **1R: Design Review** | — | — | — | — | — |
 | **2: Story Decomposition** | — | — | — | — | — |
@@ -388,10 +391,10 @@ Skills that provide information-gathering capability:
 
 When engineering discovers a design issue that can't be resolved within scope:
 
-1. Write `docs/feedback/<feature>-dcr.md` (issue, impact, proposed fix, priority)
+1. Write `docs/feedback/<version>/<feature-id>-dcr.md` (issue, impact, proposed fix, priority)
 2. Stop work on affected stories
 3. Continue with unaffected stories
-4. Product pipeline receives DCR, fixes, and re-issues updated handoff
+4. Product pipeline receives DCR, fixes, and re-issues updated PRD/supporting docs
 
 ## File Layout
 
@@ -402,15 +405,18 @@ When engineering discovers a design issue that can't be resolved within scope:
 │   │   └── run-manifest.yaml          ← gate progress tracking
 │   └── review-context/<run_id>.yaml   ← cumulative findings
 ├── docs/
-│   ├── handoff/<version>/<feature>.md ← INPUT (from product)
-│   ├── prd/<feature>.md               ← read for traceability
-│   ├── design/<feature>.md            ← Gate 1 output
-│   ├── stories/<feature>/             ← Gate 2 output
+│   ├── product/<project>-roadmap.md   ← required input
+│   ├── product/<project>-architecture.md ← required input
+│   ├── prd/<version>/<feature-id>.md  ← required input
+│   ├── prd/<version>/<feature-id>-interface.md ← Strict input
+│   ├── design/<version>/<feature-id>-ui-brief.md ← Strict input if UI
+│   ├── engineering/<version>/<feature-id>-design.md ← Gate 1 output
+│   ├── stories/<version>/<feature-id>/ ← Gate 2 output
 │   │   ├── story-001.md
 │   │   ├── story-002.md
 │   │   └── ...
 │   ├── adr/                           ← ADR captures
-│   ├── feedback/<feature>-dcr.md      ← DCR output (back to product)
-│   └── handoff/<feature>-traceability.md ← Gate 6 output
+│   ├── feedback/<version>/<feature-id>-dcr.md ← DCR output (back to product)
+│   └── traceability/<version>/<feature-id>-traceability.md ← Gate 6 output
 └── (implementation files)
 ```
