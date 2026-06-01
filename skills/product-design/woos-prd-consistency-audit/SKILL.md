@@ -23,10 +23,10 @@ This skill exists to stop the parent orchestrator from skipping straight to a so
 ## Required Invocation (hard gate)
 
 - MUST be invoked as a separate skill
-- MUST run `scripts/analyze_gate.py` before semantic review
+- MUST run `scripts/analyze_gate.py` before semantic review, OR replicate its extraction logic with equivalent precision (see Phase 1 fallback below)
 - MUST use the script output as evidence, not as the final verdict
 - MUST review every A1-A5 check explicitly
-- If script execution is skipped or any check is omitted, return `BLOCKED`
+- If script execution is skipped **and** the manual fallback is not followed, return `BLOCKED`
 
 ## Required Load Set (mandatory)
 
@@ -59,7 +59,7 @@ A6 failures count toward `GAPS_FOUND`.
 
 ### Phase 1 — Script Extraction
 
-Run `scripts/analyze_gate.py` to extract:
+**Preferred path:** Run `scripts/analyze_gate.py` to extract:
 
 - user stories
 - acceptance criteria
@@ -68,6 +68,21 @@ Run `scripts/analyze_gate.py` to extract:
 - UI screens
 - placeholders
 - deterministic hotspot candidates
+
+**Fallback path (when shell execution is unavailable):** Replicate the extraction logic manually using the same algorithms documented in `scripts/_audit_utils.py`. The script's extraction logic is deterministic regex-based — it searches for `As a ... I want to ...` patterns (user stories), `Given/When/Then` BDD checklist items under "Acceptance Criteria" headings (ACs), inline `->` or `→` arrow items under flow section headings (flows), section-titled "Non-Goals"/"Out of Scope" content, "Screen " heading patterns and table-surface listings (UI screens), and `[NEEDS CLARIFICATION]`, `TBD`, `TODO`, `[ASSUMPTION]` regex patterns (placeholders). When using the fallback:
+
+- Read each extraction target's implementation in `_audit_utils.py` to match the algorithm faithfully.
+- Report **both** the manual extraction output **and** the fact that shell was unavailable, so the semantic reviewer knows the extraction is hand-run rather than a direct script invocation.
+- Do NOT relax extraction standards — the fallback must be as precise as the script.
+- Document any extraction uncertainty explicitly (e.g. "could not determine exact count, estimated range").
+
+If neither path can be followed, return `BLOCKED`.
+
+Known script limitations to account for during semantic review:
+
+- FR-based PRDs may legitimately fail user-story extraction when requirements are written as functional requirements plus acceptance criteria rather than `As a ... I want ...` statements.
+- Fenced multiline arrow flows may legitimately fail flow extraction when the script only finds inline/bulleted `->` or `→` items.
+- UI coverage mismatches may be downstream false positives when story extraction fails first.
 
 ### Phase 2 — Semantic Audit
 
@@ -101,6 +116,10 @@ Every A1-A5 row must be present.
 - `PASS` — all A1-A5 rows pass after semantic review
 - `GAPS_FOUND` — one or more real gaps remain
 - `BLOCKED` — script not run, evidence missing, or row coverage incomplete
+
+Important interpretation rule:
+- Script extraction failures do **not** automatically force `GAPS_FOUND`. When FR-based requirement structure, fenced multiline flows, or downstream story-extraction misses create false positives, the auditor may still return `PASS` if each affected row is defended with specific semantic evidence from the PRD/UI artifacts.
+- For common override patterns and suggested wording, consult `references/semantic-override-cases.md` before writing the final report.
 
 ## Fail-Closed Rules
 
