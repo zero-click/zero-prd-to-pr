@@ -35,7 +35,7 @@ Enforce independent review before PR readiness.
 
 ## Contract
 
-- Input: current diff + linked artifacts (PRD/design/capability) + prior review context
+- Input: current diff + linked artifacts (PRD, roadmap, architecture, engineering design, and supporting interface/UI artifacts when available) + prior review context
 - Output status: `PASS` | `REQUEST_CHANGES` | `NOT_RUN` | `BLOCKED`
 - Output content: blocking and non-blocking findings
 - Output fields (required):
@@ -60,7 +60,7 @@ Enforce independent review before PR readiness.
 
 ## Spec Alignment Requirements (hard gate)
 
-- Review MUST explicitly compare implementation against linked PRD/design/capability artifacts.
+- Review MUST explicitly compare implementation against linked PRD, roadmap, architecture, engineering design, and supporting interface/UI artifacts when available.
 - Any behavior/interface/data/policy deviation MUST be recorded in `spec_deviation_findings`.
 - If deviation is intentional, add rationale and artifact update status in `intentional_deviations`.
 - If unresolved deviation exists, set `spec_alignment_status: REQUEST_CHANGES`.

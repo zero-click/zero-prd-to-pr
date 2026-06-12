@@ -1,6 +1,6 @@
 ---
 name: woos-deviation-control-gate
-description: Block unresolved implementation drift against PRD/design/capability artifacts.
+description: Block unresolved implementation drift against PRD, product context, and engineering design artifacts.
 version: 1.0.0
 author: Hermes Profile
 license: MIT
@@ -15,8 +15,8 @@ Stop silent drift between planned intent and final implementation.
 ## Required Inputs
 
 - Approved PRD
-- Approved design artifact
-- Capability contract
+- Approved engineering design artifact
+- Product context artifacts: roadmap + architecture (+ interface summary/UI brief/upstream interfaces when available)
 - Current implementation diff and test results
 
 ## Drift Classification
@@ -39,4 +39,3 @@ Stop silent drift between planned intent and final implementation.
 - `deviation_type`
 - `artifact_update_required`
 - `artifact_update_status`
-

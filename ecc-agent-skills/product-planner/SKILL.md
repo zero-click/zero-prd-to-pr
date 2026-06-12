@@ -21,7 +21,7 @@ ecc_source_commit: 0e9f613fd196f6d4157765b17d39c2c42ebbf564
 - Feature goal and scope
 - PRD artifact path (required for PRD review flows)
 - Existing constraints (architecture, policy, timelines if provided)
-- Relevant artifact paths (PRD/design/capability docs)
+- Relevant artifact paths (PRD, roadmap, architecture, design, and supporting interface/UI docs when available)
 
 ## Workflow
 

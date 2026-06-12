@@ -52,7 +52,7 @@ FR-2 → Epic 1 → UX Surface: Password Reset Flow → Story 1.2 → Test: AC-1
 ...
 ```
 
-Any broken chain = gap that must be resolved before handoff.
+Any broken chain = gap that must be resolved before engineering delivery.
 
 ### 3. Gap Documentation
 
@@ -66,7 +66,7 @@ For each gap found:
 
 - **READY** — All layers pass, traceability complete, no critical/high gaps
 - **READY WITH CAVEATS** — Minor gaps documented, engineering can start with awareness
-- **NOT READY** — Critical or high gaps exist, specific fixes required before handoff
+- **NOT READY** — Critical or high gaps exist, specific fixes required before engineering delivery
 
 ## Output Structure
 

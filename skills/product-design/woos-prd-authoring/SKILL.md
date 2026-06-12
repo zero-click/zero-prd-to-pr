@@ -21,24 +21,27 @@ Convert the ranked requirements contract into a full PRD for one feature.
 
 ## Required Load Set (mandatory)
 
-- `references/framework-prd.md`
-- `references/template-prd-template.md`
-- `templates/prd-template.md`
-- `docs/prd/<version>/<feature>-requirements.md`
+- `references/framework-prd.md` — authoring framework / reference reading
+- `templates/prd-template.md` — **the authoring template; the output PRD MUST match this template's section structure** (Background / User Personas / Functional Requirements / Non-Functional Requirements / User Flows / Edge Cases / Non-Goals / Success Metrics). This template is the source of truth for Step 4's section checks.
+- `docs/prd/<version>/<feature-id>-requirements.md`
 
-If any required file is not loaded, return `BLOCKED`.
+## Supplemental Reference (optional, do not author against)
+
+- `references/template-prd-template.md` — a richer per-feature PRD reference (Vision / JTBD / UJ-N etc.) kept for context; **do not** use it as the section structure for the output PRD. When it conflicts with `templates/prd-template.md`, the template wins.
+
+If any mandatory file is not loaded, return `BLOCKED`.
 
 ## Conditional Load Set (upstream dependencies)
 
 When the orchestrator provides upstream interface summaries, also load:
 
-- `docs/prd/<version>/<upstream-feature>-interface.md` for each declared upstream dependency
+- `docs/prd/<version>/<upstream-feature-id>-interface.md` for each declared upstream dependency
 
 When referencing shared concepts (status enums, data models, event types, API endpoints), use the exact definitions from upstream interface summaries. Do NOT invent alternate names for concepts already defined upstream.
 
 ## Output
 
-- `docs/prd/<version>/<feature>.md`
+- `docs/prd/<version>/<feature-id>.md`
 
 ## Required Sections
 

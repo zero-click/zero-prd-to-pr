@@ -53,7 +53,7 @@ If critical inputs are missing and user has not forced progression, ask one conc
 
 ## Output
 
-File: `docs/design/<version>/<feature>-ui-brief.md`
+File: `docs/design/<version>/<feature-id>-ui-brief.md`
 
 ## Brief Structure
 

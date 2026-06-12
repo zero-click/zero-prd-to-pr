@@ -9,7 +9,17 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from _audit_utils import extract_screen_names, extract_user_stories, feature_stem, format_table, keyword_overlap, read_text, write_text
+from _audit_utils import (
+    extract_acceptance_criteria,
+    extract_flows,
+    extract_screen_names,
+    extract_user_stories,
+    feature_stem,
+    format_table,
+    keyword_overlap,
+    read_text,
+    write_text,
+)
 
 
 ENDPOINT_RE = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE)\s+(/[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=-]+)")
@@ -18,14 +28,16 @@ STATE_LINE_RE = re.compile(r"(?i)\b(state|status|statuses|states)\b")
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Cross-feature integration audit for Step 10.")
+    parser = argparse.ArgumentParser(description="Cross-feature integration audit for Step 7.")
     parser.add_argument("--roadmap", required=True)
     parser.add_argument("--architecture", required=True)
     parser.add_argument("--requirements-glob", required=True)
     parser.add_argument("--prd-glob", required=True)
-    parser.add_argument("--handoff-glob", required=True)
+    parser.add_argument("--interface-glob", required=True)
     parser.add_argument("--ui-glob")
     parser.add_argument("--feature", action="append", dest="features", default=[])
+    parser.add_argument("--newest-feature", help="Newest completed feature for incremental runs")
+    parser.add_argument("--final-run", action="store_true", help="Require full requirements/PRD coverage for every audited feature")
     parser.add_argument("--output", required=True)
     return parser
 
@@ -58,8 +70,29 @@ def extract_state_signatures(text: str, source: str) -> list[tuple[str, str]]:
     return signatures
 
 
+def roadmap_mentions_feature(feature: str, roadmap_text: str) -> bool:
+    roadmap_lower = roadmap_text.lower()
+    normalized_roadmap = re.sub(r"[^a-z0-9]+", " ", roadmap_lower)
+    feature_lower = feature.lower()
+    feature_slug = re.sub(r"^\d+-", "", feature_lower)
+    candidates = {
+        feature_lower,
+        feature_lower.replace("-", " "),
+        feature_slug,
+        feature_slug.replace("-", " "),
+    }
+    return any(candidate and (candidate in roadmap_lower or candidate.replace("-", " ") in normalized_roadmap) for candidate in candidates)
+
+
+def expected_full_doc_features(explicit_features: list[str], newest_feature: str | None, final_run: bool) -> set[str]:
+    if final_run:
+        return set(explicit_features)
+    return {newest_feature} if newest_feature else set()
+
+
 def main() -> int:
-    args = build_parser().parse_args()
+    parser = build_parser()
+    args = parser.parse_args()
 
     roadmap_path = Path(args.roadmap)
     architecture_path = Path(args.architecture)
@@ -68,10 +101,19 @@ def main() -> int:
 
     requirements_docs = read_many(args.requirements_glob)
     prd_docs = read_many(args.prd_glob)
-    handoff_docs = read_many(args.handoff_glob)
+    interface_docs = read_many(args.interface_glob)
     ui_docs = read_many(args.ui_glob) if args.ui_glob else {}
 
-    features = args.features or sorted(set(requirements_docs) | set(prd_docs) | set(handoff_docs) | set(ui_docs))
+    if not args.features:
+        parser.error("--feature must be provided for every audited feature in scope")
+    features = list(dict.fromkeys(args.features))
+    if args.final_run and not args.features:
+        parser.error("--feature must be provided for every audited feature when --final-run is set")
+    if not args.final_run and not args.newest_feature:
+        parser.error("--newest-feature is required for incremental runs")
+    if args.newest_feature and args.newest_feature not in features:
+        parser.error("--newest-feature must be included in the audited feature scope")
+    full_doc_expected = expected_full_doc_features(features, args.newest_feature, args.final_run)
 
     constant_sources: dict[str, list[tuple[str, str]]] = defaultdict(list)
     endpoint_sources: dict[str, list[str]] = defaultdict(list)
@@ -83,7 +125,7 @@ def main() -> int:
         endpoint_sources[endpoint].append(source)
     state_lines.extend(extract_state_signatures(architecture_text, f"architecture:{architecture_path.name}"))
 
-    for doc_group in (requirements_docs, prd_docs, handoff_docs, ui_docs):
+    for doc_group in (requirements_docs, prd_docs, interface_docs, ui_docs):
         for feature, (path, text) in doc_group.items():
             source = f"{feature}:{path.name}"
             for label, value, extracted_source in extract_constants(text, source):
@@ -104,33 +146,28 @@ def main() -> int:
     missing_roadmap = []
     missing_requirements = []
     missing_prd = []
-    missing_handoff = []
+    missing_interface = []
     missing_ui = []
 
     for feature in features:
-        in_roadmap = feature.replace("-", " ") in roadmap_text.lower() or feature in roadmap_text.lower()
+        in_roadmap = roadmap_mentions_feature(feature, roadmap_text)
         req_exists = feature in requirements_docs
         prd_exists = feature in prd_docs
-        handoff_exists = feature in handoff_docs
+        interface_exists = feature in interface_docs
         ui_exists = feature in ui_docs
-        feature_rows.append(
-            (
-                feature,
-                "✅" if in_roadmap else "❌",
-                "✅" if req_exists else "❌",
-                "✅" if prd_exists else "❌",
-                "✅" if handoff_exists else "❌",
-                "✅" if ui_exists else "N/A",
-            )
-        )
+        expects_full_docs = feature in full_doc_expected
+        requirements_cell = "✅" if req_exists else ("summary-only" if interface_exists and not expects_full_docs else "❌")
+        prd_cell = "✅" if prd_exists else ("summary-only" if interface_exists and not expects_full_docs else "❌")
+        interface_cell = "✅" if interface_exists else ("optional" if not expects_full_docs else "❌")
+        feature_rows.append((feature, "✅" if in_roadmap else "❌", requirements_cell, prd_cell, interface_cell, "✅" if ui_exists else "N/A"))
         if not in_roadmap:
             missing_roadmap.append(feature)
-        if not req_exists:
+        if expects_full_docs and not req_exists:
             missing_requirements.append(feature)
-        if req_exists and not prd_exists:
+        if expects_full_docs and not prd_exists:
             missing_prd.append(feature)
-        if prd_exists and not handoff_exists:
-            missing_handoff.append(feature)
+        if not interface_exists:
+            missing_interface.append(feature)
         if feature in ui_docs and feature not in prd_docs:
             missing_ui.append(feature)
 
@@ -140,21 +177,29 @@ def main() -> int:
         if not prd_text:
             continue
         screens = extract_screen_names(ui_text)
-        stories = extract_user_stories(prd_text)
-        unmatched = [screen for screen in screens if not any(keyword_overlap(screen, story) >= 0.25 for story in stories)]
+        trace_targets = extract_acceptance_criteria(prd_text) + extract_flows(prd_text) + extract_user_stories(prd_text)
+        unmatched = [screen for screen in screens if not any(keyword_overlap(screen, target) >= 0.25 for target in trace_targets)]
         if unmatched:
             ui_traceability_gaps.append((feature, ", ".join(unmatched)))
 
-    verdict = "PASS"
-    if constant_conflicts or missing_roadmap or missing_requirements or missing_prd or missing_handoff or ui_traceability_gaps:
-        verdict = "CONFLICTS_FOUND"
+    verdict = "SIGNALS_CLEAR"
+    if (
+        constant_conflicts
+        or endpoint_duplicates
+        or missing_roadmap
+        or missing_requirements
+        or missing_prd
+        or missing_interface
+        or ui_traceability_gaps
+    ):
+        verdict = "HOTSPOTS_FOUND"
 
     lines = [
         f"# Version Integration Audit — {Path(args.output).parent.name or 'version'}",
         "",
         "## Summary",
         f"- Features audited: {', '.join(features)}",
-        f"- Documents read: {2 + len(requirements_docs) + len(prd_docs) + len(handoff_docs) + len(ui_docs)}",
+        f"- Documents read: {2 + len(requirements_docs) + len(prd_docs) + len(interface_docs) + len(ui_docs)}",
         f"- Result: **{verdict}**",
         "",
         "## Part A — Shared Concepts",
@@ -168,17 +213,39 @@ def main() -> int:
         "### API Contracts",
         format_table(["Endpoint", "Sources"], endpoint_duplicates or [("None", "—")]),
         "",
+        "## Script Evidence Map",
+        format_table(
+            ["Check", "Script Evidence"],
+            [
+                ("A1", f"{len(state_lines)} state/status lines extracted"),
+                ("A2", "No constant conflicts detected" if not constant_conflicts else f"Constant conflicts: {', '.join(label for label, _, _ in constant_conflicts)}"),
+                ("A3", f"Interface summaries loaded for {len(interface_docs)} features"),
+                ("A4", "No duplicate endpoints detected" if not endpoint_duplicates else f"Duplicate endpoints: {len(endpoint_duplicates)}"),
+                ("A5", f"Feature scope loaded for {len(features)} features; terminology requires semantic review"),
+                ("B1", "Roadmap vs requirements matrix generated"),
+                ("B2", "Requirements vs PRD matrix generated"),
+                ("B3", "PRD vs interface-summary matrix generated"),
+                ("B4", "Architecture constants/endpoints/state signatures extracted for comparison"),
+                ("B5", "No UI→PRD traceability gaps detected" if not ui_traceability_gaps else f"UI→PRD gaps in {len(ui_traceability_gaps)} feature(s)"),
+                ("C1", f"Acceptance-criteria evidence extracted from {len(prd_docs)} full PRD(s); incremental runs compare newest full PRD against prior interface summaries"),
+                ("C2", f"Flow evidence extracted from {len(prd_docs)} full PRD(s); incremental runs compare newest full PRD against prior interface summaries"),
+                ("C3", f"Feature coverage matrix generated for {len(features)} features"),
+                ("C4", "Completed feature interface matrix generated; dependency order still needs semantic review"),
+                ("C5", f"{len(state_lines)} state/error/status signals extracted for semantic review"),
+            ],
+        ),
+        "",
         "## Part B — Traceability",
-        format_table(["Feature", "Roadmap", "Requirements", "PRD", "Handoff", "UI"], feature_rows),
+        format_table(["Feature", "Roadmap", "Requirements", "PRD", "Interface", "UI"], feature_rows),
         "",
     ]
 
-    if missing_roadmap or missing_requirements or missing_prd or missing_handoff or missing_ui:
+    if missing_roadmap or missing_requirements or missing_prd or missing_interface or missing_ui:
         lines.append("### Coverage Gaps")
         lines.extend(f"- Feature missing from roadmap selection: {feature}" for feature in missing_roadmap)
         lines.extend(f"- Missing requirements file: {feature}" for feature in missing_requirements)
         lines.extend(f"- Missing PRD file: {feature}" for feature in missing_prd)
-        lines.extend(f"- Missing handoff file: {feature}" for feature in missing_handoff)
+        lines.extend(f"- Missing interface summary: {feature}" for feature in missing_interface)
         lines.extend(f"- UI brief exists without PRD counterpart: {feature}" for feature in missing_ui)
         lines.append("")
 
@@ -193,8 +260,8 @@ def main() -> int:
 
     lines.extend(
         [
-            "## Verdict",
-            f"- **{verdict}**",
+            "## Script Verdict",
+            f"- **{verdict}** (script signal only — semantic gate verdict is set by the audit skill, not by this script)",
             "",
             "## Recommended Fix Order",
         ]
@@ -203,8 +270,8 @@ def main() -> int:
     fix_order = []
     if constant_conflicts:
         fix_order.append("1. Resolve shared constant mismatches across architecture/feature docs")
-    if missing_roadmap or missing_requirements or missing_prd or missing_handoff:
-        fix_order.append(f"{len(fix_order) + 1}. Restore missing file coverage before engineering handoff")
+    if missing_roadmap or missing_requirements or missing_prd or missing_interface:
+        fix_order.append(f"{len(fix_order) + 1}. Restore missing file coverage before engineering delivery")
     if ui_traceability_gaps:
         fix_order.append(f"{len(fix_order) + 1}. Align UI surfaces with PRD user stories")
     if not fix_order:
@@ -216,12 +283,12 @@ def main() -> int:
     print(
         json.dumps(
             {
-                "verdict": verdict,
+                "script_result": verdict,
                 "constant_conflicts": [label for label, _, _ in constant_conflicts],
                 "missing_roadmap": missing_roadmap,
                 "missing_requirements": missing_requirements,
                 "missing_prd": missing_prd,
-                "missing_handoff": missing_handoff,
+                "missing_interface": missing_interface,
                 "ui_traceability_gaps": [feature for feature, _ in ui_traceability_gaps],
                 "report_path": str(Path(args.output)),
             },

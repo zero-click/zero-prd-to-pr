@@ -2,7 +2,7 @@
 
 **Version**: <version>
 **Created**: <date>
-**Based on**: `docs/prd/<version>/<feature>-requirements.md`
+**Based on**: `docs/prd/<version>/<feature-id>-requirements.md`
 **Status**: Draft | Reviewed | Approved
 
 ## Background

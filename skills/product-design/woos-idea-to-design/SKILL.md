@@ -48,7 +48,7 @@ The product side produces requirements, user experience direction, and a high-le
 ## Execution Tiers
 
 ```text
-Lite:     Capture → Brief PRD / Lite Handoff
+Lite:     Capture → Lightweight PRD Package
 Standard: Capture → Discovery → Product Design Flow
 Strict:   Capture → Discovery → Product Design Flow
 ```
@@ -82,9 +82,9 @@ Discovery approved?
 ### Phase 3 — Product Design Flow
 
 **Skill:** `woos-product-design-flow`
-**Output:** `docs/prd/<version>/<feature>.md`
-**Optional Output:** `docs/design/<version>/<feature>-ui-brief.md`
-**Interface Summary:** `docs/prd/<version>/<feature>-interface.md` (Strict only)
+**Output:** `docs/prd/<version>/<feature-id>.md`
+**Optional Output:** `docs/design/<version>/<feature-id>-ui-brief.md`
+**Interface Summary:** `docs/prd/<version>/<feature-id>-interface.md` (Strict only)
 
 ## Completion
 

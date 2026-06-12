@@ -1,7 +1,7 @@
 ---
 name: woos-development-workflow
-description: "Stage 3 of idea-to-delivery: gated engineering workflow that receives product handoff, decomposes into stories, and executes with TDD, traceability, and review gates."
-version: 2.0.0
+description: "Stage 3 of idea-to-delivery: gated engineering workflow that receives PRD, roadmap, and architecture inputs, decomposes into stories, and executes with TDD, traceability, and review gates."
+version: 3.0.0
 author: Hermes Profile
 license: MIT
 metadata:
@@ -15,9 +15,30 @@ metadata:
 
 ## Purpose
 
-**Stage 3** of the idea-to-delivery pipeline. Receives a build handoff from `woos-product-design-flow` (Stage 2), decomposes it into stories, and delivers a production-ready PR through gated execution.
+**Stage 3** of the idea-to-delivery pipeline. Receives product design outputs from `woos-product-design-flow`, decomposes the PRD into engineering stories, and delivers a production-ready PR through gated execution.
 
 Rule: every gate must invoke exactly one **gate wrapper skill**, then satisfy that wrapper's minimal contract.
+
+## Product Input Contract
+
+Engineering starts from the same feature ID used by product design:
+
+```text
+<feature-id> = <two-digit-order>-<feature-slug>
+Example: 01-user-auth, 02-project-dashboard
+```
+
+**Required inputs:**
+
+- PRD: `docs/prd/<version>/<feature-id>.md`
+- Roadmap: `docs/product/<project>-roadmap.md`
+- Architecture: `docs/product/<project>-architecture.md`
+
+**Additional product design inputs when available:**
+
+- Interface summary: `docs/prd/<version>/<feature-id>-interface.md`
+- UI brief: `docs/design/<version>/<feature-id>-ui-brief.md`
+- Upstream interfaces: `docs/prd/<version>/<upstream-feature-id>-interface.md`
 
 ## Baseline-First Governance
 
@@ -39,32 +60,25 @@ Mandatory bootstrap:
 ## Execution Profiles
 
 Default profile is **Standard**.  
-Use **Lite** for low-risk small changes.  
-Use **Strict** for high-risk, ambiguous, or security-critical scope.
+Use **Lite** only for low-risk small changes that do not need story decomposition or independent design review.
 
 ### Lite (small/low-risk)
 
 ```text
-Run Orchestrator → Git → Handoff Intake → Implement → Verify → Code Review → PR Readiness
+Run Orchestrator → Git → Product Intake → Implement → Verify → Code Review → PR Readiness
 ```
 
 Criteria: limited scope, low coupling, no architecture/API changes, no security impact.
 
-### Standard (default)
+### Standard (default full-gate flow)
 
 ```text
-Run Orchestrator → Git → Handoff Intake → Feature Design → Design Review → Story Decomposition → Story Loop (TDD+Implement+Verify) → Executable Acceptance → Deviation Control → Traceability → Code Review → PR Readiness → Workflow Memory
+Run Orchestrator → Git → Product Intake → Feature Design → Design Review → Story Decomposition → Story Loop (TDD+Implement+Verify) → Executable Acceptance → Deviation Control → Traceability → Code Review → PR Readiness → Workflow Memory
 ```
 
-Use when: multi-file change, design choices needed, moderate risk.
+Use when: default for product-designed features, multi-file change, design choices needed, moderate/high risk, security-sensitive scope, significant architecture/API/UI/database changes, or full traceability required.
 
-### Strict (full hard-gate)
-
-```text
-Standard + [API Design Review] + [Browser QA] + Architecture Conformance within Code Review
-```
-
-Use when: security-sensitive, high uncertainty, significant architecture changes, full traceability required.
+Standard includes conditional hard gates such as API design review, browser QA, database migration review, deployment patterns, security review, production audit, and architecture conformance when their triggers apply.
 
 ## Skill Whitelist
 
@@ -74,7 +88,7 @@ Only these skills are allowed in this workflow:
 |------|-------|--------|
 | Run Orchestrator | `woos-run-orchestrator` | local |
 | Git Workflow | `git-workflow` | imported |
-| Handoff Intake | _(reads product handoff)_ | from product pipeline |
+| Product Intake | _(reads PRD + roadmap + architecture)_ | from product pipeline |
 | Codebase Onboarding | `codebase-onboarding` | imported (first run) |
 | Parallel Orchestration | `dmux-workflows` | imported |
 | Feature Design | `woos-feature-design` | local |
@@ -163,12 +177,12 @@ Conditional skills activate based on these concrete triggers (not agent judgment
 
 | Skill | Triggers When |
 |-------|--------------|
-| `api-design` | Handoff Build Tasks mention REST/GraphQL endpoints, OR design doc defines new API routes |
-| `browser-qa` | Handoff has UI section, OR stories produce `.tsx`/`.vue`/`.svelte`/HTML files |
-| `e2e-testing` | Stories produce integration test files, OR handoff AC reference user flows spanning multiple pages |
+| `api-design` | PRD or interface summary defines REST/GraphQL endpoints, OR design doc defines new API routes |
+| `browser-qa` | PRD or UI brief describes UI behavior, OR stories produce `.tsx`/`.vue`/`.svelte`/HTML files |
+| `e2e-testing` | Stories produce integration test files, OR PRD AC reference user flows spanning multiple pages |
 | `database-migrations` | Design doc defines schema changes, OR stories create/modify migration files |
-| `deployment-patterns` | Design doc has rollout/rollback section, OR Strict mode is active |
-| `production-audit` | Strict mode is active, OR handoff flags `security: true` or `compliance: true` |
+| `deployment-patterns` | Design doc has rollout/rollback section, deployment/infra changes, or migration rollout risk |
+| `production-audit` | PRD flags security/compliance-sensitive scope, high-risk rollout, or production reliability risk |
 | `security-review` | Any story touches auth, input validation, secrets, API endpoints, or payment flows |
 | `codebase-onboarding` | First run on this repository (no prior run-manifest exists) |
 
@@ -178,17 +192,29 @@ Conditional skills activate based on these concrete triggers (not agent judgment
 
 ## Gate Definitions
 
-### Gate 0 — Handoff Intake
+### Gate 0 — Product Intake
 
-**Input:** `docs/handoff/<version>/<feature>.md` (produced by `woos-product-design-flow`)
+**Required input:**
+
+- PRD: `docs/prd/<version>/<feature-id>.md`
+- Roadmap: `docs/product/<project>-roadmap.md`
+- Architecture: `docs/product/<project>-architecture.md`
+
+**Additional product design input when available:**
+
+- Interface summary: `docs/prd/<version>/<feature-id>-interface.md`
+- UI brief: `docs/design/<version>/<feature-id>-ui-brief.md`
+- Upstream interfaces: `docs/prd/<version>/<upstream-feature-id>-interface.md`
 
 **Minimal contract:**
 
-1. Handoff file exists and contains: Mission, Requirements, AC, User Flows, Build Tasks, Verification Plan.
-2. All AC are testable (validated by product stage).
-3. Record handoff version in run-manifest for traceability.
+1. Required product inputs exist.
+2. PRD contains goals/background, functional requirements, acceptance criteria, and edge cases.
+3. Roadmap provides product direction and selected version context.
+4. Architecture provides system constraints.
+5. Record product input paths and feature ID in run-manifest for traceability.
 
-**If handoff does NOT exist:** Redirect to `woos-product-design-flow`. Do not proceed without product handoff.
+**If required inputs do NOT exist:** Redirect to `woos-product-design-flow`. Do not proceed without PRD, roadmap, and architecture.
 
 ### Gate 1 — Feature Design
 
@@ -196,9 +222,9 @@ Conditional skills activate based on these concrete triggers (not agent judgment
 
 **Minimal contract:**
 
-1. Design artifact at `docs/design/<feature>.md`.
+1. Design artifact at `docs/engineering/<version>/<feature-id>-design.md`.
 2. Covers: architecture, data model, interfaces, risk, rollout/rollback.
-3. If API endpoints defined and Strict mode: invoke `api-design` for review.
+3. If API endpoints are defined or changed: invoke `api-design` for review.
 4. If database schema changes: reference `database-migrations` for migration strategy.
 5. If deployment strategy needed: reference `deployment-patterns` for rollout/rollback.
 6. Baseline/deviation fields complete; deviations captured via `architecture-decision-records`.
@@ -214,20 +240,20 @@ Conditional skills activate based on these concrete triggers (not agent judgment
 3. Output MUST follow structured findings format (per E2).
 4. Uses `woos-review-context` to load/update cumulative findings.
 5. Returns `PASS` or `REQUEST_CHANGES`.
-6. Escalates to `woos-human-handoff` when review loop threshold (3 rounds) exceeded.
+6. Escalates to `woos-human-handoff` when review loop threshold (2 rounds) exceeded.
 
 ### Gate 2 — Story Decomposition
 
 **Skill:** built-in (orchestrator decomposes)
 
-Parse handoff and decompose into independent stories. Each story is a self-contained unit of work.
+Parse PRD, roadmap, architecture, and the engineering design artifact. Decompose into independent stories. Each story is a self-contained unit of work.
 
 **Story file format:**
 
 ```markdown
 # Story <NNN>: <task name>
 
-## Build Tasks
+## Implementation Tasks
 - [ ] Task 1
 - [ ] Task 2
 
@@ -244,10 +270,10 @@ Parse handoff and decompose into independent stories. Each story is a self-conta
 ## Status: pending
 ```
 
-**Output:** `docs/stories/<feature>/story-001.md`, `story-002.md`, ...
+**Output:** `docs/stories/<version>/<feature-id>/story-001.md`, `story-002.md`, ...
 
 **Rules:**
-- Each story covers 1–3 related Build Tasks from the handoff
+- Each story covers 1–3 related PRD requirements, AC, or engineering design tasks
 - Stories have clear dependencies (DAG order)
 - Each story is independently verifiable
 - Total stories should be manageable (typically 3–8 per feature)
@@ -270,7 +296,7 @@ If RED-GREEN stalls (2+ consecutive failed attempts): activate `woos-systematic-
 
 **Skill:** `coding-standards`
 
-- Follow Build Tasks within the story
+- Follow implementation tasks within the story
 - Changes are minimal, scoped, convention-aligned
 - Design issue discovered → write DCR (see DCR section), do NOT improvise
 
@@ -301,7 +327,7 @@ Per-story AC check:
 **Skill:** `woos-executable-acceptance-gate`
 
 After ALL stories complete (or remaining are blocked):
-1. Map ALL handoff AC to executable checks.
+1. Map ALL PRD AC to executable checks.
 2. Missing automation is tracked as a blocker.
 3. **PASS** → Gate 5. **REQUEST_CHANGES** → return to Gate 3 (specific story).
 
@@ -309,7 +335,7 @@ After ALL stories complete (or remaining are blocked):
 
 **Skill:** `woos-deviation-control-gate`
 
-1. Compare implementation against handoff and design artifacts.
+1. Compare implementation against PRD, product architecture, and engineering design artifacts.
 2. Unresolved deviations block progression.
 3. Intentional deviations require updated artifacts + rationale.
 4. **PASS** → Gate 6. **REQUEST_CHANGES** → return to Gate 3.
@@ -322,8 +348,8 @@ Trace from original PRD through design to implementation and tests.
 
 **Procedure:**
 
-1. Read PRD from `docs/prd/<feature>.md`
-2. Read design from `docs/design/<feature>.md`
+1. Read PRD from `docs/prd/<version>/<feature-id>.md`
+2. Read engineering design from `docs/engineering/<version>/<feature-id>-design.md`
 3. For each PRD AC, trace the chain:
 
 | PRD AC | Design Spec | Code | Test | Status |
@@ -337,7 +363,7 @@ Trace from original PRD through design to implementation and tests.
    - **❌ Missing** — not implemented or not tested
    - **🆕 Added** — implemented but not in PRD (extra scope)
 
-5. Write output to `docs/handoff/<feature>-traceability.md`
+5. Write output to `docs/traceability/<version>/<feature-id>-traceability.md`
 
 **Gate rules:**
 - **PASS** — all ACs ✅ or ⚠️ with rationale, zero ❌
@@ -352,13 +378,13 @@ Trace from original PRD through design to implementation and tests.
    - Always: `coding-standards` knowledge
    - If security-sensitive (per E3 triggers): full `security-review` skill content
 3. If security-sensitive: dispatch `security-reviewer` with `security-review` knowledge.
-4. If Strict mode: verify architecture conformance (component boundaries, data model, API contracts).
+4. Verify architecture conformance (component boundaries, data model, API contracts).
 5. If applicable (per E3 triggers): invoke `production-audit` for pre-merge readiness.
 6. Output MUST follow structured findings format (per E2). "LGTM" without findings table = INVALID, rerun.
 7. Uses `woos-review-context` for cumulative findings.
 8. Uses `woos-agent-decision` when reviewer verdicts conflict.
 9. **PASS** → Gate 8. **REQUEST_CHANGES** → return to Gate 3.
-10. 3 rounds without convergence → `woos-human-handoff`.
+10. 2 rounds without convergence → `woos-human-handoff`.
 
 ### Gate 8 — PR Readiness
 
@@ -389,7 +415,7 @@ Trace from original PRD through design to implementation and tests.
 
 **Action:**
 
-1. Write `docs/feedback/<feature>-dcr.md`:
+1. Write `docs/feedback/<version>/<feature-id>-dcr.md`:
 
 ```markdown
 # DCR: <Issue Title>
@@ -398,7 +424,7 @@ Trace from original PRD through design to implementation and tests.
 (What's wrong with the current design)
 
 ## Impact Scope
-(Which Build Tasks / AC / Stories are affected)
+(Which implementation tasks / AC / stories are affected)
 
 ## Proposed Resolution
 (Suggested fix)
@@ -409,7 +435,7 @@ Trace from original PRD through design to implementation and tests.
 
 2. Stop work on affected stories.
 3. Continue with unaffected stories if possible.
-4. DCR flows back to product pipeline (Stage 2) for resolution.
+4. DCR flows back to the upstream product-design stage for resolution.
 
 ---
 
@@ -425,7 +451,7 @@ After completing ANY gate, you MUST:
 
 ```yaml
 gates:
-  gate-0-handoff: completed
+  gate-0-product-intake: completed
   gate-1-design: completed
   gate-1r-review: completed
   gate-2-stories: completed
@@ -444,10 +470,10 @@ gates:
 
 | Step | What |
 |------|------|
-| L1 | Read handoff (validate 4 required fields) |
+| L1 | Read product inputs (PRD, roadmap, architecture) |
 | L2 | Implement tasks directly (no story decomposition) |
 | L3 | Verify (test + lint) |
-| L4 | Self-review (no independent dispatch) |
+| L4 | Independent code review in fresh context |
 | L5 | Create PR via `woos-pr-readiness` |
 
 No story decomposition, no deviation control, no traceability gate.
@@ -458,10 +484,10 @@ No story decomposition, no deviation control, no traceability gate.
 
 | Situation | Action |
 |-----------|--------|
-| Handoff missing or invalid | BLOCKED — redirect to product pipeline |
+| Product inputs missing or invalid | BLOCKED — redirect to product pipeline |
 | Single story fails 3× | Mark BLOCKED, continue others |
 | Build/test fails 2× (within story) | `woos-systematic-debugging` |
-| Review fails 3× | `woos-human-handoff` escalation |
+| Review fails 2× | `woos-human-handoff` escalation |
 | Design issue found | DCR → back to product pipeline |
 | Overall timeout | `woos-failure-state-machine` (retry → degrade → escalate) |
 | Required skill unavailable | BLOCKED — report which skill |
@@ -488,28 +514,31 @@ Cross-gate control skills:
 
 Persistence:
 
-- Run manifest: `<workspace_root>/.hep/runs/<run_id>/run-manifest.yaml`
-- Review context: `<workspace_root>/.hep/review-context/<run_id>.yaml`
-- Stories: `<workspace_root>/docs/stories/<feature>/`
+- Run manifest: `<workspace_root>/hep/runs/<run_id>/run-manifest.yaml`
+- Review context: `<workspace_root>/hep/review-context/<run_id>.yaml`
+- Stories: `<workspace_root>/docs/stories/<version>/<feature-id>/`
 - For gated runs, `run_id` is mandatory; if missing, return `BLOCKED`.
 
 ## File Layout
 
 ```text
 <project-root>/
-├── .hep/
+├── hep/
 │   ├── runs/<run_id>/
 │   │   └── run-manifest.yaml
 │   └── review-context/<run_id>.yaml
 ├── docs/
-│   ├── handoff/<version>/<feature>.md    ← input (from Stage 2)
-│   ├── prd/<feature>.md                  ← read for traceability
-│   ├── design/<feature>.md               ← output of Gate 1
-│   ├── stories/<feature>/                ← output of Gate 2
+│   ├── product/<project>-roadmap.md      ← required input
+│   ├── product/<project>-architecture.md ← required input
+│   ├── prd/<version>/<feature-id>.md     ← required input
+│   ├── prd/<version>/<feature-id>-interface.md ← optional product input
+│   ├── design/<version>/<feature-id>-ui-brief.md ← optional product input if UI
+│   ├── engineering/<version>/<feature-id>-design.md ← output of Gate 1
+│   ├── stories/<version>/<feature-id>/   ← output of Gate 2
 │   │   ├── story-001.md
 │   │   ├── story-002.md
 │   │   └── ...
-│   ├── feedback/<feature>-dcr.md         ← DCR output (back to Stage 2)
-│   └── handoff/<feature>-traceability.md ← traceability output
+│   ├── feedback/<version>/<feature-id>-dcr.md ← DCR output (back to product-design stage)
+│   └── traceability/<version>/<feature-id>-traceability.md ← traceability output
 └── (implementation files)
 ```

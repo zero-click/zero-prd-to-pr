@@ -22,7 +22,7 @@ from _audit_utils import (
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Analyze PRD/UI consistency for Step 7.")
+    parser = argparse.ArgumentParser(description="Analyze PRD/UI consistency for Step 6.")
     parser.add_argument("--prd", required=True, help="Path to the feature PRD")
     parser.add_argument("--ui", help="Optional path to the UI brief")
     parser.add_argument("--output", required=True, help="Markdown report output path")
@@ -104,15 +104,15 @@ def main() -> int:
         ),
     ]
 
-    result = "PASS" if all(check[2] == "PASS" for check in checks) and not placeholders else "GAPS_FOUND"
+    result = "SIGNALS_CLEAR" if all(check[2] == "PASS" for check in checks) and not placeholders else "HOTSPOTS_FOUND"
 
     lines = [
-        f"# Analyze Gate Report — {prd_path.stem}",
+        f"# Analyze Gate Script Evidence — {prd_path.stem}",
         "",
         "## Summary",
         f"- PRD: `{prd_path}`",
         f"- UI Brief: `{ui_path}`" if ui_text else "- UI Brief: none",
-        f"- Result: **{result}**",
+        f"- Script Result: **{result}**",
         "",
         "## Checks",
         format_table(["#","Criterion","Status","Notes"], checks),
@@ -166,7 +166,7 @@ def main() -> int:
     print(
         json.dumps(
             {
-                "result": result,
+                "script_result": result,
                 "checks": [{"code": code, "status": status} for code, _, status, _ in checks],
                 "hotspots": {
                     "untestable_ac": failing_criteria,
