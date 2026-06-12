@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Refresh vendored ECC snapshot from a local ECC checkout.
+# Refresh the snapshot of upstream ECC skills under skills/ecc/.
 #
-# Usage: scripts/refresh-ecc-vendor.sh <path-to-ecc-repo>
+# Usage: scripts/refresh-ecc-skills.sh <path-to-ecc-repo>
 #
-# Overwrites vendor/ecc/ in place. Review the diff and commit.
+# Overwrites skills/ecc/ in place. Review the diff and commit.
 
 set -euo pipefail
 
@@ -14,7 +14,7 @@ fi
 
 ECC="$1"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-VENDOR="$REPO_ROOT/vendor/ecc"
+DEST="$REPO_ROOT/skills/ecc"
 
 if [ ! -d "$ECC/skills" ]; then
   echo "Error: $ECC does not look like an ECC repo (missing skills/)" >&2
@@ -36,19 +36,19 @@ SKILLS=(
   codebase-onboarding
 )
 
-echo "Refreshing vendored ECC skills from: $ECC"
+echo "Refreshing ECC skill snapshot from: $ECC"
 
-rm -rf "$VENDOR/skills"
-mkdir -p "$VENDOR/skills"
+rm -rf "$DEST"
+mkdir -p "$DEST"
 
 for s in "${SKILLS[@]}"; do
   if [ ! -d "$ECC/skills/$s" ]; then
     echo "  ! missing upstream skill: $s (skipped)"
     continue
   fi
-  cp -R "$ECC/skills/$s" "$VENDOR/skills/"
+  cp -R "$ECC/skills/$s" "$DEST/"
   echo "  ✓ skill: $s"
 done
 
 echo
-echo "Done. Review with: git -C $REPO_ROOT status vendor/ecc"
+echo "Done. Review with: git -C $REPO_ROOT status skills/ecc"

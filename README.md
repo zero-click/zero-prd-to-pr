@@ -105,34 +105,42 @@ Available whenever engineering discovers a design issue that must route back to 
 
 ## Install
 
-```bash
-cd /path/to/hermes-ecc-profile
-python3 install-profile.py
-```
-
-The installer reads ECC artifacts from `vendor/ecc/` in this repo — no local
-ECC checkout required.
-
-Optional:
+This repo is a **skill collection**, not a runtime profile. There is no
+installer. To use these skills, copy or symlink them into wherever your
+agent host loads skills from. Examples:
 
 ```bash
-python3 install-profile.py --profile-root ~/.hermes/profiles/coding --install-soul
+# Hermes
+cp -R skills/* ~/.hermes/profiles/coding/skills/
+
+# Claude Code
+cp -R skills/* .claude/skills/
+
+# Cursor
+cp -R skills/* .cursor/skills/
 ```
 
-To refresh the vendored snapshot from a local ECC checkout:
+Pick what you need — the three subdirectories are independent:
+
+- `skills/product-design/` — product flow (idea → roadmap → PRD)
+- `skills/software-development/` — engineering flow (design → story → PR)
+- `skills/ecc/` — upstream ECC skills used by the engineering flow
+
+## Updating ECC Skills
+
+`skills/ecc/` is a snapshot of upstream ECC skills. Refresh from a local ECC checkout:
 
 ```bash
-scripts/refresh-ecc-vendor.sh /path/to/everything-claude-code
+scripts/refresh-ecc-skills.sh /path/to/everything-claude-code
+git diff skills/ecc
+git add skills/ecc && git commit
 ```
 
-Installed layout (default profile root: `~/.hermes/profiles/coding`):
+## Naming Convention
 
-- `skills/product-design/*` (product workflow skills)
-- `skills/software-development/*` (local workflow skills)
-- `skills/ecc-import/*` (vendored ECC skills)
-- `SOUL.md` (only if `--install-soul`)
-
-ECC agent adapters (`woos-architect`, `woos-product-planner`, `woos-code-reviewer`, `woos-security-reviewer`) live alongside other local skills under `skills/software-development/`.
+- `woos-*` — locally maintained, edit freely
+- no prefix (under `skills/ecc/`) — upstream snapshot, do not hand-edit
+- `woos-ecc-*` — local rewrite of an upstream skill that has been dropped or diverged
 
 ## Near-Unattended Execution Foundation
 

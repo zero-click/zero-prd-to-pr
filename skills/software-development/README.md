@@ -281,7 +281,6 @@ The workflow includes 3 non-negotiable enforcement rules (E1–E3) learned from 
 | `woos-review-context` | Infrastructure — cumulative cross-gate findings |
 | `woos-agent-decision` | Infrastructure — reviewer conflict resolution |
 | `woos-systematic-debugging` | Infrastructure — structured debugging on failures |
-| `woos-setup-rules` | Utility — project rule routing setup |
 
 ### Imported Skills (from ECC)
 
