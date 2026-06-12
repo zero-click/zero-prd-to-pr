@@ -130,8 +130,9 @@ Installed layout (default profile root: `~/.hermes/profiles/coding`):
 - `skills/product-design/*` (product workflow skills)
 - `skills/software-development/*` (local workflow skills)
 - `skills/ecc-import/*` (vendored ECC skills)
-- `skills/ecc-agent-skills/*` (agent adapters)
 - `SOUL.md` (only if `--install-soul`)
+
+ECC agent adapters (`woos-architect`, `woos-product-planner`, `woos-code-reviewer`, `woos-security-reviewer`) live alongside other local skills under `skills/software-development/`.
 
 ## Near-Unattended Execution Foundation
 

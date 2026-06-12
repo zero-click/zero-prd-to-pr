@@ -1,5 +1,5 @@
 ---
-name: security-reviewer
+name: woos-security-reviewer
 description: Security vulnerability review skill adapted from ECC security-reviewer agent.
 origin: ECC-agent-adapter
 ecc_source_repo: affaan-m/everything-claude-code
@@ -35,7 +35,7 @@ Runtime budget: must return within `max_review_runtime_seconds` provided by orch
 ### Role boundary
 
 - Owns: security risk assessment and blocking security verdicts.
-- Must consult: `architect` for architecture-dependent mitigations.
+- Must consult: `woos-architect` for architecture-dependent mitigations.
 - Final authority: critical/high security findings severity and pass/fail impact.
 
 ### Required review dimensions (must all be covered)

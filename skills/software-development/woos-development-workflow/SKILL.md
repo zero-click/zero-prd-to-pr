@@ -235,7 +235,7 @@ Conditional skills activate based on these concrete triggers (not agent judgment
 
 **Minimal contract:**
 
-1. Independent design review using `architect` via local gate skill.
+1. Independent design review using `woos-architect` via local gate skill.
 2. Sub-agent MUST be injected with `architecture-decision-records` skill content (per E1).
 3. Output MUST follow structured findings format (per E2).
 4. Uses `woos-review-context` to load/update cumulative findings.
@@ -244,7 +244,7 @@ Conditional skills activate based on these concrete triggers (not agent judgment
 
 ### Gate 2 — Story Decomposition
 
-**Skill:** `woos-story-decomposition` (orchestrator authors stories; `product-planner` reviews in fresh context)
+**Skill:** `woos-story-decomposition` (orchestrator authors stories; `woos-product-planner` reviews in fresh context)
 
 **Why this gate exists (AI-checkpoint semantics, not human task assignment):**
 
@@ -265,7 +265,7 @@ Parse PRD, roadmap, architecture, and the engineering design artifact. Decompose
 **Hard gate rules:**
 - Every PRD AC MUST map to at least one story (coverage gaps → `REQUEST_CHANGES`)
 - Dependency graph MUST be a DAG; orchestrator records `execution_order` in `run-manifest.yaml`
-- `product-planner` MUST be dispatched in fresh context with `mode: story-review` to validate AC coverage, DAG, and sizing before Gate 3 starts
+- `woos-product-planner` MUST be dispatched in fresh context with `mode: story-review` to validate AC coverage, DAG, and sizing before Gate 3 starts
 
 ### Gate 3 — Story Execution Loop
 
@@ -364,12 +364,12 @@ Trace from original PRD through design to implementation and tests.
 
 **Skill:** `woos-code-review-gate`
 
-1. Dispatch `code-reviewer` in fresh context (no self-review).
+1. Dispatch `woos-code-reviewer` in fresh context (no self-review).
 2. Sub-agent MUST be injected with relevant skill content (per E1):
    - Always: `coding-standards` knowledge
    - If security-sensitive (per E3 triggers): full `security-review` skill content
-3. If security-sensitive: dispatch `security-reviewer` with `security-review` knowledge.
-4. If the code-reviewer flags an architecture-level concern (component boundary, data model, or API contract change beyond the approved design), dispatch `architect` with `mode: consult` to confirm interpretation before final verdict. Independent architecture conformance is owned by Gate 1R (for the design) and Gate 5 (for drift); Gate 7 escalates findings rather than re-deriving the architecture verdict.
+3. If security-sensitive: dispatch `woos-security-reviewer` with `security-review` knowledge.
+4. If the woos-code-reviewer flags an architecture-level concern (component boundary, data model, or API contract change beyond the approved design), dispatch `woos-architect` with `mode: consult` to confirm interpretation before final verdict. Independent architecture conformance is owned by Gate 1R (for the design) and Gate 5 (for drift); Gate 7 escalates findings rather than re-deriving the architecture verdict.
 5. If applicable (per E3 triggers): invoke `woos-ecc-production-audit` for pre-merge readiness.
 6. Output MUST follow structured findings format (per E2). "LGTM" without findings table = INVALID, rerun.
 7. Uses `woos-review-context` for cumulative findings.

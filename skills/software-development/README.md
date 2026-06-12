@@ -157,7 +157,7 @@ This is **Stage 3** of the idea-to-delivery pipeline. It ensures:
 
 **What:** Decompose PRD + engineering design into AI-checkpoint stories — the unit of one bounded implement→verify→review iteration, one rollback boundary, and one traceability anchor. Not for human task assignment, estimation, or sprint slicing.
 
-- **Skill:** `woos-story-decomposition` (orchestrator authors, `product-planner` reviews in fresh context)
+- **Skill:** `woos-story-decomposition` (orchestrator authors, `woos-product-planner` reviews in fresh context)
 - Each story covers 1 PRD AC (hard cap: 3 strongly-coupled AC sharing state)
 - Each story must converge within a single review-round (`review_round_max = 2`)
 - Each story declares a machine-checkable `Verification Signal` (runnable command) and a concrete `Rollback Boundary` (paths or git command)
@@ -217,7 +217,7 @@ Per story (in dependency order):
 **What:** Independent code review in fresh context.
 
 - **Skill:** `woos-code-review-gate`
-- Dispatches `code-reviewer` (+ `security-reviewer` with `security-review` knowledge if sensitive)
+- Dispatches `woos-code-reviewer` (+ `woos-security-reviewer` with `security-review` knowledge if sensitive)
 - Checks architecture conformance in Standard mode
 - If applicable: invokes `woos-ecc-production-audit` for pre-merge readiness
 - Uses `woos-agent-decision` for reviewer conflicts

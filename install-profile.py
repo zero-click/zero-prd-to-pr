@@ -27,13 +27,10 @@ LOCAL_SOFTWARE_DEV_SKILLS = [
     "woos-systematic-debugging",
     "woos-setup-rules",
     "woos-ecc-production-audit",
-]
-
-ECC_AGENT_ADAPTER_SKILLS = [
-    "product-planner",
-    "architect",
-    "code-reviewer",
-    "security-reviewer",
+    "woos-architect",
+    "woos-product-planner",
+    "woos-code-reviewer",
+    "woos-security-reviewer",
 ]
 
 ECC_SKILLS = [
@@ -144,7 +141,6 @@ def install_core_skills(script_dir: Path, profile_root: Path, vendor_path: Path)
     (profile_root / "skills" / "product-design").mkdir(parents=True, exist_ok=True)
     (profile_root / "skills" / "software-development").mkdir(parents=True, exist_ok=True)
     (profile_root / "skills" / "ecc-import").mkdir(parents=True, exist_ok=True)
-    (profile_root / "skills" / "ecc-agent-skills").mkdir(parents=True, exist_ok=True)
 
     for skill_dir in iter_local_skill_dirs(script_dir / "skills" / "product-design"):
         copy_dir(skill_dir, profile_root / "skills" / "product-design" / skill_dir.name)
@@ -157,10 +153,6 @@ def install_core_skills(script_dir: Path, profile_root: Path, vendor_path: Path)
     for skill in ECC_SKILLS:
         copy_dir(vendor_path / "skills" / skill, profile_root / "skills" / "ecc-import" / skill)
         print(f"  ✓ vendored ecc skill: {skill}")
-
-    for skill in ECC_AGENT_ADAPTER_SKILLS:
-        copy_dir(script_dir / "ecc-agent-skills" / skill, profile_root / "skills" / "ecc-agent-skills" / skill)
-        print(f"  ✓ agent-adapter skill: {skill}")
 
 
 def install_profile_soul(script_dir: Path, profile_root: Path) -> None:
