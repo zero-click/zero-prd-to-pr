@@ -1,5 +1,7 @@
 # hermes-ecc-profile
 
+[English](./README.md) | [中文](./README.zh.md)
+
 A complete **idea → delivery** skill collection for AI coding agents: product discovery, PRD, design, story plan, TDD loop, gates, traceability, PR — with role separation and hard checkpoints at every stage.
 
 Host-agnostic. Works with any agent runtime that loads skills from a directory (Claude Code, Cursor, Hermes, …).
