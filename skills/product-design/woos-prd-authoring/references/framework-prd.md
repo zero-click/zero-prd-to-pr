@@ -56,7 +56,7 @@ Define how you'll know this feature succeeded:
 
 ## Output Structure
 
-Use the PRD template (`references/template-prd-template.md`) as the structural guide. Key sections:
+Use `templates/prd-template.md` as the authoring template — it defines the canonical section structure that Step 4 (PRD Review) checks against. `references/template-prd-template.md` is supplemental reading only; when it conflicts with `templates/prd-template.md`, the template wins. Key sections:
 
 ```markdown
 # [Feature Name] — PRD

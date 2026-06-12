@@ -22,21 +22,22 @@ Turn one selected roadmap feature into a structured requirements file before any
 
 - `references/framework-prd.md`
 - `templates/requirements-template.md`
-- `docs/product/<project>-roadmap.md`
+- **Standard / Strict:** `docs/product/<project>-roadmap.md`
+- **Lite:** the idea capture file (`ideas/<slug>.md` for Quick Note, or `ideas/<slug>/00-idea-capture.md` for Guided Interview) in place of the roadmap
 
-If any required file is not loaded, return `BLOCKED`.
+If the required input file for the active mode is not loaded, return `BLOCKED`. In Lite mode the absence of `docs/product/<project>-roadmap.md` is expected and is not a BLOCK condition; the orchestrator MUST tell this skill which mode it is running in.
 
 ## Conditional Load Set (upstream dependencies)
 
 When the orchestrator identifies upstream dependencies (via Step 1.5), also load:
 
-- `docs/prd/<version>/<upstream-feature>-interface.md` for each declared upstream dependency
+- `docs/prd/<version>/<upstream-feature-id>-interface.md` for each declared upstream dependency
 
 These interface summaries define shared terminology, enums, data models, and API surfaces that this feature MUST align with. When writing requirements that reference shared concepts, use the exact names and definitions from the upstream interface summary.
 
 ## Output
 
-- `docs/prd/<version>/<feature>-requirements.md`
+- `docs/prd/<version>/<feature-id>-requirements.md`
 
 ## Required Sections
 

@@ -34,8 +34,8 @@ Before auditing, load and report:
 
 - `references/framework-implementation-readiness.md`
 - `scripts/analyze_gate.py`
-- `docs/prd/<version>/<feature>.md`
-- `docs/design/<version>/<feature>-ui-brief.md` (if present)
+- `docs/prd/<version>/<feature-id>.md`
+- `docs/design/<version>/<feature-id>-ui-brief.md` (if present)
 
 If any required file is not loaded, return `BLOCKED`.
 
@@ -43,7 +43,7 @@ If any required file is not loaded, return `BLOCKED`.
 
 When the orchestrator provides upstream interface summaries, also load:
 
-- `docs/prd/<version>/<upstream-feature>-interface.md` for each declared upstream dependency
+- `docs/prd/<version>/<upstream-feature-id>-interface.md` for each declared upstream dependency
 
 When upstream interface summaries are present, add **A6** to the required checks:
 
@@ -53,7 +53,7 @@ A6 failures count toward `GAPS_FOUND`.
 
 ## Output
 
-- `docs/reviews/<version>/<feature>-analyze-report.md`
+- `docs/reviews/<version>/<feature-id>-analyze-report.md`
 
 ## Two-Phase Protocol
 
@@ -94,11 +94,13 @@ The final report MUST contain a table with these columns:
 | Check | Script Evidence | Semantic Judgment | Result |
 |------|------------------|-------------------|--------|
 
-Every A1-A5 row must be present.
+Every A1-A5 row must be present. When upstream interface summaries are loaded, A6 must also be present.
+
+The final report MUST also contain a dedicated `## Semantic Audit Verdict` section. A raw `SIGNALS_CLEAR` / `HOTSPOTS_FOUND` script dump is not a valid gate completion artifact.
 
 ## Verdicts
 
-- `PASS` — all A1-A5 rows pass after semantic review
+- `PASS` — all A1-A5 rows pass after semantic review, A6 passes when it applies, and `## Semantic Audit Verdict` is present
 - `GAPS_FOUND` — one or more real gaps remain
 - `BLOCKED` — script not run, evidence missing, or row coverage incomplete
 

@@ -24,7 +24,7 @@ Confirm work is ready for commit/PR handoff.
 - Check git diff/status is understood and scoped
 - Check verification outcomes are explicitly reported
 - Check conventional commit and PR test plan readiness
-- Check implementation traceability against approved artifacts (PRD/design/capability)
+- Check implementation traceability against approved artifacts (PRD, roadmap, architecture, engineering design, and supporting interface/UI artifacts when available)
 - Check artifact updates are complete when intentional deviations exist
 - Return `PASS` | `REQUEST_CHANGES` | `NOT_RUN` | `BLOCKED`
 - Output fields (required):

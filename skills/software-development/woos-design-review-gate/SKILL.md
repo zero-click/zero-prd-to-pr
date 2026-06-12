@@ -27,12 +27,12 @@ Run a strict design review gate before coding starts.
 ## Reviewer Isolation (hard gate)
 
 - The `architect` reviewer MUST be dispatched as a separate agent instance with fresh context (e.g., via task/spawn tool). In-context skill injection where the same LLM session plays the reviewer role is NOT a valid invocation.
-- The dispatched agent receives only the review inputs (design doc, linked PRD/capability artifacts, prior review context). It MUST NOT inherit the implementer's session history or reasoning.
+- The dispatched agent receives only the review inputs (design doc, linked PRD, roadmap, architecture, and any supporting interface/UI artifacts, plus prior review context). It MUST NOT inherit the implementer's session history or reasoning.
 - `invocation_evidence` MUST include `dispatch_mode: "fresh_context"`. Any other value is invalid and MUST return `BLOCKED`.
 
 ## Contract
 
-- Input: design doc path + linked PRD/capability artifacts + prior review context
+- Input: design doc path + linked PRD, roadmap, architecture, and any supporting interface/UI artifacts + prior review context
 - Output status: `PASS` | `REQUEST_CHANGES` | `NOT_RUN` | `BLOCKED`
 - Output content: concrete mismatches, risks, and required revisions
 - Output fields (required):
@@ -80,7 +80,7 @@ Run a strict design review gate before coding starts.
         "skill": "architect",
         "dispatch_mode": "fresh_context",
         "invoked_at": "2026-05-12T22:00:00Z",
-        "artifact_ref": "docs/design/<feature>.md",
+        "artifact_ref": "docs/engineering/<version>/<feature-id>-design.md",
         "output_digest": "sha256:..."
       }
     ],

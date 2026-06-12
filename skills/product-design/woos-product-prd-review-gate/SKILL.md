@@ -38,8 +38,8 @@ Before reviewing, load and report:
 
 - `references/persona-prd-validator.md`
 - `references/template-prd-validation-checklist.md`
-- `docs/prd/<version>/<feature>.md`
-- `docs/prd/<version>/<feature>-requirements.md`
+- `docs/prd/<version>/<feature-id>.md`
+- `docs/prd/<version>/<feature-id>-requirements.md`
 - `docs/product/<project>-architecture.md`
 
 If any required file is not loaded, return `BLOCKED`.
@@ -48,7 +48,7 @@ If any required file is not loaded, return `BLOCKED`.
 
 When the orchestrator provides upstream interface summaries, also load:
 
-- `docs/prd/<version>/<upstream-feature>-interface.md` for each declared upstream dependency
+- `docs/prd/<version>/<upstream-feature-id>-interface.md` for each declared upstream dependency
 
 When upstream interface summaries are present, add **P8** to the content quality checklist:
 
@@ -58,7 +58,7 @@ P8 failures count toward `REQUEST_CHANGES`.
 
 ## Output
 
-- `docs/reviews/<version>/<feature>-prd-review-rN.md`
+- `docs/reviews/<version>/<feature-id>-prd-review-rN.md`
 
 ## Review Protocol
 
@@ -104,13 +104,14 @@ Only unsupported contradictions count toward `REQUEST_CHANGES`.
 The output MUST include:
 
 1. Structural checklist results
-2. Full P1-P7 review table
+2. Full P1-P7 review table (or P1-P8 when upstream interface summaries are present)
 3. `## Architecture Divergences` section when needed
-4. `## Summary` with explicit verdict
+4. `## Upstream Interface Alignment` section when P8 applies
+5. `## Summary` with explicit verdict
 
 ## Verdicts
 
-- `PASS` — all required structural checks pass and P1-P6 have no failures
+- `PASS` — all required structural checks pass, P1-P7 have no failures, and P8 has no failures when it applies
 - `REQUEST_CHANGES` — one or more structural/content failures remain
 - `BLOCKED` — review incomplete, missing inputs, or checklist rows were skipped
 

@@ -17,7 +17,7 @@ ecc_source_commit: 48b883d7412914b04c8b185d9a82685b105d1734
 ## Input Contract
 
 - Current diff or changed files
-- Linked context artifacts (PRD/design/capability) when relevant
+- Linked context artifacts (PRD, roadmap, architecture, engineering design, and supporting interface/UI docs) when relevant
 
 ## Workflow
 

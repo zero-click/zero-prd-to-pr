@@ -15,15 +15,6 @@ from typing import Any
 import yaml
 
 
-LOCAL_PRODUCT_DESIGN_SKILLS = [
-    "woos-idea-to-delivery",
-    "woos-idea-capture",
-    "woos-product-discovery",
-    "woos-product-design-flow",
-    "woos-ui-design-brief",
-    "woos-build-handoff",
-]
-
 LOCAL_SOFTWARE_DEV_SKILLS = [
     "woos-development-workflow",
     "woos-feature-design",
@@ -43,7 +34,7 @@ LOCAL_SOFTWARE_DEV_SKILLS = [
 ]
 
 ECC_AGENT_ADAPTER_SKILLS = [
-    "planner",
+    "product-planner",
     "architect",
     "code-reviewer",
     "security-reviewer",
@@ -151,6 +142,10 @@ def copy_dir(src: Path, dst: Path) -> None:
         shutil.rmtree(dst)
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(src, dst)
+
+
+def iter_local_skill_dirs(root: Path) -> list[Path]:
+    return sorted(path for path in root.iterdir() if path.is_dir())
 
 
 def ensure_backup(profile_root: Path, backup_enabled: bool, backup_dir: Path | None) -> Path | None:
@@ -271,9 +266,9 @@ def install_core_skills(script_dir: Path, profile_root: Path, ecc_path: Path) ->
     (profile_root / "skills" / "ecc-import").mkdir(parents=True, exist_ok=True)
     (profile_root / "skills" / "ecc-agent-skills").mkdir(parents=True, exist_ok=True)
 
-    for skill in LOCAL_PRODUCT_DESIGN_SKILLS:
-        copy_dir(script_dir / "skills" / "product-design" / skill, profile_root / "skills" / "product-design" / skill)
-        print(f"  ✓ product-design skill: {skill}")
+    for skill_dir in iter_local_skill_dirs(script_dir / "skills" / "product-design"):
+        copy_dir(skill_dir, profile_root / "skills" / "product-design" / skill_dir.name)
+        print(f"  ✓ product-design skill: {skill_dir.name}")
 
     for skill in LOCAL_SOFTWARE_DEV_SKILLS:
         copy_dir(script_dir / "skills" / "software-development" / skill, profile_root / "skills" / "software-development" / skill)

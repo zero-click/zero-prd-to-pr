@@ -1,6 +1,6 @@
 ---
 name: woos-ui-brief-review
-description: Independent UI brief review gate. Verifies coverage, states, flows, accessibility, and component mapping before handoff.
+description: Independent UI brief review gate. Verifies coverage, states, flows, accessibility, and component mapping before engineering delivery.
 version: 1.0.0
 author: Hermes Profile
 license: MIT
@@ -34,14 +34,14 @@ Before reviewing, load and report:
 
 - `references/persona-ux-designer.md`
 - `references/framework-ux-validate.md`
-- `docs/design/<version>/<feature>-ui-brief.md`
-- `docs/prd/<version>/<feature>.md`
+- `docs/design/<version>/<feature-id>-ui-brief.md`
+- `docs/prd/<version>/<feature-id>.md`
 
 If any required file is not loaded, return `BLOCKED`.
 
 ## Output
 
-- `docs/reviews/<version>/<feature>-ui-review-rN.md`
+- `docs/reviews/<version>/<feature-id>-ui-review-rN.md`
 
 ## Checklist
 
