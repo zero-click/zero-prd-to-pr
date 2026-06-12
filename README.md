@@ -1,4 +1,4 @@
-# hermes-ecc-profile
+# zero-prd-to-pr
 
 [English](./README.md) | [中文](./README.zh.md)
 
