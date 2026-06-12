@@ -6,6 +6,8 @@ A complete **idea → delivery** skill collection for AI coding agents: product 
 
 Host-agnostic. Works with any agent runtime that loads skills from a directory (Claude Code, Cursor, Hermes, …).
 
+**Core thesis:** you remember two entry points (`woos-idea-to-design` for product work, `woos-development-workflow` for engineering). The orchestrator inside loads the right sub-skills, dispatches reviewers in fresh contexts, and gates progression. Skills are written for the AI to read, not for the human to memorize. Humans re-enter only at deliberately placed checkpoints.
+
 ## What's Inside
 
 | Directory | What it does | Maintained as |
@@ -101,6 +103,30 @@ Run Orchestrator → Git → Product Intake
 Lite mode skips Gates 1, 1R, 2, 4, 5, 6 — for low-risk small changes.
 
 **Story output (Gate 2)** is a single per-feature `plan.md` table, not per-story narrative documents. PRD AC is the spec, tests in the diff scope are the verification, and `git restore -- <diff_scope>` is the rollback.
+
+## How This Compares
+
+| Framework | Strength | Why this repo exists alongside it |
+|-----------|----------|------------------------------------|
+| [ECC](https://github.com/everything-claude-code/everything-claude-code) | High-quality engineering skill library (TDD, security, deployment, …) | ECC is a buffet — 50+ skills, no orchestrator, the user picks each time. This repo adds gate progression, conditional trigger rules, and PRD-side coverage on top of ECC. |
+| [BMAD](https://github.com/bmadcode/BMAD-METHOD) | Persona-led product + agile flow | BMAD is conversation-led ("talk to the PM agent"); this repo is workflow-led (two trigger phrases, AI runs the rest). Lighter persona surface, more machine-checkable gates. |
+| Superpowers | Practical engineering loop with strong TDD/debug discipline | Superpowers is engineering-only. This repo adds a full product pipeline (discovery, PRD, interface summaries, UI brief) before the engineering loop. |
+
+**Use this repo when:** you want a long-horizon, multi-feature, gated, traceable, AI-driven pipeline where the human re-enters at specific checkpoints rather than every step.
+
+**Probably overkill when:** a single small change you can describe in two sentences. Use Superpowers or raw ECC directly.
+
+## Known Limitations
+
+Honest list — these are real and not getting solved this week:
+
+- **AI judges AI.** Every gate's PASS is emitted by an LLM. `fresh_context` reduces collusion but does not import outside judgment. A first-round false PASS is the largest blind spot — only failures escalate to `woos-human-handoff`, successes do not.
+- **`invocation_evidence` is self-attested.** The same AI that should have invoked a sub-skill also writes the JSON claiming it did. Mitigation would require an external process to log dispatch events; currently absent.
+- **No CI for skill cross-references.** SKILL.md files reference each other by string (`woos-architect`, `woos-product-planner`, …). A rename / delete is detected only when the orchestrator tries to dispatch and fails.
+- **Definition of done stops at PR merge.** No post-merge hook for deployment, observability, or "did the roadmap success metric actually move".
+- **Single-user, not battle-tested.** ECC, BMAD, Superpowers have communities surfacing edge cases. This pipeline has been run end-to-end by one person on a small number of features. Many failure modes are still latent.
+- **DCR friction may suppress reporting.** Gate 5 makes unauthorized deviation expensive, which can incentivize hiding deviations rather than reporting them. No counter-incentive currently.
+- **DAG rollback ambiguity.** If a downstream story committed against an upstream story that later needs revert, the cascade-revert procedure is left to the AI rather than spelled out in the workflow.
 
 ## Updating `skills/ecc/`
 
