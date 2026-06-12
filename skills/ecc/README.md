@@ -1,5 +1,7 @@
 # ECC Skills (upstream snapshot)
 
+[English](./README.md) | [中文](./README.zh.md)
+
 A frozen snapshot of upstream ECC (Everything Claude Code) skills used by the
 local workflow.
 

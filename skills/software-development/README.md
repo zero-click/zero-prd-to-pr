@@ -1,414 +1,122 @@
 # Software Development Workflow
 
-A gated engineering pipeline for AI coding agents. Receives PRD, roadmap, and architecture from the product design stage, decomposes into stories, and delivers a production-ready PR through TDD, review gates, and end-to-end requirement traceability.
+[English](./README.md) | [中文](./README.zh.md)
 
-## Purpose
+The engineering half of the pipeline. Takes the product design artifacts (PRD + roadmap + architecture) and turns them into a merged, production-ready PR through gated TDD and review.
 
-This is **Stage 3** of the idea-to-delivery pipeline. It ensures:
-
-- Engineering receives product design inputs — PRD, roadmap, and architecture — no product-phase work happens here
-- Work is decomposed into independent, verifiable stories with clear DAG ordering
-- Every story is implemented via TDD (RED → GREEN → REFACTOR)
-- Requirements are traced end-to-end: PRD → design → code → test
-- Design issues flow back to product via DCR (Design Change Request)
+Entry skill: **`woos-development-workflow`**.
 
 ## Quick Start
 
-1. Ensure required product inputs exist: PRD, roadmap, and architecture
-2. The agent activates `woos-development-workflow` (entry point skill)
-3. The workflow auto-selects Lite or Standard based on PRD scope and risk
-4. Follow the gated flow — each gate must PASS before the next begins
+1. Make sure the product inputs exist: PRD, roadmap, architecture. Missing any = `BLOCKED`.
+2. Hand the agent off to `woos-development-workflow`.
+3. Mode is auto-selected from PRD scope and risk (Lite vs Standard). Each gate must PASS before the next starts.
 
-**Prerequisite:** Product design pipeline must have completed the feature checkpoint. Missing PRD, roadmap, or architecture = BLOCKED.
-
-## Workflow Flowchart
+## Pipeline
 
 ```
-                     ┌───────────────────────┐
-                     │  Product Inputs       │
-                     │  (from product stage) │
-                     └───────────┬───────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Bootstrap                   │
-                  │  Run Orchestrator + Git      │
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Gate 0: Product Intake      │
-                  │  Validate PRD, roadmap,      │
-                  │  architecture, record inputs │
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Gate 1: Feature Design      │
-                  │  Technical design artifact   │
-                  │  (architecture, data, API)   │
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Gate 1R: Design Review      │
-                  │  Independent architect       │
-                  │  review (PASS/REQUEST_CHANGES)│
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Gate 2: Story Decomposition │
-                  │  Break PRD into 3–8          │
-                  │  independent stories (DAG)   │
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Gate 3: Story Execution     │
-                  │  Loop (per story):           │
-                  │                              │
-                  │  ┌────────────────────────┐  │
-                  │  │ 3.1 TDD (RED→GREEN)   │  │
-                  │  │ 3.2 Implement          │  │
-                  │  │ 3.3 Verify (test+lint) │  │
-                  │  │ 3.4 Story AC Gate      │  │
-                  │  └─────────┬──────────────┘  │
-                  │            │                  │
-                  │    PASS → next story          │
-                  │    FAIL 3× → mark blocked     │
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Gate 4: Executable          │
-                  │  Acceptance                  │
-                  │  All AC → executable checks  │
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Gate 5: Deviation Control   │
-                  │  Implementation vs PRD/design│
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Gate 6: Requirement         │
-                  │  Traceability                │
-                  │  PRD → design → code → test │
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Gate 7: Code/Security       │
-                  │  Review                      │
-                  │  Fresh context, no self-review│
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Gate 8: PR Readiness        │
-                  │  Traceability matrix + PR    │
-                  └──────────────┬──────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  Post: Workflow Memory       │
-                  │  Capture patterns for reuse  │
-                  └──────────────┬──────────────┘
-                                 │
-                      ┌──────────▼──────────┐
-                      │    PR Created ✅    │
-                      └─────────────────────┘
+Product inputs (PRD + roadmap + architecture)
+   │
+   ▼  Bootstrap   woos-run-orchestrator → git-workflow
+   ▼  Gate 0      Product Intake — validate inputs, record in run-manifest
+   ▼  Gate 1      Feature Design                   woos-feature-design
+   ▼  Gate 1R     Design Review (fresh context)    woos-design-review-gate
+   ▼  Gate 2      Story Decomposition → plan.md    woos-story-decomposition
+   ▼  Gate 3      Story Loop (per story in DAG order)
+   │              ├─ 3.1 TDD             tdd-workflow
+   │              ├─ 3.2 Implement       coding-standards
+   │              └─ 3.3 Verify          verification-loop
+   ▼  Gate 4      Executable Acceptance            woos-executable-acceptance-gate
+   ▼  Gate 5      Deviation Control                woos-deviation-control-gate
+   ▼  Gate 6      Requirement Traceability         (built-in)
+   ▼  Gate 7      Code + Security Review           woos-code-review-gate
+   ▼  Gate 8      PR Readiness                     woos-pr-readiness
+   ▼  Post        Workflow Memory                  woos-workflow-memory
+   ▼
+PR created ✅
 
-  On design issue at any gate:
-  ┌─────────────────────────────────────────┐
-  │  DCR → docs/feedback/<version>/<feature-id>-dcr-<NNN>.md │
-  │  → back to product pipeline for fix     │
-  └─────────────────────────────────────────┘
+On unresolvable design issue → DCR → docs/feedback/<version>/<feature-id>-dcr-<NNN>.md
 ```
-
-## Gate Breakdown
-
-### Gate 0 — Product Intake
-
-**What:** Validate product inputs from product pipeline.
-
-- Confirm required inputs:
-  - PRD: `docs/prd/<version>/<feature-id>.md`
-  - Roadmap: `docs/product/<project>-roadmap.md`
-  - Architecture: `docs/product/<project>-architecture.md`
-- Verify PRD includes goals/background, functional requirements, AC, and edge cases
-- Record product input paths and feature ID in run-manifest for traceability
-- If first time on this codebase: invoke `codebase-onboarding` for analysis
-- Output: validated product input references in run-manifest
-
-### Gate 1 — Feature Design
-
-**What:** Produce the technical design artifact based on PRD, roadmap, and architecture.
-
-- **Skill:** `woos-feature-design`
-- Covers: architecture, data model, interfaces, risk, rollout/rollback
-- If API endpoints: reference `api-design` patterns
-- If database changes: reference `database-migrations` strategy
-- If deployment needed: reference `deployment-patterns` for rollout/rollback
-- Deviations from baseline captured via `architecture-decision-records`
-- Output: `docs/engineering/<version>/<feature-id>-design.md`
-
-### Gate 1R — Design Review
-
-**What:** Independent review of the design by a fresh architect agent.
-
-- **Skill:** `woos-design-review-gate`
-- Uses `woos-review-context` for cumulative findings
-- Escalates to `woos-human-handoff` after 2 failed rounds
-- Output: PASS or REQUEST_CHANGES with specific feedback
-
-### Gate 2 — Story Decomposition
-
-**What:** Decompose PRD + engineering design into AI-checkpoint stories — the unit of one bounded implement→verify→review iteration, one rollback boundary, and one traceability anchor. Not for human task assignment, estimation, or sprint slicing.
-
-- **Skill:** `woos-story-decomposition` (orchestrator authors, `woos-product-planner` reviews in fresh context)
-- Each story covers 1 PRD AC (hard cap: 3 strongly-coupled AC sharing test setup)
-- Each story must converge within a single review-round (`review_round_max = 2`)
-- Each story declares a concrete `Diff Scope` (file paths) — this is both the rollback boundary (`git restore -- <diff_scope>`) and the deviation-control whitelist
-- Verification is the project's existing test runner; tests written inside the diff scope ARE the signal — no per-story `Verification Signal` field
-- Stories form a DAG; orchestrator records `execution_order` and `ac_coverage_map` in `run-manifest.yaml`
-- No fixed "3–8 stories per feature" rule — decompose as finely as the loop requires
-- Output: single per-feature `docs/stories/<version>/<feature-id>/plan.md` (4-column table: `ID | AC | Depends | Diff Scope`) — no per-story narrative documents
-
-### Gate 3 — Story Execution Loop
-
-**What:** Execute each story with TDD, implementation, and verification.
-
-Per story (in dependency order):
-
-| Sub-step | Skill | What |
-|----------|-------|------|
-| 3.1 TDD | `tdd-workflow` | RED → GREEN → REFACTOR |
-| 3.2 Implement | `coding-standards` | Minimal, scoped, convention-aligned |
-| 3.3 Verify | `verification-loop` | Tests + lint + type check |
-| 3.4 Story AC | built-in | Per-story acceptance check |
-
-**Conditional skills activated within Gate 3:**
-- `database-migrations` — when story touches schema
-- `e2e-testing` — when story needs Playwright integration tests
-- `browser-qa` — when story includes UI changes
-
-**Failure isolation:** A blocked story does NOT block independent stories. Blocked stories retry after others complete; if still stuck → DCR.
-
-### Gate 4 — Executable Acceptance
-
-**What:** Full-feature acceptance check after all stories complete.
-
-- **Skill:** `woos-executable-acceptance-gate`
-- Maps ALL PRD AC to executable checks
-- Missing automation = blocker
-- Output: PASS → proceed. REQUEST_CHANGES → back to Gate 3.
-
-### Gate 5 — Deviation Control
-
-**What:** Compare implementation against PRD, product architecture, and engineering design.
-
-- **Skill:** `woos-deviation-control-gate`
-- Unresolved deviations block progression
-- Intentional deviations require updated artifacts + rationale
-
-### Gate 6 — Requirement Traceability
-
-**What:** Trace from PRD through design to code and tests.
-
-- Built-in procedure (reads PRD + design + implementation)
-- Produces traceability table: `PRD AC → Design Spec → Code → Test → Status`
-- Classifications: ✅ Aligned, ⚠️ Deviated (rationale required), ❌ Missing, 🆕 Added
-- Zero ❌ required for PASS
-- Output: `docs/traceability/<version>/<feature-id>-traceability.md`
-
-### Gate 7 — Code/Security Review
-
-**What:** Independent code review in fresh context.
-
-- **Skill:** `woos-code-review-gate`
-- Dispatches `woos-code-reviewer` (+ `woos-security-reviewer` with `security-review` knowledge if sensitive)
-- Checks architecture conformance in Standard mode
-- If applicable: invokes `woos-production-audit` for pre-merge readiness
-- Uses `woos-agent-decision` for reviewer conflicts
-- 2 rounds without convergence → `woos-human-handoff`
-
-### Gate 8 — PR Readiness
-
-**What:** Final verification and PR creation.
-
-- **Skill:** `woos-pr-readiness`
-- All tests pass, lint clean, no unlinked TODOs
-- Traceability matrix (requirement → test → code)
-- Conventional commit messages
-- PR description includes: story summary, test plan, blocked stories
-- Creates PR via `gh pr create`
-
-### Post — Workflow Memory
-
-**What:** Capture learnings for future runs.
-
-- **Skill:** `woos-workflow-memory`
-- Records: failures, rework causes, story decomposition quality, DCR outcomes
-- Persists reusable guidance for next run
 
 ## Execution Modes
 
-| Mode | When | Gates | Story Loop |
-|------|------|-------|------------|
-| **Lite** | Low-risk, limited scope, no arch changes | Run Orchestrator → Git → Product Intake → Implement → Verify → Code Review → PR Readiness → Workflow Memory | No decomposition |
-| **Standard** | Default for product-designed features, multi-file changes, UI/API/database/security risk, or full traceability | All 9 gates + conditional API/browser/security/production audits | Full story loop |
+| Mode | When | Skipped gates |
+|------|------|---------------|
+| Lite | Low-risk, single small change, no arch impact | Gates 1, 1R, 2, 4, 5, 6 |
+| Standard (default) | Anything from a product-design pipeline | none |
 
-**Mode is determined by PRD scope and risk**, not chosen manually:
-- Small, low-risk PRD → Lite mode
-- Everything else → Standard mode
+Mode is determined by PRD scope and risk, not by the developer.
+
+## Gate-by-Gate
+
+| Gate | Skill | What it produces |
+|------|-------|------------------|
+| 0 Product Intake | (built-in) | Validates PRD + roadmap + architecture; records paths in `run-manifest.yaml`. First run on a repo: invokes `codebase-onboarding`. |
+| 1 Feature Design | `woos-feature-design` | `docs/engineering/<version>/<feature-id>-design.md`. References `api-design` / `database-migrations` / `deployment-patterns` when relevant. Baseline deviations captured via `architecture-decision-records`. |
+| 1R Design Review | `woos-design-review-gate` | Independent architect review in fresh context; `PASS` / `REQUEST_CHANGES`. 2 failed rounds → `woos-human-handoff`. |
+| 2 Story Decomposition | `woos-story-decomposition` (+ `woos-product-planner` review) | Single per-feature `docs/stories/<version>/<feature-id>/plan.md`: `ID \| AC \| Depends \| Diff Scope`. No per-story narrative documents. |
+| 3 Story Loop | `tdd-workflow`, `coding-standards`, `verification-loop` | Per story (DAG order): RED→GREEN→REFACTOR → implement → verify. Conditional: `database-migrations`, `e2e-testing`, `browser-qa`. A blocked story does NOT block independent stories. |
+| 4 Executable Acceptance | `woos-executable-acceptance-gate` | Every PRD AC mapped to an executable check. Missing automation = blocker. |
+| 5 Deviation Control | `woos-deviation-control-gate` | Implementation vs PRD/architecture/design; unresolved deviations block. Intentional deviation requires ADR. |
+| 6 Requirement Traceability | (built-in) | `docs/traceability/<version>/<feature-id>-traceability.md` table: PRD AC → design → code → test → status. Zero ❌ to pass. |
+| 7 Code / Security Review | `woos-code-review-gate` → `woos-code-reviewer` (+ `woos-security-reviewer` when triggered, `woos-production-audit` when applicable) | Fresh-context review with knowledge injection (E1). Output is a structured findings table (E2). |
+| 8 PR Readiness | `woos-pr-readiness` | Final check: tests green, lint clean, no orphan TODOs, traceability matrix attached. Creates the PR via `gh pr create`. |
+| Post Workflow Memory | `woos-workflow-memory` | Persists failure/rework patterns and story-decomposition quality signals for future runs. |
+
+## Story Plan (Gate 2)
+
+Gate 2 emits one file per feature: `docs/stories/<version>/<feature-id>/plan.md`. A 4-column table is the whole product:
+
+```markdown
+| ID  | AC           | Depends | Diff Scope                              |
+|-----|--------------|---------|-----------------------------------------|
+| s01 | FR-1.a       | -       | store/persist.go, store/persist_test.go |
+| s02 | FR-1.b       | s01     | store/persist.go, store/persist_test.go |
+| s03 | FR-3.a       | s01     | store/lifecycle.go, store/lifecycle_test.go |
+```
+
+Why so thin: PRD AC is the spec, tests inside the diff scope are the verification, `git restore -- <diff_scope>` is the rollback. Story status and failure logs are runtime state in `run-manifest.yaml`. Sizing rule: 1 PRD AC per story (hard cap 3 strongly-coupled AC sharing test setup); no two unordered stories may share a file. See `woos-story-decomposition/SKILL.md` for the authoritative schema.
 
 ## Enforcement Rules
 
-The workflow includes 3 non-negotiable enforcement rules (E1–E3) learned from production agent failures:
+Three non-negotiable rules learned from production agent failures:
 
-- **E1: Knowledge Injection Protocol** — before dispatching any review sub-agent, the orchestrator MUST read and inject the relevant imported skill content. A sub-agent with only a role name ("you are a code reviewer") produces shallow output. Inject full methodology.
-- **E2: Structured Review Output** — all review gates must produce a findings table (severity, category, finding, location, recommendation) + verdict + evidence. A bare "PASS" or "LGTM" is INVALID and triggers rerun.
-- **E3: Conditional Skill Activation** — conditional skills (browser-qa, e2e-testing, database-migrations, security-review, etc.) have concrete trigger rules. If the trigger is met, activation is MANDATORY. Agent cannot skip based on "judgment".
+- **E1 Knowledge Injection** — before dispatching a review sub-agent, the orchestrator MUST inject the relevant skill's full content. A sub-agent with only a role name produces shallow output.
+- **E2 Structured Review Output** — every review gate must emit a findings table (severity, category, finding, location, recommendation) + verdict + evidence. A bare "PASS" or "LGTM" is INVALID and triggers a rerun.
+- **E3 Conditional Skill Activation** — conditional skills (`browser-qa`, `e2e-testing`, `database-migrations`, `security-review`, etc.) have concrete trigger rules. If the trigger fires, activation is mandatory — not a judgment call.
 
 ## Skill Map
 
-### Local Skills (workflow gates)
+**Local (`woos-*`):**
+`woos-development-workflow` (entry), `woos-feature-design`, `woos-design-review-gate`, `woos-story-decomposition`, `woos-executable-acceptance-gate`, `woos-deviation-control-gate`, `woos-code-review-gate`, `woos-pr-readiness`, `woos-workflow-memory`, `woos-run-orchestrator`, `woos-failure-state-machine`, `woos-human-handoff`, `woos-review-context`, `woos-agent-decision`, `woos-systematic-debugging`, `woos-architect`, `woos-product-planner`, `woos-code-reviewer`, `woos-security-reviewer`, `woos-production-audit`.
 
-| Skill | Role |
-|-------|------|
-| `woos-development-workflow` | **Entry point** — orchestrator, gate progression |
-| `woos-feature-design` | Gate 1 — technical design artifact |
-| `woos-design-review-gate` | Gate 1R — independent design review |
-| `woos-executable-acceptance-gate` | Gate 4 — machine-checkable done criteria |
-| `woos-deviation-control-gate` | Gate 5 — implementation-vs-spec drift blocking |
-| `woos-code-review-gate` | Gate 7 — independent code/security review |
-| `woos-pr-readiness` | Gate 8 — PR creation and verification |
-| `woos-workflow-memory` | Post — persistent pattern capture |
-| `woos-run-orchestrator` | Infrastructure — run queue, concurrency, timeout |
-| `woos-failure-state-machine` | Infrastructure — retry/degrade/escalation |
-| `woos-human-handoff` | Infrastructure — escalation and recovery |
-| `woos-review-context` | Infrastructure — cumulative cross-gate findings |
-| `woos-agent-decision` | Infrastructure — reviewer conflict resolution |
-| `woos-systematic-debugging` | Infrastructure — structured debugging on failures |
-
-### Imported Skills (from ECC)
-
-| Skill | Gate | Role |
-|-------|------|------|
-| `git-workflow` | Bootstrap | Branch strategy, commit/PR flow |
-| `tdd-workflow` | Gate 3.1 | RED → GREEN → REFACTOR methodology |
-| `coding-standards` | Gate 3.2 | Code quality and convention enforcement |
-| `verification-loop` | Gate 3.3 | Lint/test/type/build verification |
-| `api-design` | Gate 1 (conditional) | REST/GraphQL design patterns |
-| `browser-qa` | Gate 3 (conditional) | UI smoke test, visual regression |
-| `e2e-testing` | Gate 3 (conditional) | Playwright E2E patterns, Page Object Model |
-| `security-review` | Gate 7 | Security checklist: auth, input, secrets, API, payments |
-| `architecture-decision-records` | Gate 1 + cross-gate | Structured ADR capture for deviations |
-| `database-migrations` | Gate 3 (conditional) | Zero-downtime schema changes, rollback |
-| `deployment-patterns` | Gate 1, Gate 8 | CI/CD, Docker, rollback, production readiness |
-| `woos-production-audit` | Gate 7 (conditional) | Pre-merge production readiness audit |
-| `codebase-onboarding` | Gate 0 (first run) | Codebase analysis and onboarding guide |
-
-## Key Design Principles
-
-1. **Product-input-first** — no product-phase work here; PRD, roadmap, and architecture are the input contract
-2. **Story-based decomposition** — large features broken into independently verifiable units
-3. **TDD per story** — RED/GREEN/REFACTOR is not optional
-4. **Failure isolation** — blocked stories don't cascade; independent work continues
-5. **End-to-end traceability** — PRD → design → code → test chain is verified
-6. **Bidirectional feedback** — DCR flows back to product when design issues are found
-7. **Fresh-context reviews** — no self-review; dispatched in clean sub-agent context
-8. **Baseline-first governance** — deviations require ADR + approval
-
-## ECC Knowledge Architecture
-
-This workflow draws its engineering methodology from [ECC](https://github.com/anthropics/courses/tree/master/prompt_engineering) (Everything Claude Code) — a curated library of domain-specific skills. Unlike the product side (which uses BMAD personas/frameworks/templates), the engineering side uses **imported skill files** as its knowledge layer.
-
-### Knowledge Categories
-
-#### Core Methodology (always active)
-
-Skills that define HOW engineering work is done, active in every Standard run:
-
-| Skill | Knowledge Provided | Gate |
-|-------|-------------------|------|
-| `tdd-workflow` | TDD discipline: RED before GREEN, cycle stall detection, refactor patterns | 3.1 |
-| `coding-standards` | Convention enforcement, minimal changes, no silent failures | 3.2 |
-| `verification-loop` | Multi-layer verification: lint → type → test → build | 3.3 |
-| `git-workflow` | Branch strategy, conventional commits, PR flow | Bootstrap |
-
-#### Security & Compliance (Gate 7)
-
-Skills that provide security domain knowledge for review gates:
-
-| Skill | Knowledge Provided |
-|-------|-------------------|
-| `security-review` | Authentication patterns, input validation, secrets handling, API security, payment flow security, OWASP checklist |
-| `woos-production-audit` | Pre-merge production readiness: error handling, logging, monitoring, graceful degradation |
-
-#### Architecture & Design (Gate 1)
-
-Skills that provide design methodology and decision capture:
-
-| Skill | Knowledge Provided |
-|-------|-------------------|
-| `api-design` | REST/GraphQL conventions: resource naming, status codes, pagination, error format, rate limiting |
-| `architecture-decision-records` | ADR structure, when to capture, context/decision/consequences format |
-| `deployment-patterns` | CI/CD pipelines, Docker patterns, health checks, rollback strategies, blue-green/canary |
-| `database-migrations` | Zero-downtime migrations, rollback plans, data backfill, ORM patterns (Prisma, Django, etc.) |
-
-#### Testing (Gate 3)
-
-Skills that provide testing methodology beyond unit tests:
-
-| Skill | Knowledge Provided |
-|-------|-------------------|
-| `e2e-testing` | Playwright patterns, Page Object Model, test isolation, CI/CD integration, flaky test strategies |
-| `browser-qa` | Visual regression, accessibility (WCAG AA), Core Web Vitals, responsive breakpoints |
-
-#### Research & Context (any gate)
-
-Skills that provide information-gathering capability:
-
-| Skill | Knowledge Provided |
-|-------|-------------------|
-| `codebase-onboarding` | Codebase analysis: architecture map, entry points, conventions, patterns |
-
-### Gate × Knowledge Matrix
-
-| Gate | Core | Security | Architecture | Testing | Research |
-|------|------|----------|-------------|---------|----------|
-| **0: Product Intake** | — | — | — | — | `codebase-onboarding` |
-| **1: Feature Design** | — | — | `api-design`, `architecture-decision-records`, `deployment-patterns`, `database-migrations` | — | — |
-| **1R: Design Review** | — | — | — | — | — |
-| **2: Story Decomposition** | — | — | — | — | — |
-| **3: Story Loop** | `tdd-workflow`, `coding-standards`, `verification-loop` | — | `database-migrations` | `e2e-testing`, `browser-qa` | — |
-| **4: Acceptance** | `verification-loop` | — | — | — | — |
-| **5: Deviation Control** | — | — | `architecture-decision-records` | — | — |
-| **6: Traceability** | — | — | — | — | — |
-| **7: Code Review** | — | `security-review`, `woos-production-audit` | — | — | — |
-| **8: PR Readiness** | `git-workflow` | — | `deployment-patterns` | — | — |
+**Imported (`skills/ecc/`):**
+`git-workflow`, `tdd-workflow`, `coding-standards`, `verification-loop`, `api-design`, `browser-qa`, `e2e-testing`, `security-review`, `architecture-decision-records`, `database-migrations`, `deployment-patterns`, `codebase-onboarding`.
 
 ## DCR (Design Change Request)
 
-When engineering discovers a design issue that can't be resolved within scope:
+When engineering hits a design issue it cannot resolve inside scope:
 
-1. Write `docs/feedback/<version>/<feature-id>-dcr-<NNN>.md` (issue, impact, proposed fix, priority). `<NNN>` is a zero-padded sequence starting at `001`; never overwrite an existing DCR file — always allocate the next free number.
-2. Stop work on affected stories
-3. Continue with unaffected stories
-4. Product pipeline receives DCR, fixes, and re-issues updated PRD/supporting docs
+1. Write `docs/feedback/<version>/<feature-id>-dcr-<NNN>.md` (issue, impact, proposed fix, priority). `NNN` is zero-padded from `001`; never overwrite — always allocate the next free number.
+2. Stop affected stories. Continue unaffected ones.
+3. Product pipeline updates the PRD and re-issues. Engineering resumes from the affected gate.
 
 ## File Layout
 
 ```
 <project-root>/
 ├── hep/
-│   ├── runs/<run_id>/
-│   │   └── run-manifest.yaml          ← gate progress tracking
-│   └── review-context/<run_id>.yaml   ← cumulative findings
-├── docs/
-│   ├── product/<project>-roadmap.md   ← required input
-│   ├── product/<project>-architecture.md ← required input
-│   ├── prd/<version>/<feature-id>.md  ← required input
-│   ├── prd/<version>/<feature-id>-interface.md ← optional product input
-│   ├── design/<version>/<feature-id>-ui-brief.md ← optional product input if UI
-│   ├── engineering/<version>/<feature-id>-design.md ← Gate 1 output
-│   ├── stories/<version>/<feature-id>/ ← Gate 2 output
-│   │   └── plan.md                     ← single per-feature story plan
-│   ├── adr/                           ← ADR captures
-│   ├── feedback/<version>/<feature-id>-dcr-<NNN>.md ← DCR output (back to product, one file per DCR, NNN starts at 001)
-│   └── traceability/<version>/<feature-id>-traceability.md ← Gate 6 output
-└── (implementation files)
+│   ├── runs/<run_id>/run-manifest.yaml      ← gate progress + runtime story state
+│   └── review-context/<run_id>.yaml         ← cumulative cross-gate findings
+└── docs/
+    ├── product/<project>-roadmap.md         ← input
+    ├── product/<project>-architecture.md    ← input
+    ├── prd/<version>/<feature-id>.md        ← input
+    ├── prd/<version>/<feature-id>-interface.md     ← optional (Strict)
+    ├── design/<version>/<feature-id>-ui-brief.md   ← optional (when UI)
+    ├── engineering/<version>/<feature-id>-design.md  ← Gate 1
+    ├── stories/<version>/<feature-id>/plan.md       ← Gate 2
+    ├── adr/                                  ← ADR captures
+    ├── feedback/<version>/<feature-id>-dcr-<NNN>.md  ← DCR
+    └── traceability/<version>/<feature-id>-traceability.md  ← Gate 6
 ```

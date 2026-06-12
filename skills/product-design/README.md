@@ -1,216 +1,115 @@
 # Product Design Workflow
 
-A skill-driven product design pipeline for AI coding agents. Takes a raw idea from capture through research, PRD, review gates, and delivers engineering-ready PRD/supporting artifacts.
+[English](./README.md) | [中文](./README.zh.md)
 
-## Purpose
+The product half of the pipeline. Takes a raw idea through capture → discovery → PRD, with review gates and a mandatory human approval point before engineering touches code.
 
-This workflow enforces structured product thinking before code is written. It ensures:
-
-- **WHAT/WHY** is fully defined before engineering decides **HOW**
-- Every decision is documented and traceable (roadmap → requirements → PRD → coding agent)
-- Quality gates prevent weak specs from reaching engineering
-- Cross-feature consistency is validated before build starts
+Entry skill: **`woos-idea-to-design`** (umbrella orchestrator).
 
 ## Quick Start
 
-1. Start a conversation with the agent and describe your idea
-2. The agent activates `woos-idea-to-design` (entry point skill)
-3. Follow the guided flow — the agent handles orchestration, sub-agent dispatch, and gating
+Describe an idea to the agent — trigger phrases like "I have an idea for…", "let's build…", "design this feature", "start V1" route to `woos-idea-to-design`. The orchestrator handles phase progression, sub-agent dispatch, and gating. You only get prompted at decision points.
 
-**Trigger phrases:** "I have an idea for...", "let's build...", "design this feature", "start V1"
-
----
-
-## Workflow Overview
+## Pipeline
 
 ```
-Raw Idea
-  │
-  ▼
-┌─────────────────────────────────────────────────────────┐
-│ Phase 1: Capture (woos-idea-capture)                    │
-│ Output: ideas/<slug>/00-idea-capture.md                 │
-└────────────────────────┬────────────────────────────────┘
-                         │
-              ┌──────────▼──────────┐
-              │  Trivially simple?  │
-              └──┬──────────────┬───┘
-            Yes  │              │  No
-                 ▼              ▼
-        User confirms    ┌────────────────────────────────┐
-        "Lite mode"      │ Phase 2: Discovery             │
-                │        │ (woos-product-discovery)        │
-                │        │                                 │
-                │        │  1. Problem Validation          │
-                │        │  2. Market/Competitive Research │
-                │        │  3. Roadmap → Review Gate       │
-                │        │  4. Architecture → Review Gate  │
-                │        └───────────────┬────────────────┘
-                │                        │
-                │             🚦 Human Approval Gate
-                │             (mandatory before PRD)
-                │                        │
-                │        Mode inferred from roadmap:
-                │        • Single feature → Standard
-                │        • Multi-feature → Strict
-                │                        │
-  ┌─────────────▼────────────────────────▼────────────────┐
-  │ Phase 3: Product Design Flow                          │
-  │ (woos-product-design-flow)                            │
-  │                                                       │
-  │  Step 1:   Select Version Scope                       │
-  │  Step 1.5: Feature Dependency Analysis         [S]    │
-  │                                                       │
-  │  ┌─ Per Feature (in dependency order) ────────────┐   │
-  │  │  Step 2:   Requirement Contract       (+iface) │   │
-  │  │  Step 3:   PRD Authoring              (+iface) │   │
-  │  │  Step 4:   PRD Review Gate             (+iface) │   │
-  │  │  Step 5:   UI Brief                     [S]    │   │
-  │  │  Step 5R:  UI Brief Review              [S]    │   │
-  │  │  Step 6:   Analyze Gate           [S] (+iface) │   │
-  │  │  Step 6.5: Interface Summary Extraction [S]    │   │
-  │  │  Step 7:   Integration Gate (incremental) [S]  │   │
-  │  └───────────────────────────────────────────────┘   │
-  │                                                       │
-  └───────────────────────────┬───────────────────────────┘
-                             │
-                 ┌────────────▼────────────┐
-                 │  Engineering Delivery   │
-                 │  → Engineering Stage    │
-                 └─────────────────────────┘
-
-  [S] = Strict mode only
-  (+iface) = receives upstream interface summaries when dependencies exist
+Raw idea
+   │
+   ▼  woos-idea-capture
+ideas/<slug>/00-idea-capture.md
+   │
+   │  trivial? ─yes→ user confirms Lite ────────┐
+   │                                            │
+   ▼  woos-product-discovery                    │
+docs/product/<project>-roadmap.md               │
+docs/product/<project>-architecture.md          │
+   │                                            │
+   ▼  🚦 mandatory human approval               │
+   │                                            │
+   ▼  woos-product-design-flow                  │
+docs/prd/<version>/<feature-id>.md  ◀───────────┘
+docs/prd/<version>/<feature-id>-interface.md  (Strict only)
+docs/design/<version>/<feature-id>-ui-brief.md  (when UI)
 ```
 
----
+Mode is inferred automatically, not chosen manually:
 
-## Phases
+| Mode | When | Phase 3 steps |
+|------|------|---------------|
+| Lite | Trivial, < 2 days | Requirements → PRD |
+| Standard | Single feature, moderate risk | Requirements → PRD → PRD Review |
+| Strict | Multi-feature, UX-heavy, high uncertainty | Full per-feature: Requirements → PRD → PRD Review → UI → UI Review → Analyze → Interface Summary → Integration |
 
-### Phase 1 — Capture
-
-| | |
-|---|---|
-| **Skill** | `woos-idea-capture` |
-| **What** | Guided interview to structure raw idea into product intent |
-| **Output** | `ideas/<slug>/00-idea-capture.md` |
-| **Next** | Trivial → Lite (user confirms); otherwise → Discovery |
-
-### Phase 2 — Discovery
+## Phase 1 — Capture
 
 | | |
 |---|---|
-| **Skill** | `woos-product-discovery` (orchestrator) |
-| **What** | Research problem space, produce roadmap + architecture |
-| **Output** | `docs/product/<project>-roadmap.md` + `docs/product/<project>-architecture.md` |
-| **Next** | 🚦 Human approval → Phase 3 |
+| Skill | `woos-idea-capture` |
+| Does | Guided interview that turns a raw idea into a structured intent document |
+| Output | `ideas/<slug>/00-idea-capture.md` |
 
-Discovery dispatches 4 sub-skills in sequence:
-
-| Step | Skill | Output |
-|------|-------|--------|
-| 1 | `woos-problem-validation` | Verdict appended to idea capture |
-| 2 | `woos-product-research` | `docs/research/<topic>.md` |
-| 3 + 3R | `woos-roadmap-authoring` → `woos-roadmap-review-gate` | Roadmap + review |
-| 4 + 4R | `woos-architecture-overview` → `woos-architecture-review-gate` | Architecture + review |
-
-### Phase 3 — Design Flow
+## Phase 2 — Discovery
 
 | | |
 |---|---|
-| **Skill** | `woos-product-design-flow` (orchestrator) |
-| **What** | Turn roadmap into reviewed PRDs + interface summaries per feature |
-| **Final output** | `docs/prd/<version>/<feature-id>.md` + `docs/prd/<version>/<feature-id>-interface.md` |
+| Skill | `woos-product-discovery` (orchestrator) |
+| Does | Validate the problem, research the space, produce a roadmap and an architecture sketch — each gated by independent review |
+| Output | `docs/product/<project>-roadmap.md` + `docs/product/<project>-architecture.md` |
+| Sub-skills | `woos-problem-validation`, `woos-product-research`, `woos-roadmap-authoring` (+ review gate), `woos-architecture-overview` (+ review gate) |
+| Exit | 🚦 mandatory human approval before Phase 3 |
 
-| Step | Skill | What It Does |
-|------|-------|--------------|
-| 1 | (orchestrator) | Select version scope, confirm boundaries |
-| 1.5 | (orchestrator) | Dependency analysis — determine feature execution order + interface pass-through plan |
-| 2 | `woos-requirement-contract` | Per-feature requirements with P0/P1/P2 cut-line (+upstream interface alignment) |
-| 3 | `woos-prd-authoring` | Full PRD from ranked requirements (+upstream interface alignment) |
-| 4 | `woos-product-prd-review-gate` | Isolated PRD review → `PASS` / `REQUEST_CHANGES` (+upstream interface check) |
-| 5 | `woos-ui-design-brief` | UI direction, screens, interaction patterns |
-| 5R | `woos-ui-brief-review` | Isolated UI review → `PASS` / `REQUEST_CHANGES` |
-| 6 | `woos-prd-consistency-audit` | Script extraction + semantic audit (+upstream interface check) |
-| 6.5 | (orchestrator) | Interface summary extraction — shared concepts for downstream features |
-| 7 | `woos-version-integration-audit` | Incremental cross-feature conflict detection (after each 2nd+ feature) |
+## Phase 3 — Design Flow
 
----
+| | |
+|---|---|
+| Skill | `woos-product-design-flow` (orchestrator) |
+| Does | Per-feature: turn the roadmap entry into a reviewed PRD (plus UI brief and interface summary in Strict mode) |
+| Output | `docs/prd/<version>/<feature-id>.md` and friends |
 
-## Execution Modes
+Steps in Strict mode:
 
-| Mode | When | Steps | Gates |
-|------|------|-------|-------|
-| **Lite** | Trivial, < 2 days | Requirements → PRD | None |
-| **Standard** | Single feature, moderate | 1 → 2 → 3 → 4 | PRD Review |
-| **Strict** | Multi-feature, UX-heavy, high-risk | 1 → 1.5 → [per feature: 2 → 3 → 4 → 5 → 5R → 6 → 6.5 → 7(incremental)] | All |
+| Step | Skill / Action | Output |
+|------|----------------|--------|
+| 1 | Orchestrator selects version scope | — |
+| 1.5 | Orchestrator analyzes feature dependencies, sets execution order | — |
+| 2 | `woos-requirement-contract` | `<feature-id>-requirements.md` with P0/P1/P2 cut-line |
+| 3 | `woos-prd-authoring` | `<feature-id>.md` |
+| 4 | `woos-product-prd-review-gate` (fresh context) | PRD review verdict |
+| 5 | `woos-ui-design-brief` (when UI in scope) | `<feature-id>-ui-brief.md` |
+| 5R | `woos-ui-brief-review` (fresh context) | UI review verdict |
+| 6 | `woos-prd-consistency-audit` (fresh context) | Audit verdict |
+| 6.5 | Orchestrator extracts shared interface contract | `<feature-id>-interface.md` |
+| 7 | `woos-version-integration-audit` (fresh context, incremental from 2nd feature) | Integration verdict |
 
-Mode is determined automatically:
-1. After Capture: trivial → Lite (user confirms)
-2. After Discovery:
-   - single feature, normal risk → Standard
-   - multi-feature, or single-feature UX-heavy / high-risk / high-uncertainty → Strict
+Lite and Standard run a subset — see the [`woos-product-design-flow` SKILL](./woos-product-design-flow/SKILL.md) for the per-mode step list.
 
----
+After every feature: ⭐ checkpoint — deliver to engineering now or design the next feature first?
 
 ## Enforcement Rules (P0–P7)
 
+Non-negotiable rules in `woos-product-design-flow` that prevent step-skipping, template ignorance, and shallow review:
+
 | Rule | Principle |
 |------|-----------|
-| **P0** | Explicit step dispatch — state skill, inputs, output before each step |
-| **P1** | Orchestrator does NOT author — only Steps 1, 1.5, and 6.5 are direct |
-| **P2** | No merging or skipping — each step has verified output |
-| **P3** | Output validation — file must exist with expected structure/verdict |
-| **P4** | No self-review — fresh skill in fresh context for every gate |
-| **P5** | Subagent isolation — Steps 4, 5R, 6, 7 run in isolated contexts |
-| **P6** | Fix propagation — any fix must grep + sync all affected docs globally |
-| **P7** | Upstream interface awareness — downstream features receive upstream interface summaries |
+| P0 | Explicit step dispatch — state skill, inputs, output before each step |
+| P1 | Orchestrator does NOT author artifacts (except Steps 1, 1.5, 6.5) |
+| P2 | No merging or skipping steps |
+| P3 | Validate output file existence and structure before advancing |
+| P4 | No self-review — every gate runs in fresh sub-agent context |
+| P5 | Subagent isolation for Steps 4, 5R, 6, 7 |
+| P6 | Fix propagation — any rename or change MUST be greped + synced across all version docs |
+| P7 | Upstream interface awareness — downstream features receive upstream interface summaries |
 
----
+## DCR (back from engineering)
 
-## Design Principles
+Engineering issues a Design Change Request at `docs/feedback/<version>/<feature-id>-dcr-<NNN>.md` when implementation discovers a wrong product assumption. The orchestrator reads it, decides scope, and either updates the PRD directly (small) or re-runs from Step 3 / Step 5 (large).
 
-1. **Product defines WHAT/WHY, Engineering decides HOW** — no implementation details in PRD
-2. **File-based state** — all artifacts are human-readable markdown, git-trackable
-3. **Independent reviewers** — fresh sub-agent context for every review gate
-4. **Template-driven** — mandatory structures with `[NEEDS CLARIFICATION: ...]` markers
-5. **Human-in-the-loop** — mandatory approval gate between Discovery and Design Flow
-6. **Bidirectional feedback** — engineering issues DCR (Design Change Requests) back to product
+## Knowledge Layer
 
----
+The product flow is built on the [BMAD](https://github.com/bmad-agent/bmad-agent) methodology, surfaced through:
 
-## Knowledge Architecture
+- **Personas** injected into sub-agent steps (PM "John", UX Designer "Sally", PRD Validator)
+- **Frameworks** for PRD shaping, UX validation, market research, architecture coherence
+- **Templates** with `[NEEDS CLARIFICATION: …]` markers that block weak specs from passing
 
-Adapted from the [BMAD](https://github.com/bmad-agent/bmad-agent) methodology. Three types of domain knowledge are injected into sub-agent steps:
-
-### Personas
-
-| Persona | Used In | Purpose |
-|---------|---------|---------|
-| **PM (John)** | Steps 2, 3 | Product thinking — shapes requirements and PRD from user-value perspective |
-| **UX Designer (Sally)** | Steps 5, 5R | Interaction patterns, accessibility, information hierarchy |
-| **PRD Validator** | Discovery 3R, Step 4 | Critical reviewer — gaps, contradictions, untestable criteria |
-
-### Frameworks
-
-| Framework | Stage | Purpose |
-|-----------|-------|---------|
-| `framework-prd.md` | Design Flow | Shape → extract → validate cycle for requirements/PRD |
-| `framework-ux-design.md` | Design Flow | Dual-spine model, elicit-not-impose |
-| `framework-ux-validate.md` | Design Flow | UI brief review methodology |
-| `framework-epics-and-stories.md` | Design Flow | User-value grouping, FR coverage tracking |
-| `framework-implementation-readiness.md` | Design Flow | Four-layer validation, traceability matrix |
-| `framework-market-research.md` | Discovery | Multi-angle research, synthesis |
-| `framework-competitive-analysis.md` | Discovery | SWOT, differentiation strategy |
-| `framework-customer-pain-points.md` | Discovery | Pain categories, prioritization matrix |
-| `framework-create-prd.md` | Discovery | Versioned roadmap discipline |
-| `framework-create-architecture.md` | Discovery | Requirements extraction, scale assessment |
-| `framework-architecture-validation.md` | Discovery | Coherence, coverage, readiness validation |
-
-### Templates
-
-| Template | Location | Purpose |
-|----------|----------|---------|
-| `template-prd-template.md` | `woos-prd-authoring` | PRD section structure |
-| `template-prd-validation-checklist.md` | `woos-product-prd-review-gate` | Review output format |
-| `requirements-template.md` | `woos-requirement-contract` | Requirements contract structure |
+Authoritative details live inside each skill's `SKILL.md` and the framework files referenced from there.
