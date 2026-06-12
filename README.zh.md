@@ -6,6 +6,8 @@
 
 Host 无关。任何能从目录加载 skill 的 agent runtime（Claude Code、Cursor、Hermes ……）都能用。
 
+**核心 thesis：** 你只需要记住两个入口（产品工作用 `woos-idea-to-design`，工程工作用 `woos-development-workflow`）。内部的 orchestrator 自己加载子 skill、在 fresh context 里调度评审、卡 gate 推进。Skill 是写给 AI 读的，不是给人背的。人只在刻意安排的 checkpoint 重新介入。
+
 ## 这里有什么
 
 | 目录 | 用途 | 维护方式 |
@@ -101,6 +103,30 @@ Run Orchestrator → Git → Product Intake
 Lite 模式跳过 Gate 1、1R、2、4、5、6——适用于低风险小改动。
 
 **Gate 2 的产物**是单个 per-feature `plan.md` 表（不再有每个 story 的 narrative 文件）。PRD AC 是规约，diff scope 里的测试就是验证，`git restore -- <diff_scope>` 就是回滚。
+
+## 与同类对比
+
+| 框架 | 强项 | 这个 repo 为什么和它并存 |
+|------|------|--------------------------|
+| [ECC](https://github.com/everything-claude-code/everything-claude-code) | 高质量工程 skill 库（TDD、security、deployment……） | ECC 是自助餐——50+ skill、无 orchestrator、每次靠用户自己挑。本 repo 在 ECC 之上加了 gate 推进、条件触发规则，并覆盖了产品侧。 |
+| [BMAD](https://github.com/bmadcode/BMAD-METHOD) | persona 主导的产品 + agile 流程 | BMAD 是对话主导（"跟 PM agent 聊"），本 repo 是工作流主导（两个触发短语，AI 自己跑）。persona 表面更轻，gate 更机器可校验。 |
+| Superpowers | 实战派工程循环，TDD/debug 纪律强 | Superpowers 只覆盖工程侧。本 repo 在工程循环前加了完整产品流水线（discovery、PRD、接口摘要、UI brief）。 |
+
+**适用：** 长跨度、多 feature、需要 gate 与可追溯、AI 主导跑、人只在特定 checkpoint 介入。
+
+**多半 overkill：** 两句话能讲完的单个小改动——直接用 Superpowers 或裸 ECC 更快。
+
+## 已知盲区
+
+诚实清单——这些是真的问题，本周内不会修：
+
+- **AI 在评 AI。** 每个 gate 的 PASS 都由 LLM 给出。`fresh_context` 防的是共谋，没法引入外部判断。**第一轮错误地 PASS 是最大盲区**——只有失败才会升级到 `woos-human-handoff`，成功不会。
+- **`invocation_evidence` 是自证的。** 本该调用某子 skill 的 AI，也是写"我调用了"那段 JSON 的 AI。要根治得有外部 process 记录 dispatch 事件，目前没有。
+- **Skill 间引用没 CI 校验。** SKILL.md 之间靠字符串相互引用（`woos-architect`、`woos-product-planner`……）。重命名/删除只有当 orchestrator 真去 dispatch 失败时才暴露。
+- **"完成"的定义停在 PR 合并。** 没有 post-merge 钩子，没有部署/观测/"roadmap 的成功指标真的动了吗"的回环。
+- **单人在用，没经过实战。** ECC/BMAD/Superpowers 有社区帮你踩坑，这条流水线只跑过一个人手上的少数 feature，很多失败模式还潜伏。
+- **DCR 摩擦可能反向激励隐藏偏离。** Gate 5 把未授权偏离当 blocker，AI 的最优策略可能是少报而不是诚实报。目前没有反向激励机制。
+- **DAG rollback 模糊。** 如果下游 story 已经基于上游 story commit，而上游需要 revert，级联回滚步骤是丢给 AI 想，没有写进工作流。
 
 ## 更新 `skills/ecc/`
 
