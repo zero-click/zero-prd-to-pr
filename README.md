@@ -15,12 +15,12 @@ Skill-first coding profile for Hermes — a complete idea-to-delivery pipeline w
 │                    Product Design Stage                          │
 │                  (skills/product-design/)                        │
 │                                                                 │
-│  Idea → Capture → Discovery → 🚦 Human Gate → PRD → Handoff   │
+│  Idea → Capture → Discovery → 🚦 Human Gate → PRD + Roadmap + Architecture │
 │                                                                 │
-│  Entry: woos-idea-to-delivery                                   │
+│  Entry: woos-idea-to-design                                     │
 │  Modes: Lite / Standard / Strict                                │
 └────────────────────────────┬────────────────────────────────────┘
-                             │  Build Handoff (file-based contract)
+                             │  Product design artifacts (PRD/roadmap/architecture)
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                   Software Development Stage                     │
@@ -29,11 +29,11 @@ Skill-first coding profile for Hermes — a complete idea-to-delivery pipeline w
 │  Design → Stories → TDD Loop → Review → Trace → PR             │
 │                                                                 │
 │  Entry: woos-development-workflow                                │
-│  Modes: Lite / Standard / Strict                                │
+│  Modes: Lite / Standard                                         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Key boundary:** Product defines WHAT/WHY. Engineering decides HOW. The handoff file is the contract between stages.
+**Key boundary:** Product defines WHAT/WHY. Engineering decides HOW. PRD, roadmap, and architecture are the contract between stages.
 
 ## Product Design Stage
 
@@ -43,23 +43,22 @@ See [`skills/product-design/README.md`](./skills/product-design/README.md) for f
 
 | Skill | Role |
 |-------|------|
-| `woos-idea-to-delivery` | Entry point — umbrella orchestrator, tier routing |
+| `woos-idea-to-design` | Entry point — umbrella orchestrator from raw idea to engineering-ready product artifacts |
 | `woos-idea-capture` | Phase 1 — idea interview and structuring |
 | `woos-product-discovery` | Phase 2 — research, roadmap, architecture |
 | `woos-product-design-flow` | Phase 3 — PRD pipeline orchestrator |
 | `woos-ui-design-brief` | UI direction and wireframes |
-| `woos-build-handoff` | Handoff packaging |
 
 **Enforcement:** 7 non-negotiable rules (E1–E7) prevent agents from skipping steps, ignoring templates, or doing shallow reviews.
 
 ## Software Development Stage
 
-**Entry skill:** `woos-development-workflow` (v2.0.0)
+**Entry skill:** `woos-development-workflow` (v3.0.0)
 
 ```mermaid
 flowchart TD
   A[Run Orchestrator<br/>woos-run-orchestrator] --> B[Git Workflow<br/>git-workflow]
-  B --> C[Gate 0: Handoff Intake]
+  B --> C[Gate 0: Product Intake]
   C --> D[Gate 1: Feature Design<br/>woos-feature-design]
   D --> D1{Has API?}
   D1 -->|Yes| D2[API Design Review<br/>api-design]
@@ -91,19 +90,18 @@ flowchart TD
 
 **Execution profiles:**
 
-1. **Lite**: Handoff Intake → Implement → Verify → Code Review → PR
-2. **Standard (default)**: Full gate flow with story decomposition, traceability, and DCR
-3. **Strict**: Standard + API Design Review + Browser QA + Architecture Conformance
+1. **Lite**: Product Intake → Implement → Verify → Code Review → PR
+2. **Standard (default)**: Full gate flow with story decomposition, traceability, DCR, and conditional API/browser/security/production audits
 
 ## Feedback Loop (DCR)
 
 When the engineering stage discovers a product assumption is wrong, it issues a **Design Change Request** back to product:
 
 ```
-Engineering → docs/feedback/<feature>-dcr.md → Product Design → updated handoff → Engineering resumes
+Engineering → docs/feedback/<version>/<feature-id>-dcr.md → Product Design → updated PRD/supporting docs → Engineering resumes
 ```
 
-Available in Standard and Strict modes.
+Available whenever engineering discovers a design issue that must route back to product.
 
 ## Install
 
@@ -144,4 +142,4 @@ Seven-part foundation for near-unattended delivery:
 
 - ADR template: `docs/adr/ADR-template.md`
 - Design/code review gates require: `baseline_compliance_status`, `deviation_detected`, `deviation_adr_path`
-- Run finalization requires verified run manifest: `<workspace_root>/.hep/runs/<run_id>/run-manifest.yaml`
+- Run finalization requires verified run manifest: `<workspace_root>/hep/runs/<run_id>/run-manifest.yaml`

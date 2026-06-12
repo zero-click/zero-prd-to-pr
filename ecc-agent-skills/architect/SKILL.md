@@ -18,7 +18,7 @@ ecc_source_commit: 0e9f613fd196f6d4157765b17d39c2c42ebbf564
 ## Input Contract
 
 - Design artifact path (required for review flows)
-- Linked PRD/capability context
+- Linked PRD, roadmap, architecture, and supporting interface/UI context when available
 - Known constraints (security, scalability, performance, rollout)
 
 ## Workflow

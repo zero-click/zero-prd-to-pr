@@ -216,7 +216,8 @@ This requirement also applies when Discovery is skipped because roadmap and arch
 2. Output the **full content** of `docs/product/<project>-architecture.md`
 3. State the inferred mode as a fact (not a question):
    - Roadmap contains multiple features for this version → "Will use Strict mode (multi-feature version)"
-   - Roadmap contains a single feature → "Will use Standard mode (single feature)"
+   - Roadmap contains a single feature with UX-heavy, high-risk, or high-uncertainty scope → "Will use Strict mode (single-feature complex version)"
+   - Otherwise → "Will use Standard mode (single-feature version)"
 4. Ask: "Please review the roadmap and architecture above. If satisfied, say 'start PRD' to proceed. If you have changes, let me know."
 
 **Rules:**

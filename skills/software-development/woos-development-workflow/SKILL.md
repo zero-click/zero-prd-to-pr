@@ -15,7 +15,7 @@ metadata:
 
 ## Purpose
 
-**Stage 3** of the idea-to-delivery pipeline. Receives product design outputs from `woos-product-design-flow` (Stage 2), decomposes the PRD into engineering stories, and delivers a production-ready PR through gated execution.
+**Stage 3** of the idea-to-delivery pipeline. Receives product design outputs from `woos-product-design-flow`, decomposes the PRD into engineering stories, and delivers a production-ready PR through gated execution.
 
 Rule: every gate must invoke exactly one **gate wrapper skill**, then satisfy that wrapper's minimal contract.
 
@@ -240,7 +240,7 @@ Conditional skills activate based on these concrete triggers (not agent judgment
 3. Output MUST follow structured findings format (per E2).
 4. Uses `woos-review-context` to load/update cumulative findings.
 5. Returns `PASS` or `REQUEST_CHANGES`.
-6. Escalates to `woos-human-handoff` when review loop threshold (3 rounds) exceeded.
+6. Escalates to `woos-human-handoff` when review loop threshold (2 rounds) exceeded.
 
 ### Gate 2 — Story Decomposition
 
@@ -384,7 +384,7 @@ Trace from original PRD through design to implementation and tests.
 7. Uses `woos-review-context` for cumulative findings.
 8. Uses `woos-agent-decision` when reviewer verdicts conflict.
 9. **PASS** → Gate 8. **REQUEST_CHANGES** → return to Gate 3.
-10. 3 rounds without convergence → `woos-human-handoff`.
+10. 2 rounds without convergence → `woos-human-handoff`.
 
 ### Gate 8 — PR Readiness
 
@@ -435,7 +435,7 @@ Trace from original PRD through design to implementation and tests.
 
 2. Stop work on affected stories.
 3. Continue with unaffected stories if possible.
-4. DCR flows back to product pipeline (Stage 2) for resolution.
+4. DCR flows back to the upstream product-design stage for resolution.
 
 ---
 
@@ -473,7 +473,7 @@ gates:
 | L1 | Read product inputs (PRD, roadmap, architecture) |
 | L2 | Implement tasks directly (no story decomposition) |
 | L3 | Verify (test + lint) |
-| L4 | Self-review (no independent dispatch) |
+| L4 | Independent code review in fresh context |
 | L5 | Create PR via `woos-pr-readiness` |
 
 No story decomposition, no deviation control, no traceability gate.
@@ -487,7 +487,7 @@ No story decomposition, no deviation control, no traceability gate.
 | Product inputs missing or invalid | BLOCKED — redirect to product pipeline |
 | Single story fails 3× | Mark BLOCKED, continue others |
 | Build/test fails 2× (within story) | `woos-systematic-debugging` |
-| Review fails 3× | `woos-human-handoff` escalation |
+| Review fails 2× | `woos-human-handoff` escalation |
 | Design issue found | DCR → back to product pipeline |
 | Overall timeout | `woos-failure-state-machine` (retry → degrade → escalate) |
 | Required skill unavailable | BLOCKED — report which skill |
@@ -514,8 +514,8 @@ Cross-gate control skills:
 
 Persistence:
 
-- Run manifest: `<workspace_root>/.hep/runs/<run_id>/run-manifest.yaml`
-- Review context: `<workspace_root>/.hep/review-context/<run_id>.yaml`
+- Run manifest: `<workspace_root>/hep/runs/<run_id>/run-manifest.yaml`
+- Review context: `<workspace_root>/hep/review-context/<run_id>.yaml`
 - Stories: `<workspace_root>/docs/stories/<version>/<feature-id>/`
 - For gated runs, `run_id` is mandatory; if missing, return `BLOCKED`.
 
@@ -523,7 +523,7 @@ Persistence:
 
 ```text
 <project-root>/
-├── .hep/
+├── hep/
 │   ├── runs/<run_id>/
 │   │   └── run-manifest.yaml
 │   └── review-context/<run_id>.yaml
@@ -538,7 +538,7 @@ Persistence:
 │   │   ├── story-001.md
 │   │   ├── story-002.md
 │   │   └── ...
-│   ├── feedback/<version>/<feature-id>-dcr.md ← DCR output (back to Stage 2)
+│   ├── feedback/<version>/<feature-id>-dcr.md ← DCR output (back to product-design stage)
 │   └── traceability/<version>/<feature-id>-traceability.md ← traceability output
 └── (implementation files)
 ```

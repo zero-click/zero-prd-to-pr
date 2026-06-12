@@ -1,6 +1,6 @@
 # Product Design Workflow
 
-A skill-driven product design pipeline for AI coding agents. Takes a raw idea from capture through research, PRD, review gates, and delivers a build-ready handoff to engineering.
+A skill-driven product design pipeline for AI coding agents. Takes a raw idea from capture through research, PRD, review gates, and delivers engineering-ready PRD/supporting artifacts.
 
 ## Purpose
 
@@ -64,20 +64,18 @@ Raw Idea
   │  ┌─ Per Feature (in dependency order) ────────────┐   │
   │  │  Step 2:   Requirement Contract       (+iface) │   │
   │  │  Step 3:   PRD Authoring              (+iface) │   │
-  │  │  Step 4:   PRD Review Gate        [S] (+iface) │   │
+  │  │  Step 4:   PRD Review Gate             (+iface) │   │
   │  │  Step 5:   UI Brief                     [S]    │   │
   │  │  Step 5R:  UI Brief Review              [S]    │   │
   │  │  Step 6:   Analyze Gate           [S] (+iface) │   │
-  │  │  Step 7:   Build Handoff                       │   │
-  │  │  Step 8:   Readiness Check              [S]    │   │
-  │  │  Step 8.5: Interface Summary Extraction [S]    │   │
-  │  │  Step 9:   Integration Gate (incremental) [S]  │   │
+  │  │  Step 6.5: Interface Summary Extraction [S]    │   │
+  │  │  Step 7:   Integration Gate (incremental) [S]  │   │
   │  └───────────────────────────────────────────────┘   │
   │                                                       │
   └───────────────────────────┬───────────────────────────┘
-                              │
+                             │
                  ┌────────────▼────────────┐
-                 │  Build-Ready Handoff    │
+                 │  Engineering Delivery   │
                  │  → Engineering Stage    │
                  └─────────────────────────┘
 
@@ -122,7 +120,7 @@ Discovery dispatches 4 sub-skills in sequence:
 |---|---|
 | **Skill** | `woos-product-design-flow` (orchestrator) |
 | **What** | Turn roadmap into reviewed PRDs + interface summaries per feature |
-| **Final output** | `docs/prd/<version>/<feature>.md` + `docs/prd/<version>/<feature>-interface.md` |
+| **Final output** | `docs/prd/<version>/<feature-id>.md` + `docs/prd/<version>/<feature-id>-interface.md` |
 
 | Step | Skill | What It Does |
 |------|-------|--------------|
@@ -149,7 +147,9 @@ Discovery dispatches 4 sub-skills in sequence:
 
 Mode is determined automatically:
 1. After Capture: trivial → Lite (user confirms)
-2. After Discovery: single feature → Standard, multi-feature → Strict
+2. After Discovery:
+   - single feature, normal risk → Standard
+   - multi-feature, or single-feature UX-heavy / high-risk / high-uncertainty → Strict
 
 ---
 

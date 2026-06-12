@@ -207,7 +207,7 @@ def dedupe(items: Iterable[str]) -> list[str]:
 
 def feature_stem(path: str | Path) -> str:
     stem = Path(path).stem
-    for suffix in ("-requirements", "-ui-brief", "-analyze-report", "-readiness"):
+    for suffix in ("-requirements", "-ui-brief", "-interface", "-analyze-report", "-readiness"):
         if stem.endswith(suffix):
             return stem[: -len(suffix)]
     return stem

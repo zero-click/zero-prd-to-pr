@@ -150,7 +150,7 @@ This is **Stage 3** of the idea-to-delivery pipeline. It ensures:
 
 - **Skill:** `woos-design-review-gate`
 - Uses `woos-review-context` for cumulative findings
-- Escalates to `woos-human-handoff` after 3 failed rounds
+- Escalates to `woos-human-handoff` after 2 failed rounds
 - Output: PASS or REQUEST_CHANGES with specific feedback
 
 ### Gate 2 — Story Decomposition
@@ -220,7 +220,7 @@ Per story (in dependency order):
 - Checks architecture conformance in Standard mode
 - If applicable: invokes `production-audit` for pre-merge readiness
 - Uses `woos-agent-decision` for reviewer conflicts
-- 3 rounds without convergence → `woos-human-handoff`
+- 2 rounds without convergence → `woos-human-handoff`
 
 ### Gate 8 — PR Readiness
 
@@ -241,7 +241,7 @@ Per story (in dependency order):
 - Records: failures, rework causes, story decomposition quality, DCR outcomes
 - Persists reusable guidance for next run
 
-## Three Execution Modes
+## Execution Modes
 
 | Mode | When | Gates | Story Loop |
 |------|------|-------|------------|
@@ -398,7 +398,7 @@ When engineering discovers a design issue that can't be resolved within scope:
 
 ```
 <project-root>/
-├── .hep/
+├── hep/
 │   ├── runs/<run_id>/
 │   │   └── run-manifest.yaml          ← gate progress tracking
 │   └── review-context/<run_id>.yaml   ← cumulative findings

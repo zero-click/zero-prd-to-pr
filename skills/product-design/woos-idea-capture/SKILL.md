@@ -124,7 +124,7 @@ Users often volunteer technical opinions during capture ("I want to use Go", "le
 
 1. **Do NOT ask** questions about tech stack, frameworks, languages, or databases
 2. **If user volunteers a tech preference** → acknowledge it, then record it in the output under a dedicated `## Technical Preferences (Deferred)` section
-3. **Label clearly** — these are preferences, not decisions. They will be evaluated by the architect sub-agent in Discovery Step 5
+3. **Label clearly** — these are preferences, not decisions. They will be evaluated during the Discovery architecture steps (Step 4 / Step 4R)
 4. **Do NOT let preferences leak** into Problem Statement, Vision, Core Behaviors, or Constraints sections
 5. **Do NOT push back** on preferences — just record and defer. No debate in this phase.
 
@@ -134,8 +134,8 @@ Users often volunteer technical opinions during capture ("I want to use Go", "le
 ## Technical Preferences (Deferred)
 
 > ⚠️ These are user preferences expressed during idea capture. They are NOT confirmed
-> technical decisions. They will be evaluated by the architect sub-agent in Discovery
-> Step 5, where trade-offs can be properly assessed.
+> technical decisions. They will be evaluated during the Discovery architecture
+> steps (Step 4 / Step 4R), where trade-offs can be properly assessed.
 
 - "Backend in Go" — user preference, to be evaluated in architecture
 - "SQLite for storage" — user preference, to be evaluated in architecture
@@ -179,7 +179,7 @@ Ideal experience: [describe]
 
 ## Technical Preferences (Deferred)
 
-> ⚠️ User preferences only. NOT decisions. Evaluated in Discovery Step 5 (Architecture).
+> ⚠️ User preferences only. NOT decisions. Evaluated in Discovery Step 4 / Step 4R (Architecture).
 
 - [preference]: user preference, to be evaluated in architecture
 - (or "None expressed")
@@ -208,7 +208,7 @@ After capture is complete, assess complexity:
 
 ```text
 Is it obviously trivial? (typo, 1-liner, single obvious change, user explicitly says it's simple)
-  → Yes → Propose Lite to user: "This looks straightforward. I suggest Lite mode — go directly to handoff. Agree?"
+  → Yes → Propose Lite to user: "This looks straightforward. I suggest Lite mode — go directly to a lightweight PRD package. Agree?"
            → User confirms → `woos-product-design-flow` Lite
            → User says no  → proceed to Discovery
   → No  → proceed to `woos-product-discovery` (research needed)
@@ -229,5 +229,5 @@ Is it obviously trivial? (typo, 1-liner, single obvious change, user explicitly 
 - Don't discuss tech stack, frameworks, or databases — stay on product intent
 - Don't auto-select Lite without user confirmation
 - **Don't ASK about tech stack** — if user volunteers preferences, record under "Technical Preferences (Deferred)", never in Constraints
-- **Don't let tech preferences become constraints** — "user wants Go" ≠ "must use Go". Record as preference, let architect evaluate in Discovery Step 5
+- **Don't let tech preferences become constraints** — "user wants Go" ≠ "must use Go". Record as preference, let architect evaluate in Discovery Step 4 / Step 4R
 - **Don't debate tech choices** — this phase has no authority to confirm or reject technical decisions
