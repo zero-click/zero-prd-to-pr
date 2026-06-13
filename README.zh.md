@@ -91,11 +91,8 @@ Run Orchestrator → Git → Product Intake
   → Gate 1  Feature Plan（架构 + 故事表）          (woos-feature-plan)
   → Gate 1R Plan Review（双评审，fresh context）   (woos-plan-review-gate)
   → Gate 2  Story Loop（每个 story：TDD + Implement + Verify）
-  → Gate 3  Executable Acceptance
-  → Gate 4  Deviation Control
-  → Gate 5  Traceability
-  → Gate 6  Code / Security Review
-  → Gate 7  PR Readiness
+  → Gate 3  Review（代码 + 安全 + AC 覆盖 + 范围漂移）
+  → Gate 4  Ship（追溯矩阵 + PR readiness + gh pr create）
   → Workflow Memory
 ```
 
@@ -124,7 +121,7 @@ Lite 模式跳过 Gate 1、1R、4、5、6——适用于低风险小改动。
 - **Skill 间引用没 CI 校验。** SKILL.md 之间靠字符串相互引用（`woos-architect`、`woos-product-planner`……）。重命名/删除只有当 orchestrator 真去 dispatch 失败时才暴露。
 - **"完成"的定义停在 PR 合并。** 没有 post-merge 钩子，没有部署/观测/"roadmap 的成功指标真的动了吗"的回环。
 - **单人在用，没经过实战。** ECC/BMAD/Superpowers 有社区帮你踩坑，这条流水线只跑过一个人手上的少数 feature，很多失败模式还潜伏。
-- **DCR 摩擦可能反向激励隐藏偏离。** Gate 4 把未授权偏离当 blocker，AI 的最优策略可能是少报而不是诚实报。目前没有反向激励机制。
+- **DCR 摩擦可能反向激励隐藏偏离。** Gate 3 的范围漂移检查把未授权偏离当 blocker，AI 的最优策略可能是少报而不是诚实报。目前没有反向激励机制。
 - **DAG rollback 模糊。** 如果下游 story 已经基于上游 story commit，而上游需要 revert，级联回滚步骤是丢给 AI 想，没有写进工作流。
 
 ## 更新 `skills/ecc/`
@@ -150,9 +147,9 @@ git add skills/ecc && git commit
 | Skill | 角色 |
 |-------|------|
 | `woos-run-orchestrator` | 运行队列、并发、超时/重试 |
-| `woos-executable-acceptance-gate` | 机器可检查的完成标准 |
+| `woos-code-review-gate` | 单 gate 一次过：代码 / 安全 findings、PRD AC 覆盖、范围漂移、baseline 偏离对齐 |
 | `woos-failure-state-machine` | 确定性的重试/降级/升级 |
-| `woos-deviation-control-gate` | 实现 vs 规约的漂移拦截 |
+| `woos-pr-readiness` | 最终验证 + 机械生成的追溯矩阵 + PR 创建 |
 | `woos-workflow-memory` | 失败/返工模式的持久捕获 |
 | `woos-human-handoff` | 显式人工接管与恢复协议 |
 | `woos-review-context` | 跨 gate 的累积发现 |

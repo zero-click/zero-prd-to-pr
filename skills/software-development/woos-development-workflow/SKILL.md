@@ -1,7 +1,7 @@
 ---
 name: woos-development-workflow
-description: "Stage 3 of idea-to-delivery: gated engineering workflow that receives PRD, roadmap, and architecture inputs, decomposes into stories, and executes with TDD, traceability, and review gates."
-version: 3.0.0
+description: "Stage 3 of idea-to-delivery: gated engineering workflow that receives PRD, roadmap, and architecture inputs, decomposes into stories, and executes with TDD, review, and shipping gates."
+version: 4.0.0
 author: Hermes Profile
 license: MIT
 metadata:
@@ -64,17 +64,17 @@ Use **Lite** only for low-risk small changes that do not need a structured plan 
 ### Lite (small/low-risk)
 
 ```text
-Run Orchestrator → Git → Product Intake → Implement → Verify → Code Review → PR Readiness → Workflow Memory
+Run Orchestrator → Git → Product Intake → Implement → Verify → Review → Ship → Workflow Memory
 ```
 
 Criteria: limited scope, low coupling, no architecture/API changes, no security impact.
 
-Lite skips Gate 1 (Feature Plan), Gate 1R (Plan Review), Gate 3 (Executable Acceptance), Gate 4 (Deviation Control), and Gate 5 (Traceability). Code Review and PR Readiness still run, but their `spec_alignment` / `traceability` checks omit the engineering-plan artifact (see those skills' Lite Mode Adjustments).
+Lite skips Gate 1 (Feature Plan) and Gate 1R (Plan Review). Review (formerly Code Review) and Ship (formerly PR Readiness) still run, but their `spec_alignment` / `traceability` checks omit the engineering-plan artifact and skip the AC-coverage / scope-drift checks (see those skills' Lite Mode Adjustments).
 
 ### Standard (default full-gate flow)
 
 ```text
-Run Orchestrator → Git → Product Intake → Feature Plan → Plan Review → Story Loop (TDD+Implement+Verify) → Executable Acceptance → Deviation Control → Traceability → Code Review → PR Readiness → Workflow Memory
+Run Orchestrator → Git → Product Intake → Feature Plan → Plan Review → Story Loop (TDD+Implement+Verify) → Review → Ship → Workflow Memory
 ```
 
 Use when: default for product-designed features, multi-file change, design choices needed, moderate/high risk, security-sensitive scope, significant architecture/API/UI/database changes, or full traceability required.
@@ -101,13 +101,11 @@ Only these skills are allowed in this workflow:
 | Verify | `verification-loop` | imported |
 | E2E Testing | `e2e-testing` | imported (conditional) |
 | Browser QA | `browser-qa` | imported (conditional) |
-| Executable Acceptance | `woos-executable-acceptance-gate` | local |
-| Deviation Control | `woos-deviation-control-gate` | local |
-| Code/Security Review | `woos-code-review-gate` | local |
+| Review (code + security + AC coverage + scope drift) | `woos-code-review-gate` | local |
 | Security Review | `security-review` | imported |
 | Deployment Patterns | `deployment-patterns` | imported (conditional) |
 | Production Audit | `woos-production-audit` | local (conditional) |
-| PR Readiness | `woos-pr-readiness` | local |
+| Ship (traceability matrix + PR readiness) | `woos-pr-readiness` | local |
 | Workflow Memory | `woos-workflow-memory` | local |
 | Review Context (cross-gate) | `woos-review-context` | local |
 | Agent Decision (conflicts) | `woos-agent-decision` | local |
@@ -132,20 +130,20 @@ These rules prevent known failure modes observed in production agent runs.
 
 ### E1: Sub-Agent Knowledge Injection Protocol
 
-Before dispatching ANY review sub-agent (Gate 1R, Gate 6), the orchestrator MUST:
+Before dispatching ANY review sub-agent (Gate 1R, Gate 3), the orchestrator MUST:
 
 1. Read the relevant imported skill file(s) for that gate
 2. Inject the full skill content into the sub-agent's context/prompt
 3. The sub-agent must receive domain knowledge, not just a role name
 
 **Gate 1R dispatch must include:** full content of `woos-plan-review-gate` + `architecture-decision-records`
-**Gate 6 dispatch must include:** full content of `security-review` (+ `woos-production-audit` if applicable)
+**Gate 3 dispatch must include:** full content of `security-review` (+ `woos-production-audit` if applicable)
 
 Skipping this = sub-agent works without methodology = shallow "LGTM" output.
 
 ### E2: Structured Review Output Format
 
-All review gates (1R, 7) MUST produce structured findings, not prose verdicts.
+All review gates (1R, 3) MUST produce structured findings, not prose verdicts.
 
 **Required output format:**
 
@@ -298,81 +296,40 @@ Per-story check:
 - On retry, revert state via `git restore -- <diff_scope>` first; do not stack failed attempts
 - If still blocked → write DCR with context (see DCR section)
 
-### Gate 3 — Executable Acceptance
-
-**Skill:** `woos-executable-acceptance-gate`
-
-After ALL stories complete (or remaining are blocked):
-1. Map ALL PRD AC to executable checks.
-2. Missing automation is tracked as a blocker.
-3. **PASS** → Gate 4. **REQUEST_CHANGES** → return to Gate 2 (specific story).
-
-### Gate 4 — Deviation Control
-
-**Skill:** `woos-deviation-control-gate`
-
-1. Compare implementation against PRD, product architecture, and engineering plan artifacts.
-2. Unresolved deviations block progression.
-3. Intentional deviations require updated artifacts + rationale.
-4. **PASS** → Gate 5. **REQUEST_CHANGES** → return to Gate 2.
-
-### Gate 5 — Requirement Traceability
-
-**Skill:** built-in (traceability procedure)
-
-Trace from original PRD through design to implementation and tests.
-
-**Procedure:**
-
-1. Read PRD from `docs/prd/<version>/<feature-id>.md`
-2. Read engineering plan from `docs/engineering/<version>/<feature-id>-plan.md`
-3. For each PRD AC, trace the chain:
-
-| PRD AC | Plan Spec | Code | Test | Status |
-|--------|-----------|------|------|--------|
-| AC-4.5.1 | §API endpoint | routes/tasks.py:fn | test_file:test_fn | ✅ Aligned |
-| AC-6.2 | §Data model | N/A | N/A | ❌ Missing |
-
-4. Classify each AC:
-   - **✅ Aligned** — PRD, design, code, test all match
-   - **⚠️ Deviated** — implemented differently (rationale required)
-   - **❌ Missing** — not implemented or not tested
-   - **🆕 Added** — implemented but not in PRD (extra scope)
-
-5. Write output to `docs/traceability/<version>/<feature-id>-traceability.md`
-
-**Gate rules:**
-- **PASS** — all ACs ✅ or ⚠️ with rationale, zero ❌
-- **REQUEST_CHANGES** — any ❌, or ⚠️ without rationale → return to Gate 2
-
-### Gate 6 — Code/Security Review
+### Gate 3 — Review
 
 **Skill:** `woos-code-review-gate`
+
+This single gate absorbs what previous iterations split across Executable Acceptance, Deviation Control, and Code/Security Review. The hard rules below run in one pass against the diff + plan + PRD.
 
 1. Dispatch `woos-code-reviewer` in fresh context (no self-review).
 2. Sub-agent MUST be injected with relevant skill content (per E1):
    - Always: `coding-standards` knowledge
    - If security-sensitive (per E3 triggers): full `security-review` skill content
 3. If security-sensitive: dispatch `woos-security-reviewer` with `security-review` knowledge.
-4. If the woos-code-reviewer flags an architecture-level concern (component boundary, data model, or API contract change beyond the approved design), dispatch `woos-architect` with `mode: consult` to confirm interpretation before final verdict. Independent architecture conformance is owned by Gate 1R (for the design) and Gate 4 (for drift); Gate 6 escalates findings rather than re-deriving the architecture verdict.
+4. If the woos-code-reviewer flags an architecture-level concern beyond the approved plan, dispatch `woos-architect` with `mode: consult` to confirm interpretation before final verdict. Independent architecture review is owned by Gate 1R; Gate 3 escalates findings rather than re-deriving the architecture verdict.
 5. If applicable (per E3 triggers): invoke `woos-production-audit` for pre-merge readiness.
 6. Output MUST follow structured findings format (per E2). "LGTM" without findings table = INVALID, rerun.
-7. Uses `woos-review-context` for cumulative findings.
-8. Uses `woos-agent-decision` when reviewer verdicts conflict.
-9. **PASS** → Gate 7. **REQUEST_CHANGES** → return to Gate 2.
-10. 2 rounds without convergence → `woos-human-handoff`.
+7. Standard-mode hard checks (skipped in Lite):
+   - **AC coverage** — every PRD AC listed in the plan's Story Table has at least one passing test in scope (`ac_coverage_status: PASS`).
+   - **Scope drift** — every file in the diff appears in some story's declared `Diff Scope`, or is recorded as an intentional deviation with rationale (`scope_drift_status: PASS`).
+   - **Spec alignment / baseline deviation** — already in the skill's contract; baseline deviations need ADR + approval.
+8. Uses `woos-review-context` for cumulative findings.
+9. Uses `woos-agent-decision` when reviewer verdicts conflict.
+10. **PASS** → Gate 4. **REQUEST_CHANGES** → return to Gate 2 (specific story or plan update).
+11. 2 rounds without convergence → `woos-human-handoff`.
 
-### Gate 7 — PR Readiness
+### Gate 4 — Ship
 
-**Skill:** `woos-pr-readiness` (readiness check) + `git-workflow` (PR creation)
+**Skill:** `woos-pr-readiness` (readiness check + traceability matrix) + `git-workflow` (PR creation)
 
-1. All tests pass (unit + integration + e2e as applicable).
-2. Lint is clean, type check passes.
+1. Re-run `verification-loop` as a final safety net (catches any regression introduced after the last Gate 2 story finished).
+2. All tests pass (unit + integration + e2e as applicable). Lint clean, type check passes.
 3. No TODO/FIXME/HACK without linked issues.
-4. Traceability matrix provided (requirement → test → code).
+4. **Generate** `docs/traceability/<version>/<feature-id>-traceability.md` mechanically from the plan's Story Table + last verification-loop test outcomes (Standard mode only; skipped in Lite). The same matrix is inlined into the PR body.
 5. Conventional commit messages.
-6. PR description includes: story summary, test plan, blocked stories (if any with DCR refs).
-7. When `woos-pr-readiness` returns `PASS`, dispatch `git-workflow` to run `gh pr create`. PR creation is NOT performed by the readiness skill. Record the resulting PR URL in `run-manifest.yaml` under `gate-7-pr.pr_url`.
+6. PR description includes: story summary, test plan, traceability matrix, blocked stories (if any with DCR refs).
+7. When `woos-pr-readiness` returns `PASS`, dispatch `git-workflow` to run `gh pr create`. PR creation is NOT performed by the readiness skill. Record the resulting PR URL in `run-manifest.yaml` under `gate-4-pr.pr_url`.
 
 ### Post — Workflow Memory Update
 
@@ -431,11 +388,8 @@ gates:
   gate-1-plan: completed
   gate-1r-review: completed
   gate-2-execution: in_progress
-  gate-3-acceptance: pending
-  gate-4-deviation: pending
-  gate-5-traceability: pending
-  gate-6-codereview: pending
-  gate-7-pr: pending
+  gate-3-review: pending
+  gate-4-pr: pending
   post-memory: pending
 ```
 
@@ -449,11 +403,11 @@ gates:
 | L1 | `woos-product-intake` (Gate 0) | Read product inputs (PRD, roadmap, architecture, optional interface/UI) |
 | L2 | direct implementation | Implement tasks directly (no story decomposition) |
 | L3 | `verification-loop` | Verify (test + lint) |
-| L4 | `woos-code-review-gate` | Independent code review in fresh context (`execution_mode=Lite`, engineering-plan omitted from spec alignment) |
-| L5 | `woos-pr-readiness` + `git-workflow` | Readiness check then PR creation via `gh pr create` |
+| L4 | `woos-code-review-gate` | Independent code review in fresh context (`execution_mode=Lite`, engineering-plan omitted, AC-coverage & scope-drift checks skipped) |
+| L5 | `woos-pr-readiness` + `git-workflow` | Readiness check then PR creation via `gh pr create` (no traceability matrix in Lite) |
 | L6 | `woos-workflow-memory` | Capture failures and reusable patterns |
 
-Lite explicitly skips: Gate 1 Feature Plan, Gate 1R Plan Review, Gate 3 Executable Acceptance, Gate 4 Deviation Control, Gate 5 Traceability.
+Lite explicitly skips: Gate 1 Feature Plan, Gate 1R Plan Review.
 
 ---
 

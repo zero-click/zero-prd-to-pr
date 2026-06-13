@@ -115,7 +115,7 @@ For each affected domain (UI, backend, database, infra):
 - **ID**: `s<NN>` zero-padded from `s01`, stable across the run
 - **AC**: one PRD AC ID per row; hard cap of 3 strongly-coupled AC sharing test setup, comma-separated
 - **Depends**: `-` or comma-separated story IDs that must reach `completed` before this one starts
-- **Diff Scope**: comma-separated concrete paths (files or directories) the story is allowed to add/modify. This is the rollback boundary AND the deviation-control whitelist. Vague entries (`src/`, `**`, "wherever needed") are INVALID.
+- **Diff Scope**: comma-separated concrete paths (files or directories) the story is allowed to add/modify. This is the rollback boundary AND the Gate 3 scope-drift whitelist. Vague entries (`src/`, `**`, "wherever needed") are INVALID.
 
 ## Story Sizing Rules (AI-checkpoint semantics)
 

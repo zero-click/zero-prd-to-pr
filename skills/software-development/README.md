@@ -22,14 +22,11 @@ Product inputs (PRD + roadmap + architecture)
    ▼  Gate 1      Feature Plan (architecture + story table)   woos-feature-plan
    ▼  Gate 1R     Plan Review (fresh context, 2 reviewers)    woos-plan-review-gate
    ▼  Gate 2      Story Loop (per story in DAG order)
-   │              ├─ 3.1 TDD             tdd-workflow
-   │              ├─ 3.2 Implement       coding-standards
-   │              └─ 3.3 Verify          verification-loop
-   ▼  Gate 3      Executable Acceptance            woos-executable-acceptance-gate
-   ▼  Gate 4      Deviation Control                woos-deviation-control-gate
-   ▼  Gate 5      Requirement Traceability         (built-in)
-   ▼  Gate 6      Code + Security Review           woos-code-review-gate
-   ▼  Gate 7      PR Readiness                     woos-pr-readiness
+   │              ├─ 2.1 TDD             tdd-workflow
+   │              ├─ 2.2 Implement       coding-standards
+   │              └─ 2.3 Verify          verification-loop
+   ▼  Gate 3      Review (code + security + AC coverage + scope drift)  woos-code-review-gate
+   ▼  Gate 4      Ship (traceability matrix + PR readiness)              woos-pr-readiness
    ▼  Post        Workflow Memory                  woos-workflow-memory
    ▼
 PR created ✅
@@ -41,7 +38,7 @@ On unresolvable design issue → DCR → docs/feedback/<version>/<feature-id>-dc
 
 | Mode | When | Skipped gates |
 |------|------|---------------|
-| Lite | Low-risk, single small change, no arch impact | Gates 1, 1R, 4, 5, 6 |
+| Lite | Low-risk, single small change, no arch impact | Gates 1, 1R; Gate 3 still runs but skips AC-coverage and scope-drift checks; Gate 4 skips traceability matrix |
 | Standard (default) | Anything from a product-design pipeline | none |
 
 Mode is determined by PRD scope and risk, not by the developer.
@@ -53,12 +50,10 @@ Mode is determined by PRD scope and risk, not by the developer.
 | 0 Product Intake | (built-in) | Validates PRD + roadmap + architecture; records paths in `run-manifest.yaml`. First run on a repo: invokes `codebase-onboarding`. |
 | 1 Feature Plan | `woos-feature-plan` (uses `woos-architect` `mode: author` + `woos-product-planner` `mode: planning`) | Single per-feature `docs/engineering/<version>/<feature-id>-plan.md` containing Architecture / Test Strategy / Rollout & Rollback / Security & Risk / Baseline & Deviation / **Story Table** (`ID \| AC \| Depends \| Diff Scope`). Interface/API contracts and data model live in the PRD's `<feature-id>-interface.md`, not here. |
 | 1R Plan Review | `woos-plan-review-gate` (uses `woos-architect` `mode: review` + `woos-product-planner` `mode: story-review`) | One review covering both architecture decisions and story decomposition in fresh contexts; `PASS` / `REQUEST_CHANGES`. 2 failed rounds → `woos-human-handoff`. |
-| 3 Story Loop | `tdd-workflow`, `coding-standards`, `verification-loop` | Per story (DAG order from the plan's Story Table): RED→GREEN→REFACTOR → implement → verify. Conditional: `database-migrations`, `e2e-testing`, `browser-qa`. A blocked story does NOT block independent stories. |
-| 4 Executable Acceptance | `woos-executable-acceptance-gate` | Every PRD AC mapped to an executable check. Missing automation = blocker. |
-| 5 Deviation Control | `woos-deviation-control-gate` | Implementation vs PRD/architecture/plan; unresolved deviations block. Intentional deviation requires ADR. |
-| 6 Requirement Traceability | (built-in) | `docs/traceability/<version>/<feature-id>-traceability.md` table: PRD AC → plan → code → test → status. Zero ❌ to pass. |
-| 7 Code / Security Review | `woos-code-review-gate` → `woos-code-reviewer` (+ `woos-security-reviewer` when triggered, `woos-production-audit` when applicable) | Fresh-context review with knowledge injection (E1). Output is a structured findings table (E2). |
-| 8 PR Readiness | `woos-pr-readiness` | Final check: tests green, lint clean, no orphan TODOs, traceability matrix attached. Creates the PR via `gh pr create`. |
+| 2 Story Loop | `tdd-workflow`, `coding-standards`, `verification-loop` | Per story (DAG order from the plan's Story Table): RED→GREEN→REFACTOR → implement → verify. Conditional: `database-migrations`, `e2e-testing`, `browser-qa`. A blocked story does NOT block independent stories. |
+| 3 Review | `woos-code-review-gate` → `woos-code-reviewer` (+ `woos-security-reviewer` when triggered, `woos-production-audit` when applicable) | Fresh-context review with knowledge injection (E1). Hard checks in one pass: code/security findings (structured table per E2), **AC coverage** (every PRD AC has a passing test), **scope drift** (every changed file is in some story's Diff Scope), baseline/deviation alignment. |
+| 4 Ship | `woos-pr-readiness` + `git-workflow` | Re-runs `verification-loop` as a safety net, mechanically generates `docs/traceability/<version>/<feature-id>-traceability.md` from the plan's Story Table + last test outcomes, attaches it to the PR body, then creates the PR via `gh pr create`. |
+| Post Workflow Memory | `woos-workflow-memory` | Persists failure/rework patterns and plan-quality signals for future runs. |
 | Post Workflow Memory | `woos-workflow-memory` | Persists failure/rework patterns and plan-quality signals for future runs. |
 
 ## Story Table (inside the Gate 1 plan)
@@ -86,7 +81,7 @@ Three non-negotiable rules learned from production agent failures:
 ## Skill Map
 
 **Local (`woos-*`):**
-`woos-development-workflow` (entry), `woos-feature-plan`, `woos-plan-review-gate`, `woos-executable-acceptance-gate`, `woos-deviation-control-gate`, `woos-code-review-gate`, `woos-pr-readiness`, `woos-workflow-memory`, `woos-run-orchestrator`, `woos-failure-state-machine`, `woos-human-handoff`, `woos-review-context`, `woos-agent-decision`, `woos-systematic-debugging`, `woos-architect`, `woos-product-planner`, `woos-code-reviewer`, `woos-security-reviewer`, `woos-production-audit`.
+`woos-development-workflow` (entry), `woos-feature-plan`, `woos-plan-review-gate`, `woos-code-review-gate`, `woos-pr-readiness`, `woos-workflow-memory`, `woos-run-orchestrator`, `woos-failure-state-machine`, `woos-human-handoff`, `woos-review-context`, `woos-agent-decision`, `woos-systematic-debugging`, `woos-architect`, `woos-product-planner`, `woos-code-reviewer`, `woos-security-reviewer`, `woos-production-audit`.
 
 **Imported (`skills/ecc/`):**
 `git-workflow`, `tdd-workflow`, `coding-standards`, `verification-loop`, `api-design`, `browser-qa`, `e2e-testing`, `security-review`, `architecture-decision-records`, `database-migrations`, `deployment-patterns`, `codebase-onboarding`.
@@ -115,5 +110,5 @@ When engineering hits a design issue it cannot resolve inside scope:
     ├── engineering/<version>/<feature-id>-plan.md  ← Gate 1 (incl. Story Table)
     ├── adr/                                  ← ADR captures
     ├── feedback/<version>/<feature-id>-dcr-<NNN>.md  ← DCR
-    └── traceability/<version>/<feature-id>-traceability.md  ← Gate 5
+    └── traceability/<version>/<feature-id>-traceability.md  ← Gate 4 (auto-generated)
 ```

@@ -35,7 +35,7 @@ Enforce independent review before PR readiness.
 
 ## Contract
 
-- Input: current diff + linked artifacts (PRD, roadmap, architecture, and supporting interface/UI artifacts; engineering design when produced — required in Standard mode, omitted in Lite mode where Gate 1 is skipped) + prior review context
+- Input: current diff + linked artifacts (PRD, roadmap, architecture, engineering plan, and supporting interface/UI artifacts; engineering plan required in Standard mode, omitted in Lite mode where Gate 1 is skipped) + prior review context
 - Output status: `PASS` | `REQUEST_CHANGES` | `NOT_RUN` | `BLOCKED`
 - Output content: blocking and non-blocking findings
 - Output fields (required):
@@ -49,10 +49,14 @@ Enforce independent review before PR readiness.
   - `carry_forward_findings`
   - `review_context_file`
   - `execution_mode: Lite | Standard`
-  - `engineering_design_present: true|false` (true required in Standard; false allowed only when `execution_mode=Lite`)
+  - `engineering_plan_present: true|false` (true required in Standard; false allowed only when `execution_mode=Lite`)
   - `spec_alignment_status: PASS | REQUEST_CHANGES`
   - `spec_deviation_findings`
   - `intentional_deviations`
+  - `ac_coverage_status: PASS | REQUEST_CHANGES`
+  - `ac_coverage_gaps` (PRD AC IDs without a passing test)
+  - `scope_drift_status: PASS | REQUEST_CHANGES`
+  - `scope_drift_findings` (files touched outside any story's declared `Diff Scope`)
   - `baseline_compliance_status: PASS | REQUEST_CHANGES`
   - `deviation_detected: true|false`
   - `deviation_adr_path` (required when deviation_detected=true)
@@ -63,13 +67,31 @@ Enforce independent review before PR readiness.
 ## Spec Alignment Requirements (hard gate)
 
 - Review MUST explicitly compare implementation against the linked artifacts that exist for the active mode:
-  - **Standard:** PRD, roadmap, architecture, engineering design, supporting interface/UI artifacts when available.
+  - **Standard:** PRD, roadmap, architecture, engineering plan, supporting interface/UI artifacts when available.
   - **Lite:** PRD, roadmap, architecture, supporting interface/UI artifacts when available. There is no engineering plan artifact in Lite (Gate 1 is skipped); absence of `engineering-plan` MUST NOT cause `REQUEST_CHANGES` and MUST NOT be fabricated.
 - Any behavior/interface/data/policy deviation MUST be recorded in `spec_deviation_findings`.
 - If deviation is intentional, add rationale and artifact update status in `intentional_deviations`.
 - If unresolved deviation exists, set `spec_alignment_status: REQUEST_CHANGES`.
 
-Gate passes only when all required reviewers are clear and `spec_alignment_status` is `PASS`.
+## AC Coverage (hard gate, Standard mode only)
+
+This gate absorbs what the prior Gate 3 (Executable Acceptance) used to do.
+
+- For every PRD AC ID referenced in the plan's Story Table, the reviewer MUST locate at least one test in the current diff (or pre-existing passing test referenced by a story's `Diff Scope`) that exercises that AC.
+- Missing-test AC IDs MUST be listed in `ac_coverage_gaps`.
+- Any non-empty `ac_coverage_gaps` sets `ac_coverage_status: REQUEST_CHANGES`.
+- Skipped in Lite mode.
+
+## Scope Drift Detection (hard gate, Standard mode only)
+
+This gate absorbs what the prior Gate 4 (Deviation Control) used to do.
+
+- The reviewer MUST compare the union of all stories' `Diff Scope` (from the plan's Story Table) against the actual files touched in the diff.
+- Files touched but NOT in any story's `Diff Scope` MUST be listed in `scope_drift_findings`.
+- Any non-empty `scope_drift_findings` sets `scope_drift_status: REQUEST_CHANGES` unless an intentional deviation with rationale is recorded in `intentional_deviations` (and the plan was updated accordingly).
+- Skipped in Lite mode.
+
+Gate passes only when all required reviewers are clear AND `spec_alignment_status`, `ac_coverage_status`, `scope_drift_status`, `baseline_compliance_status` are all `PASS`.
 
 ## Security Scope Trigger (hard gate)
 
