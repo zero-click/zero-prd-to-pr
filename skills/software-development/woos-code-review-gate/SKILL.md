@@ -112,7 +112,7 @@ Gate passes only when all required reviewers are clear AND every status field is
 3. Require one-pass complete findings; partial-first feedback is invalid.
 4. Resolve reviewer disagreement by merging both reviewers' findings into one structured table; overall verdict is REQUEST_CHANGES if any reviewer says so.
 5. Update `woos-review-context` with resolved/carry-forward findings.
-6. Persist review result to the same `<workspace_root>/hep/review-context/<run_id>.yaml`.
+6. Persist review result to the same `<workspace_root>/.ratchet/review-context/<run_id>.yaml`.
 7. Reject baseline deviations without ADR+approval.
 8. Reject unconfirmed architectural freezes.
 

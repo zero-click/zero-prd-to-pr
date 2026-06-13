@@ -98,7 +98,7 @@ Gate 1 把 story 执行表作为 `docs/engineering/<version>/<feature-id>-plan.m
 
 ```
 <project-root>/
-├── hep/
+├── .ratchet/
 │   ├── runs/<run_id>/run-manifest.yaml      ← gate 进度 + 运行时 story 状态
 │   └── review-context/<run_id>.yaml         ← 跨 gate 累积发现
 └── docs/

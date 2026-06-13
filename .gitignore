@@ -17,6 +17,10 @@ __pycache__/
 # IDE
 .idea/
 .vscode/
+
+# Workflow runtime state (zero-ratchet)
+.ratchet/
+
 note.txt
 *~
 a.md

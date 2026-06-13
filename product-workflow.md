@@ -26,7 +26,7 @@ The orchestrator only tracks: current step, output file paths, pass/fail status.
 | 1 | Idea Capture | ✅ | analyst | `ideas/<slug>/00-idea-capture.md` | `personas/analyst.toml`<br>`templates/brief-template.md` |
 | 2 | Problem Validation | ✅ | analyst | ↑ appends `## Problem Validation` (PROCEED/PIVOT/PARK) | `personas/analyst.toml`<br>`frameworks/customer-pain-points.md` |
 | 3 | Research & Validation | ✅ | analyst | `docs/research/<topic>.md` | `frameworks/market-research.md`<br>`frameworks/competitive-analysis.md` |
-| 4 | Run Initialization | ❌ orchestrator | — | `.hep/runs/<run_id>/run-manifest.yaml` | _(none)_ |
+| 4 | Run Initialization | ❌ orchestrator | — | `.ratchet/runs/<run_id>/run-manifest.yaml` | _(none)_ |
 | 5 | Product Vision & Roadmap | ✅ | pm | `docs/product/<project>-roadmap.md` | `personas/pm.toml`<br>`frameworks/create-prd.md` |
 | 5R | Roadmap Review | ✅ | product-strategist | `docs/reviews/<project>-roadmap-review-rN.md` | `frameworks/validate-prd.md`<br>`templates/prd-validation-checklist.md` |
 | 6 | System Architecture | ✅ | architect | `docs/product/<project>-architecture.md` | `personas/architect.toml`<br>`frameworks/create-architecture.md` |
@@ -185,7 +185,7 @@ Every step declares explicit `input` and `output` so the next agent knows exactl
 
 | Step | Input | Output |
 |------|-------|--------|
-| 1 Idea Capture | _(user conversation)_ | `ideas/<slug>/00-idea-capture.md` + `.hep/runs/<run_id>/run-manifest.yaml` |
+| 1 Idea Capture | _(user conversation)_ | `ideas/<slug>/00-idea-capture.md` + `.ratchet/runs/<run_id>/run-manifest.yaml` |
 | 2 Problem Validation | `ideas/<slug>/00-idea-capture.md` | `ideas/<slug>/00-idea-capture.md` → appends `## Problem Validation` |
 | 3 Research | `ideas/<slug>/00-idea-capture.md` (full text) | `docs/research/<topic>.md` |
 | 4 Roadmap | `ideas/<slug>/00-idea-capture.md` + `docs/research/*.md` | `docs/product/<project>-roadmap.md` |
@@ -304,7 +304,7 @@ Each review criterion includes a `Fix Hint` — a one-line instruction telling t
 
 ### State File
 
-Every run tracks progress in `.hep/runs/<run_id>/run-manifest.yaml`.
+Every run tracks progress in `.ratchet/runs/<run_id>/run-manifest.yaml`.
 The manifest is created at **Step 1** (Idea Capture) so that even early crashes can recover.
 
 ```yaml
@@ -338,7 +338,7 @@ stages:
 When orchestrator starts (or restarts after crash):
 
 ```
-1. Read `.hep/runs/<run_id>/run-manifest.yaml`
+1. Read `.ratchet/runs/<run_id>/run-manifest.yaml`
 2. Find first step where status != done
 3. Check if output file for that step exists:
    a. EXISTS + well-formed → mark step done, advance

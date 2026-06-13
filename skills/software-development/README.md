@@ -98,7 +98,7 @@ When engineering hits a design issue it cannot resolve inside scope:
 
 ```
 <project-root>/
-├── hep/
+├── .ratchet/
 │   ├── runs/<run_id>/run-manifest.yaml      ← gate progress + runtime story state
 │   └── review-context/<run_id>.yaml         ← cumulative cross-gate findings
 └── docs/

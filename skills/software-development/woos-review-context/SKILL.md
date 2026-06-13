@@ -23,8 +23,8 @@ Provide a shared, cumulative review memory across PRD/design/code/security gates
 ## Persistence Contract (mandatory)
 
 - Review context MUST be stored on disk (not only in transient prompt state).
-- Canonical runtime root: `<workspace_root>/hep`.
-- Default path: `<workspace_root>/hep/review-context/<run_id>.yaml`.
+- Canonical runtime root: `<workspace_root>/.ratchet`.
+- Default path: `<workspace_root>/.ratchet/review-context/<run_id>.yaml`.
 - `review-context/` directory is created lazily by orchestrator/runtime when missing.
 - For gated runs, `run_id` is mandatory. If unavailable, return `BLOCKED`.
 - Every review gate update MUST overwrite the same run file and append a new `gate_entry`.
@@ -72,7 +72,7 @@ Provide a shared, cumulative review memory across PRD/design/code/security gates
       {
         "skill": "woos-review-context",
         "invoked_at": "2026-05-12T22:00:00Z",
-        "artifact_ref": "<workspace_root>/hep/review-context/<run_id>.yaml",
+        "artifact_ref": "<workspace_root>/.ratchet/review-context/<run_id>.yaml",
         "output_digest": "sha256:..."
       }
     ],

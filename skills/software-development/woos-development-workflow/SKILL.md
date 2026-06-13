@@ -443,8 +443,8 @@ Cross-gate control skills:
 
 Persistence:
 
-- Run manifest: `<workspace_root>/hep/runs/<run_id>/run-manifest.yaml`
-- Review context: `<workspace_root>/hep/review-context/<run_id>.yaml`
+- Run manifest: `<workspace_root>/.ratchet/runs/<run_id>/run-manifest.yaml`
+- Review context: `<workspace_root>/.ratchet/review-context/<run_id>.yaml`
 - Engineering plan (incl. Story Table): `<workspace_root>/docs/engineering/<version>/<feature-id>-plan.md`
 - For gated runs, `run_id` is mandatory; if missing, return `BLOCKED`.
 
@@ -452,7 +452,7 @@ Persistence:
 
 ```text
 <project-root>/
-├── hep/
+├── .ratchet/
 │   ├── runs/<run_id>/
 │   │   └── run-manifest.yaml
 │   └── review-context/<run_id>.yaml

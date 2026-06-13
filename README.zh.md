@@ -158,4 +158,4 @@ git add skills/ecc && git commit
 
 - ADR 模板位于消费方项目：`docs/adr/ADR-template.md`
 - 设计/代码评审 gate 必须输出 `baseline_compliance_status`、`deviation_detected`、`deviation_adr_path`
-- Run 结束时需要一份已验证的 run-manifest：`<workspace_root>/hep/runs/<run_id>/run-manifest.yaml`
+- Run 结束时需要一份已验证的 run-manifest：`<workspace_root>/.ratchet/runs/<run_id>/run-manifest.yaml`

@@ -158,4 +158,4 @@ Seven infrastructure skills that make the gated flow run hands-off:
 
 - ADR template lives in the consuming project: `docs/adr/ADR-template.md`
 - Design / code review gates emit `baseline_compliance_status`, `deviation_detected`, `deviation_adr_path`
-- Run finalization requires a verified run manifest: `<workspace_root>/hep/runs/<run_id>/run-manifest.yaml`
+- Run finalization requires a verified run manifest: `<workspace_root>/.ratchet/runs/<run_id>/run-manifest.yaml`

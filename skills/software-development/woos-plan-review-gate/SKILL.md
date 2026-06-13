@@ -72,7 +72,7 @@ Both MUST run; a one-reviewer pass is invalid.
 4. Require one-pass complete findings from each reviewer; partial-first feedback is invalid.
 5. Reviewer-conflict rule: any REQUEST_CHANGES → overall REQUEST_CHANGES (e.g. architect says PASS, planner says REQUEST_CHANGES → overall REQUEST_CHANGES). Both reviewers' findings are merged into the structured output table.
 6. Update `woos-review-context` with resolved / carry-forward findings.
-7. Persist review result to `<workspace_root>/hep/review-context/<run_id>.yaml`.
+7. Persist review result to `<workspace_root>/.ratchet/review-context/<run_id>.yaml`.
 8. Reject baseline deviations without ADR + approval.
 9. Reject unconfirmed architectural freezes.
 10. Reject story tables with orphan AC, DAG cycles, vague diff scopes, or unordered overlap.

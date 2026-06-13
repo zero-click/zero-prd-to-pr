@@ -29,16 +29,16 @@ Provide execution control plane for near-unattended workflow runs.
 
 Runtime root resolution:
 
-- `hep_root = <workspace_root>/hep` (canonical default)
-- All run artifacts MUST be persisted under `hep_root` for discoverability.
+- `ratchet_root = <workspace_root>/.ratchet` (canonical default)
+- All run artifacts MUST be persisted under `ratchet_root` for discoverability.
 - Runtime directories are **lazy-created by orchestrator at run start**; pre-existing `runs/` is NOT required.
 
 Required runtime directories:
 
-- `<hep_root>/runs/<run_id>/`
-- `<hep_root>/review-context/`
+- `<ratchet_root>/runs/<run_id>/`
+- `<ratchet_root>/review-context/`
 
-Required file: `<hep_root>/runs/<run_id>/run-manifest.yaml`
+Required file: `<ratchet_root>/runs/<run_id>/run-manifest.yaml`
 
 Required sections:
 
@@ -53,7 +53,7 @@ If file or required sections are missing, status MUST be `BLOCKED`.
 ## Execution Contract
 
 1. Admit run with a unique run id.
-2. Initialize runtime directories under `<workspace_root>/hep` when missing.
+2. Initialize runtime directories under `<workspace_root>/.ratchet` when missing.
 3. Assign stage ownership and dependencies.
 4. Enforce timeout/retry policy.
 5. Emit stage status transitions.
